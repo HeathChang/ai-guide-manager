@@ -1,0 +1,28 @@
+# AI tool configs (개인 환경 — .ruler/는 공유)
+CLAUDE.md
+.cursorrules
+.claude/*
+.ruler/*
+# .github/copilot-instructions.md  # 필요 시 추가
+# .windsurfrules                    # 필요 시 추가
+# .clinerules                       # 필요 시 추가
+
+# Node
+node_modules
+dist
+dist-ssr
+*.local
+
+# Env
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode
+.idea
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,122 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* colors (RGB triplets for <alpha-value> support) */
+    --color-bg-base: 248 250 252;
+    --color-bg-card: 255 255 255;
+    --color-bg-muted: 241 245 249;
+    --color-bg-accent: 14 165 233;
+
+    --color-text-main: 15 23 42;
+    --color-text-muted: 100 116 139;
+    --color-text-inverse: 255 255 255;
+    --color-text-accent: 14 165 233;
+
+    --color-border-base: 226 232 240;
+    --color-border-accent: 14 165 233;
+
+    --color-brand: 14 165 233;
+    --color-brand-hover: 2 132 199;
+    --color-danger: 220 38 38;
+
+    --radius-card: 12px;
+    --radius-btn: 8px;
+
+    color-scheme: light;
+  }
+
+  :root[data-theme='dark'] {
+    --color-bg-base: 15 23 42;        /* slate-900 */
+    --color-bg-card: 30 41 59;        /* slate-800 */
+    --color-bg-muted: 51 65 85;       /* slate-700 */
+    --color-bg-accent: 56 189 248;    /* sky-400 */
+
+    --color-text-main: 241 245 249;   /* slate-100 */
+    --color-text-muted: 148 163 184;  /* slate-400 */
+    --color-text-inverse: 15 23 42;   /* slate-900 */
+    --color-text-accent: 56 189 248;  /* sky-400 */
+
+    --color-border-base: 51 65 85;    /* slate-700 */
+    --color-border-accent: 56 189 248;
+
+    --color-brand: 56 189 248;        /* sky-400 */
+    --color-brand-hover: 125 211 252; /* sky-300 */
+    --color-danger: 248 113 113;      /* red-400 */
+
+    color-scheme: dark;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-bg-base text-text-main antialiased;
+    font-family: Pretendard, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  button {
+    @apply cursor-pointer;
+  }
+
+  *:focus-visible {
+    @apply outline-none ring-2 ring-border-accent ring-offset-2 ring-offset-bg-base;
+  }
+}
+
+@layer components {
+  .markdown-body {
+    @apply text-text-main leading-relaxed;
+  }
+  .markdown-body h1 {
+    @apply text-3xl font-bold mt-6 mb-4 pb-2 border-b border-border-base;
+  }
+  .markdown-body h2 {
+    @apply text-2xl font-semibold mt-6 mb-3 pb-1 border-b border-border-base;
+  }
+  .markdown-body h3 {
+    @apply text-xl font-semibold mt-5 mb-2;
+  }
+  .markdown-body h4 {
+    @apply text-lg font-semibold mt-4 mb-2;
+  }
+  .markdown-body p {
+    @apply my-3;
+  }
+  .markdown-body ul {
+    @apply list-disc pl-6 my-3 space-y-1;
+  }
+  .markdown-body ol {
+    @apply list-decimal pl-6 my-3 space-y-1;
+  }
+  .markdown-body code {
+    @apply bg-bg-muted px-1.5 py-0.5 rounded text-sm font-mono;
+  }
+  .markdown-body pre {
+    @apply bg-bg-muted p-4 rounded-card overflow-x-auto my-4;
+  }
+  .markdown-body pre code {
+    @apply bg-transparent p-0;
+  }
+  .markdown-body blockquote {
+    @apply border-l-4 border-border-accent pl-4 my-4 text-text-muted italic;
+  }
+  .markdown-body table {
+    @apply w-full my-4 border-collapse;
+  }
+  .markdown-body th,
+  .markdown-body td {
+    @apply border border-border-base px-3 py-2 text-left;
+  }
+  .markdown-body th {
+    @apply bg-bg-muted font-semibold;
+  }
+  .markdown-body a {
+    @apply text-brand underline hover:text-brand-hover;
+  }
+}
