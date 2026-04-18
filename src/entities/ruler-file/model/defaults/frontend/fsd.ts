@@ -1,4 +1,11 @@
-export const frontendFsd = `# Feature-Sliced Design (FSD)
+export const frontendFsd = `---
+title: Feature-Sliced Design
+stack: frontend
+category: 아키텍처
+extends: [base.md, frontend.md]
+---
+
+# Feature-Sliced Design (FSD)
 
 > \`base.md\`, \`frontend.md\` 규칙을 상속한다. FSD 아키텍처 규칙이다.
 
@@ -24,11 +31,6 @@ export const frontendFsd = `# Feature-Sliced Design (FSD)
 \`\`\`
 app → pages → widgets → features → entities → shared
 \`\`\`
-
-**위반 예시 (금지)**
-- \`entities\` → \`features\`
-- \`shared\` → \`entities\`
-- \`features\` → \`pages\`
 
 ## Public API (barrel export)
 
@@ -57,9 +59,35 @@ features/
 
 판단 불가 시 **작성 멈추고 사용자에게 질문**한다.
 
-## 금지 패턴
+## 패턴 (DO / DON'T)
 
-- 레이어 역방향 import
-- 슬라이스 내부 파일 직접 import
-- feature 간 직접 참조 (공통화 필요 시 상위 레이어 또는 shared 이동)
+### 의존성 방향
+
+\`\`\`ts
+// DON'T — entities가 features 참조 (역방향)
+// entities/user/model/user.ts
+import { loginAction } from '@/features/login';
+
+// DO — features가 entities를 참조
+// features/login/model/use-login.ts
+import { User } from '@/entities/user';
+\`\`\`
+
+### Public API 접근
+
+\`\`\`ts
+// DON'T — 슬라이스 내부 파일 직접 import
+import { useLogin } from '@/features/login/model/use-login';
+
+// DO — barrel export 경유
+import { useLogin } from '@/features/login';
+\`\`\`
+
+### 기타 금지/권장
+
+| DON'T | DO |
+|-------|-----|
+| feature → feature 직접 참조 | 공통 로직은 entities/shared로 승격 |
+| shared → entities 참조 | shared는 도메인 모름, 반대 방향만 허용 |
+| 판단 안 될 때 "일단 shared" | 멈추고 질문 |
 `;

@@ -1,6 +1,13 @@
-export const backendTesting = `# Backend Testing
+export const backendTesting = `---
+title: 테스트
+stack: backend
+category: 품질
+extends: [base.md, backend.md]
+---
 
-> 테스트 피라미드와 전략 규칙이다.
+# Backend Testing
+
+> \`base.md\`, \`backend.md\`를 상속한다. 테스트 피라미드와 전략 규칙이다.
 
 ## 테스트 피라미드
 
@@ -40,9 +47,36 @@ export const backendTesting = `# Backend Testing
 - 버그 수정 시 **회귀 테스트**를 먼저 작성.
 - flaky 테스트는 고치기 전까지 머지 금지.
 
-## 금지 패턴
+## 패턴 (DO / DON'T)
 
-- 내부 모듈 과도한 모킹 (설계 문제의 신호)
-- 실행 순서에 의존하는 테스트
-- 테스트에서 프로덕션 환경 변수 사용
+### Repository 테스트
+
+\`\`\`ts
+// DON'T — DB를 모킹하면 SQL/매핑 버그를 못 잡음
+const db = { query: vi.fn().mockResolvedValue([{ id: 1 }]) };
+
+// DO — Testcontainers로 실제 DB
+const container = await new PostgreSqlContainer().start();
+const repo = new UserRepo(buildClient(container.getConnectionUri()));
+\`\`\`
+
+### 하나의 동작
+
+\`\`\`ts
+// DON'T — 한 테스트에서 여러 동작
+it('create + find + delete', async () => { ... });
+
+// DO — 동작 단위 분할
+it('should create user with given email', async () => { ... });
+it('should find user by id', async () => { ... });
+\`\`\`
+
+### 기타 금지/권장
+
+| DON'T | DO |
+|-------|-----|
+| 내부 모듈 과도 모킹 | 경계(HTTP/DB)만 모킹 |
+| 실행 순서에 의존하는 테스트 | 각 테스트 독립(before/after 격리) |
+| 프로덕션 환경 변수 사용 | \`.env.test\` + 격리된 DB |
+| 프로덕션 데이터 덤프 사용 | 팩토리로 필요 최소 데이터 |
 `;

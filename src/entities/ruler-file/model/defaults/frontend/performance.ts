@@ -1,6 +1,13 @@
-export const frontendPerformance = `# Frontend Performance
+export const frontendPerformance = `---
+title: 성능
+stack: frontend
+category: 성능
+extends: [base.md, frontend.md]
+---
 
-> Core Web Vitals 기준선과 최적화 원칙이다.
+# Frontend Performance
+
+> \`base.md\`, \`frontend.md\`를 상속한다. Core Web Vitals 기준선과 최적화 원칙이다.
 
 ## 목표치 (Core Web Vitals)
 
@@ -35,9 +42,41 @@ export const frontendPerformance = `# Frontend Performance
 - \`memo\` / \`useMemo\` 추가 전 **비용 근거**를 주석으로 명시.
 - 새 의존성 추가 시 번들 영향(gzip size)을 확인.
 
-## 금지 패턴
+## 패턴 (DO / DON'T)
 
-- 추측 기반 최적화 (\`memo\` / \`useMemo\` 남발)
-- 거대 이미지 원본 그대로 로드
-- 메인 스레드를 막는 동기 큰 계산
+### memo / useMemo
+
+\`\`\`tsx
+// DON'T — 근거 없는 최적화
+const Row = memo(({ item }) => <div>{item.name}</div>);
+const total = useMemo(() => a + b, [a, b]);
+
+// DO — 프로파일로 확인된 병목에만
+// Row는 10k 리스트의 아이템, props 안 바뀜 — React Profiler 측정 근거
+const Row = memo(({ item }) => <ExpensiveSubtree item={item} />);
+\`\`\`
+
+### 이미지
+
+\`\`\`tsx
+// DON'T — 원본 크기 그대로
+<img src="/hero-4000x3000.png" />
+
+// DO — 반응형 + lazy + 최신 포맷
+<img
+  src="/hero-800.webp"
+  srcSet="/hero-400.webp 400w, /hero-800.webp 800w"
+  loading="lazy"
+  width="800"
+  height="600"
+/>
+\`\`\`
+
+### 기타 금지/권장
+
+| DON'T | DO |
+|-------|-----|
+| 추측 기반 \`memo\` / \`useMemo\` | 프로파일 측정 후 적용 |
+| 메인 스레드를 막는 동기 큰 계산 | Web Worker / 청크 분할 |
+| 모든 페이지 단일 번들 | 라우트 단위 \`lazy\` + Suspense |
 `;

@@ -1,6 +1,13 @@
-export const frontendSecurity = `# Frontend Security
+export const frontendSecurity = `---
+title: 보안
+stack: frontend
+category: 보안
+extends: [base.md]
+---
 
-> 프론트엔드 보안 규칙이다.
+# Frontend Security
+
+> \`base.md\`를 상속한다. 프론트엔드 보안 규칙이다.
 
 ## 입력 값 처리
 
@@ -31,9 +38,34 @@ export const frontendSecurity = `# Frontend Security
 - 외부 입력값을 그대로 렌더링하면 XSS 위험 알림.
 - \`dangerouslySetInnerHTML\` 사용 시 새니타이즈 여부 확인.
 
-## 금지 패턴
+## 패턴 (DO / DON'T)
 
-- \`eval\`, \`Function\` 생성자
-- 동적 \`script\` 태그 주입 (없이는 불가피한 경우 CSP 검토)
-- \`localStorage\`에 토큰 저장 (XSS 취약)
+### dangerouslySetInnerHTML
+
+\`\`\`tsx
+// DON'T — 외부 입력 그대로 주입
+<div dangerouslySetInnerHTML={{ __html: userInput }} />
+
+// DO — 가능하면 텍스트로, 불가피하면 새니타이즈
+import DOMPurify from 'dompurify';
+<div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(userInput) }} />
+\`\`\`
+
+### 토큰 저장
+
+\`\`\`ts
+// DON'T — XSS로 탈취 가능
+localStorage.setItem('token', token);
+
+// DO — 서버에서 httpOnly + Secure + SameSite 쿠키로 발급
+// 클라이언트 코드에는 토큰 접근 자체가 필요 없음
+\`\`\`
+
+### 기타 금지/권장
+
+| DON'T | DO |
+|-------|-----|
+| \`eval\`, \`Function\` 생성자 | 정적 파싱 (\`JSON.parse\`, 라이브러리) |
+| 동적 \`script\` 태그 주입 | 빌드 타임 의존성 + CSP |
+| 하드코딩된 API 키 | 환경 변수 + 서버 프록시 |
 `;

@@ -1,6 +1,13 @@
-export const backendLogging = `# Logging & Observability
+export const backendLogging = `---
+title: 로깅
+stack: backend
+category: 운영
+extends: [base.md, backend.md]
+---
 
-> 로깅·추적·모니터링 규칙이다.
+# Logging & Observability
+
+> \`base.md\`, \`backend.md\`를 상속한다. 로깅·추적·모니터링 규칙이다.
 
 ## 로그 레벨
 
@@ -47,9 +54,37 @@ export const backendLogging = `# Logging & Observability
 - PII를 로그에 포함하는 코드는 경고.
 - catch 블록의 로그는 **trace 포함** (스택트레이스).
 
-## 금지 패턴
+## 패턴 (DO / DON'T)
 
-- \`System.out.println\`, \`fmt.Println\`, \`console.log\`
-- 평문 비밀번호/토큰 로깅
-- 반복 이벤트를 ERROR로 (WARN/메트릭으로)
+### PII 마스킹
+
+\`\`\`ts
+// DON'T — 평문 PII·시크릿 로깅
+logger.info('login', { email: user.email, password: req.body.password });
+
+// DO — 마스킹 + 식별자만
+logger.info('login', { userId: user.id, emailMasked: mask(user.email) });
+\`\`\`
+
+### 에러 로깅
+
+\`\`\`ts
+// DON'T — 반복 이벤트를 ERROR로
+catch (e) { logger.error('user retry'); }
+
+// DO — 레벨 구분 + 스택트레이스
+catch (e) {
+  if (isRetryable(e)) logger.warn({ err: e, attempt }, 'retrying');
+  else logger.error({ err: e }, 'unexpected failure');
+}
+\`\`\`
+
+### 기타 금지/권장
+
+| DON'T | DO |
+|-------|-----|
+| \`System.out.println\` / \`fmt.Println\` / \`console.log\` | 구조화 logger (pino, zap, Logback) |
+| 평문 비밀번호/토큰 로깅 | 필터·스키마 기반 마스킹 |
+| 중첩된 복잡 JSON 로그 | 평탄한 key-value |
+| traceId 전파 누락 | 미들웨어/인터셉터에서 자동 전파 |
 `;

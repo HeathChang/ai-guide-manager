@@ -1,6 +1,13 @@
-export const frontendA11y = `# Accessibility (a11y)
+export const frontendA11y = `---
+title: 접근성
+stack: frontend
+category: 접근성
+extends: [base.md, frontend.md]
+---
 
-> WCAG 2.1 AA 수준 준수를 목표로 한다.
+# Accessibility (a11y)
+
+> \`base.md\`, \`frontend.md\`를 상속한다. WCAG 2.1 AA 수준 준수를 목표로 한다.
 
 ## 기본 원칙
 
@@ -36,9 +43,34 @@ export const frontendA11y = `# Accessibility (a11y)
 - \`aria-*\`를 임의로 추가하지 않는다 (시맨틱 태그가 우선).
 - 색상 대비는 Tailwind 토큰 사용 시 자동 충족되도록 설계.
 
-## 금지 패턴
+## 패턴 (DO / DON'T)
 
-- \`outline: none\` 만 선언 (대체 포커스 스타일 없이)
-- \`tabindex="-1"\` 오남용 (비상호작용 요소에 focusable 부여)
-- 색상만으로 상태 전달 (에러는 빨강 + 아이콘/텍스트)
+### 아이콘 버튼
+
+\`\`\`tsx
+// DON'T — 스크린 리더가 "button"만 읽음
+<button onClick={remove}><TrashIcon /></button>
+
+// DO
+<button onClick={remove} aria-label="항목 삭제"><TrashIcon /></button>
+\`\`\`
+
+### 포커스 스타일
+
+\`\`\`css
+/* DON'T — 키보드 사용자가 현재 위치를 잃음 */
+button { outline: none; }
+
+/* DO — 기본 outline 제거 시 대체 스타일 제공 */
+button { outline: none; }
+button:focus-visible { outline: 2px solid var(--color-focus); }
+\`\`\`
+
+### 기타 금지/권장
+
+| DON'T | DO |
+|-------|-----|
+| \`tabindex="-1"\` 오남용 | 비상호작용 요소에서 제거 |
+| 색상만으로 상태 전달 | 색상 + 아이콘 + 텍스트 |
+| \`<div onClick>\` | \`<button>\` / \`<a>\` |
 `;

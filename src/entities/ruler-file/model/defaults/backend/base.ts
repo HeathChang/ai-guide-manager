@@ -1,6 +1,13 @@
-export const backendBase = `# Base Coding Rules
+export const backendBase = `---
+title: 기본 코딩 규칙
+stack: backend
+category: 공통
+extends: []
+---
 
-> 모든 백엔드 코드에 적용되는 기본 규칙이다.
+# Base Coding Rules
+
+> 모든 백엔드 코드에 적용되는 기본 규칙이다. 다른 ruler 파일은 이 규칙을 상속한다.
 
 ## 기본 원칙
 
@@ -43,10 +50,40 @@ export const backendBase = `# Base Coding Rules
 - 타입/스키마를 먼저 정의한 후 구현.
 - 주석은 **왜(why)**만 — 무엇(what)은 코드로.
 
-## 금지 패턴
+## 패턴 (DO / DON'T)
 
-- 디버깅용 로그(\`System.out\`, \`fmt.Println\` 등) 커밋
-- 하드코딩된 시크릿
-- 주석 처리된 코드
-- \`TODO\` 설명 없는 임시 코드
+### 에러 분류
+
+\`\`\`ts
+// DON'T — 문자열 비교, 삼킴
+try { ... } catch (e) {
+  if (e.message.includes('not found')) return null;
+}
+
+// DO — 타입 기반 분류 + 로깅
+try { ... } catch (e) {
+  if (e instanceof UserNotFoundError) return null;
+  logger.error({ err: e }, 'unexpected error');
+  throw e;
+}
+\`\`\`
+
+### 파라미터 객체
+
+\`\`\`ts
+// DON'T — 순서 실수 위험
+function create(name, email, role, orgId, teamId) { ... }
+
+// DO — 명시적 키
+function create(params: { name: string; email: string; role: Role; orgId: string; teamId: string }) { ... }
+\`\`\`
+
+### 기타 금지/권장
+
+| DON'T | DO |
+|-------|-----|
+| \`System.out\` / \`fmt.Println\` / \`console.log\` 커밋 | 구조화 logger |
+| 하드코딩된 시크릿 | 환경 변수 / 시크릿 매니저 |
+| 주석 처리된 코드 | 삭제 (git history 보존) |
+| 설명 없는 \`TODO\` | \`TODO(owner, date): 이유/티켓\` |
 `;

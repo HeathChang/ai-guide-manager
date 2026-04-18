@@ -1,4 +1,11 @@
-export const frontendTesting = `# Frontend Testing
+export const frontendTesting = `---
+title: 테스트
+stack: frontend
+category: 품질
+extends: [base.md]
+---
+
+# Frontend Testing
 
 > \`base.md\` 규칙을 상속한다. 테스트 코드 규칙이다.
 
@@ -16,23 +23,13 @@ export const frontendTesting = `# Frontend Testing
 - 테스트 파일은 대상과 **같은 디렉토리**.
 - 네이밍: \`{대상}.test.ts(x)\`
 
-## 네이밍 규칙 (하나로 통일)
+## 네이밍 규칙
 
-### should 형식
+프로젝트는 **should 형식**을 기본으로 한다.
 
 \`\`\`ts
 describe('validateEmail', () => {
   it('should return true for valid email', () => { ... });
-});
-\`\`\`
-
-### given/when/then 형식
-
-\`\`\`ts
-describe('validateEmail', () => {
-  describe('given a valid email', () => {
-    it('returns true', () => { ... });
-  });
 });
 \`\`\`
 
@@ -50,9 +47,34 @@ describe('validateEmail', () => {
 - custom hook 추가 시 renderHook 테스트를 작성한다.
 - flaky 테스트는 고치기 전까지 머지 금지.
 
-## 금지 패턴
+## 패턴 (DO / DON'T)
 
-- \`any\` / \`as any\`로 mock 타입 우회
-- 시간 의존 테스트에서 실제 \`Date.now()\` 사용 (fake timer 사용)
-- test 내 \`console.log\` 잔존
+### 동작 검증
+
+\`\`\`ts
+// DON'T — 내부 구현(state)에 결합
+expect(component.state.count).toBe(1);
+
+// DO — 사용자 관점의 관찰 가능한 동작
+expect(screen.getByText('카운트: 1')).toBeInTheDocument();
+\`\`\`
+
+### 시간 의존
+
+\`\`\`ts
+// DON'T — flaky
+if (Date.now() > expiresAt) { ... }
+
+// DO — fake timer 사용
+vi.useFakeTimers();
+vi.setSystemTime(new Date('2026-01-01'));
+\`\`\`
+
+### 기타 금지/권장
+
+| DON'T | DO |
+|-------|-----|
+| \`any\` / \`as any\`로 mock 타입 우회 | 실제 타입 기반 mock (\`vi.mocked\`) |
+| test 내 \`console.log\` 잔존 | 디버깅 후 삭제 |
+| 내부 모듈 과도 모킹 | 경계(HTTP, DB)에서만 모킹 |
 `;

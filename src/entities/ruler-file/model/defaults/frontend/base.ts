@@ -1,4 +1,11 @@
-export const frontendBase = `# Base Coding Rules
+export const frontendBase = `---
+title: 기본 코딩 규칙
+stack: frontend
+category: 공통
+extends: []
+---
+
+# Base Coding Rules
 
 > 모든 코드에 적용되는 기본 규칙이다. 다른 ruler 파일은 이 규칙을 상속한다.
 
@@ -44,10 +51,51 @@ export const frontendBase = `# Base Coding Rules
 - 파일이 200줄을 넘으면 분리를 검토한다.
 - 사용하지 않는 import는 즉시 제거한다.
 
-## 금지 패턴
+## 패턴 (DO / DON'T)
 
-- \`console.log\` / \`console.warn\` 디버깅용 커밋
-- 하드코딩된 API URL, 시크릿, 토큰
-- 주석 처리된 코드 블록 (삭제할 것)
-- \`TODO\` 설명 없는 임시 코드
+### any 타입
+
+\`\`\`ts
+// DON'T
+function parse(data: any) { return data.id; }
+
+// DO
+function parse(data: unknown): string {
+  if (typeof data === 'object' && data !== null && 'id' in data) {
+    return String(data.id);
+  }
+  throw new Error('invalid data');
+}
+\`\`\`
+
+### Early Return
+
+\`\`\`ts
+// DON'T
+function check(user) {
+  if (user) {
+    if (user.active) {
+      if (user.verified) { return true; }
+    }
+  }
+  return false;
+}
+
+// DO
+function check(user) {
+  if (!user) return false;
+  if (!user.active) return false;
+  if (!user.verified) return false;
+  return true;
+}
+\`\`\`
+
+### 기타 금지/권장
+
+| DON'T | DO |
+|-------|-----|
+| \`console.log\` / \`console.warn\` 디버깅용 커밋 | 전용 logger 유틸 또는 삭제 후 커밋 |
+| 하드코딩된 API URL, 시크릿, 토큰 | 환경 변수 (\`import.meta.env.*\`) |
+| 주석 처리된 코드 블록 | 삭제 (git history에 남음) |
+| 설명 없는 \`TODO\` | \`TODO(username, 2026-05): 이유/티켓 링크\` |
 `;

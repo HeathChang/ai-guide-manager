@@ -1,6 +1,13 @@
-export const backendApiDesign = `# REST API Design
+export const backendApiDesign = `---
+title: REST API 설계
+stack: backend
+category: 설계
+extends: [base.md, backend.md]
+---
 
-> RESTful API 설계 규칙이다.
+# REST API Design
+
+> \`base.md\`, \`backend.md\`를 상속한다. RESTful API 설계 규칙이다.
 
 ## URL 네이밍
 
@@ -60,9 +67,40 @@ export const backendApiDesign = `# REST API Design
 - 새 엔드포인트 추가 시 위 규칙을 적용하고, OpenAPI 스펙을 함께 갱신.
 - 에러 응답은 **표준 포맷**을 벗어나지 않는다.
 
-## 금지 패턴
+## 패턴 (DO / DON'T)
 
-- URL에 동사 (\`/getUser\`, \`/createOrder\`)
-- 200으로 에러 응답
-- 단일 리소스 URL에 배열 반환
+### URL 설계
+
+\`\`\`
+# DON'T
+POST /getUser           { "id": 1 }
+POST /createOrder       { ... }
+GET  /user_profiles/1
+
+# DO
+GET    /users/1
+POST   /orders
+GET    /user-profiles/1
+\`\`\`
+
+### 에러 응답
+
+\`\`\`
+# DON'T — 200으로 에러 래핑
+HTTP/1.1 200 OK
+{ "success": false, "error": "not found" }
+
+# DO — HTTP 상태 + 표준 포맷
+HTTP/1.1 404 Not Found
+{ "code": "USER_NOT_FOUND", "message": "사용자를 찾을 수 없습니다" }
+\`\`\`
+
+### 기타 금지/권장
+
+| DON'T | DO |
+|-------|-----|
+| URL에 동사 (\`/getUser\`) | 명사 + HTTP 메서드 |
+| 단일 리소스 URL에 배열 반환 | 단일 리소스는 객체, 목록은 \`/resources\` |
+| 오프셋 페이지네이션 기본 | 커서 기반 (\`nextCursor\`) |
+| Breaking change in-place | 새 버전 (\`/v2/...\`) |
 `;

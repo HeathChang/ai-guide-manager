@@ -1,4 +1,11 @@
-export const frontendStyling = `# Styling (Tailwind CSS)
+export const frontendStyling = `---
+title: 스타일링
+stack: frontend
+category: 스타일
+extends: [base.md, frontend.md]
+---
+
+# Styling (Tailwind CSS)
 
 > \`base.md\`, \`frontend.md\` 규칙을 상속한다. 스타일 규칙이다.
 
@@ -53,9 +60,33 @@ colors: {
 - 새 색·간격 등장 시 먼저 토큰을 정의한다.
 - 임의의 \`text-[#333]\` 같은 one-off 값은 금지 — 토큰 추가 후 사용.
 
-## 금지 패턴
+## 패턴 (DO / DON'T)
 
-- inline style (\`style={{ color: '#fff' }}\`)
-- 하드코딩된 색상 (\`bg-[#0ea5e9]\`)
-- \`!important\` 남발
+### 색상 사용
+
+\`\`\`tsx
+// DON'T — 하드코딩된 색상
+<div className="bg-[#0ea5e9] text-[#ffffff]">...</div>
+
+// DO — 토큰 기반
+<div className="bg-brand-primary text-text-inverted">...</div>
+\`\`\`
+
+### 동적 스타일
+
+\`\`\`tsx
+// DON'T — inline style (테마/다크모드 전파 안 됨)
+<div style={{ color: isActive ? '#0ea5e9' : '#64748b' }} />
+
+// DO — 조건부 클래스
+<div className={cn(isActive ? 'text-brand-primary' : 'text-text-muted')} />
+\`\`\`
+
+### 기타 금지/권장
+
+| DON'T | DO |
+|-------|-----|
+| \`!important\` 남발 | 특이도 조정 또는 토큰 수정 |
+| inline style (\`style={{...}}\`) | 클래스 또는 CSS 변수 |
+| 임의 \`px\` 값 (\`w-[137px]\`) | 간격 토큰 (\`w-36\`) 또는 토큰 추가 |
 `;

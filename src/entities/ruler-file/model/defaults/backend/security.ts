@@ -1,6 +1,13 @@
-export const backendSecurity = `# Backend Security
+export const backendSecurity = `---
+title: 보안
+stack: backend
+category: 보안
+extends: [base.md, backend.md]
+---
 
-> 백엔드 보안 규칙 (OWASP Top 10 기반).
+# Backend Security
+
+> \`base.md\`, \`backend.md\`를 상속한다. 백엔드 보안 규칙 (OWASP Top 10 기반).
 
 ## 입력 검증
 
@@ -45,9 +52,52 @@ export const backendSecurity = `# Backend Security
 - 새 엔드포인트에 인증/인가/Rate Limit 누락이 있으면 지적.
 - 로그에 PII/시크릿 포함 여부 검사.
 
-## 금지 패턴
+## 패턴 (DO / DON'T)
 
-- 문자열 결합 SQL
-- 에러 메시지에 DB 스택트레이스 노출
-- 시크릿을 Git에 커밋
+### SQL Injection
+
+\`\`\`ts
+// DON'T — 문자열 결합
+const rows = await db.query(\`SELECT * FROM users WHERE email = '\${email}'\`);
+
+// DO — parameter binding
+const rows = await db.query('SELECT id, email FROM users WHERE email = ?', [email]);
+\`\`\`
+
+### 동적 컬럼/정렬
+
+\`\`\`ts
+// DON'T — 입력을 그대로 ORDER BY에
+db.query(\`SELECT * FROM users ORDER BY \${req.query.sort}\`);
+
+// DO — 허용 목록 치환
+const ALLOWED_SORT = { name: 'display_name', created: 'created_at' } as const;
+const column = ALLOWED_SORT[req.query.sort] ?? 'id';
+db.query(\`SELECT id, display_name FROM users ORDER BY \${column}\`);
+\`\`\`
+
+### 객체 레벨 권한 (IDOR)
+
+\`\`\`ts
+// DON'T — 인증만 하고 소유자 체크 없음
+app.get('/orders/:id', auth, async (req, res) => {
+  res.json(await orderRepo.findById(req.params.id));
+});
+
+// DO — 소유자·권한 검증
+app.get('/orders/:id', auth, async (req, res) => {
+  const order = await orderRepo.findById(req.params.id);
+  authorize(req.user, 'order:read', order);
+  res.json(toOrderResponse(order));
+});
+\`\`\`
+
+### 기타 금지/권장
+
+| DON'T | DO |
+|-------|-----|
+| 에러 메시지에 DB 스택트레이스 노출 | 코드(\`INTERNAL_ERROR\`)만 + 서버 로그 |
+| 시크릿을 Git에 커밋 | 시크릿 매니저 + \`.gitignore\` + 스캐너 |
+| CORS \`*\` + credentials | 명시적 origin 목록 |
+| 인증 엔드포인트 Rate Limit 미적용 | IP+사용자ID 조합 제한 |
 `;

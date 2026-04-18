@@ -1,6 +1,13 @@
-export const frontendGit = `# Git & PR Workflow
+export const frontendGit = `---
+title: Git 워크플로우
+stack: frontend
+category: 워크플로우
+extends: [base.md]
+---
 
-> 브랜치 전략, 커밋 메시지, PR 프로세스 규칙이다.
+# Git & PR Workflow
+
+> \`base.md\`를 상속한다. 브랜치 전략, 커밋 메시지, PR 프로세스 규칙이다.
 
 ## 브랜치 전략
 
@@ -51,9 +58,26 @@ export const frontendGit = `# Git & PR Workflow
 - \`main\` / \`develop\`에 직접 push 금지.
 - force push는 사용자 명시 요청 시에만.
 
-## 금지 패턴
+## 패턴 (DO / DON'T)
 
-- 의미 없는 커밋 (\`wip\`, \`fix\`, \`update\`)
-- 하나의 커밋에 여러 관심사 혼합
-- PR 설명 없이 리뷰 요청
+### 커밋 메시지
+
+\`\`\`
+# DON'T
+wip
+fix
+update code
+
+# DO
+feat: 로그인 페이지에 OAuth 버튼 추가
+fix: 빈 email 입력 시 400 대신 422 반환
+\`\`\`
+
+### 기타 금지/권장
+
+| DON'T | DO |
+|-------|-----|
+| 하나의 커밋에 여러 관심사 혼합 | 관심사별 분할 커밋 |
+| PR 설명 없이 리뷰 요청 | 요약 + 테스트 방법 + (UI 변경 시) 스크린샷 |
+| \`main\`에 직접 push | PR + 리뷰 후 머지 |
 `;

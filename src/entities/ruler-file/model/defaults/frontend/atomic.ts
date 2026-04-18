@@ -1,4 +1,11 @@
-export const frontendAtomic = `# Atomic Design
+export const frontendAtomic = `---
+title: Atomic Design
+stack: frontend
+category: 아키텍처
+extends: [base.md, frontend.md]
+---
+
+# Atomic Design
 
 > \`base.md\`, \`frontend.md\` 규칙을 상속한다. Atomic Design 아키텍처 규칙이다.
 
@@ -44,9 +51,30 @@ src/
 - atom은 **도메인 지식 없는 순수 UI**여야 한다.
 - molecule이 2~3개 이상의 atom을 조합하면 organism으로 승격 검토.
 
-## 금지 패턴
+## 패턴 (DO / DON'T)
 
-- atom에서 전역 상태 / API 호출
-- organism 간 직접 참조 (공유 로직은 custom hook으로 추출)
-- page 외 컴포넌트에서 라우팅 처리
+### atom의 책임
+
+\`\`\`tsx
+// DON'T — atom이 API 호출
+// atoms/SubmitButton.tsx
+function SubmitButton() {
+  const mutation = useMutation(createOrder);
+  return <button onClick={() => mutation.mutate()}>주문</button>;
+}
+
+// DO — atom은 순수 UI, 상위(organism/page)가 상태/API 소유
+// atoms/Button.tsx
+function Button({ onClick, children }: ButtonProps) {
+  return <button onClick={onClick}>{children}</button>;
+}
+\`\`\`
+
+### 기타 금지/권장
+
+| DON'T | DO |
+|-------|-----|
+| atom에서 전역 상태 / API 호출 | 상위 단계에서 props로 주입 |
+| organism 간 직접 참조 | 공통 로직은 custom hook으로 추출 |
+| page 외 컴포넌트에서 라우팅 | page에서 \`useNavigate\` 소유 |
 `;

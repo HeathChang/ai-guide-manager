@@ -1,6 +1,13 @@
-export const backendDatabase = `# Database
+export const backendDatabase = `---
+title: 데이터베이스
+stack: backend
+category: 데이터
+extends: [base.md, backend.md]
+---
 
-> DB 설계·쿼리·마이그레이션 규칙이다.
+# Database
+
+> \`base.md\`, \`backend.md\`를 상속한다. DB 설계·쿼리·마이그레이션 규칙이다.
 
 ## 설계 원칙
 
@@ -40,9 +47,51 @@ export const backendDatabase = `# Database
 - 새 쿼리 작성 시 EXPLAIN 계획을 확인 권고.
 - 인덱스 추가 전 카디널리티와 조회 패턴 확인.
 
-## 금지 패턴
+## 패턴 (DO / DON'T)
 
-- 애플리케이션 레벨 JOIN (여러 쿼리를 메모리에서 합치기)
-- 전체 테이블 스캔 쿼리 (WHERE 없이 큰 테이블)
-- 프로덕션에서 \`TRUNCATE\`, \`DROP\` 직접 실행
+### N+1 방지
+
+\`\`\`ts
+// DON'T — 주문별로 사용자 쿼리 N+1회
+const orders = await orderRepo.findAll();
+for (const order of orders) {
+  order.user = await userRepo.findById(order.userId);
+}
+
+// DO — eager loading / JOIN / batch
+const orders = await orderRepo.findAll({ include: { user: true } });
+// 또는 DataLoader로 userId 배치
+\`\`\`
+
+### SELECT 범위
+
+\`\`\`sql
+-- DON'T
+SELECT * FROM users WHERE id = ?;
+
+-- DO — 필요한 컬럼만
+SELECT id, email, display_name FROM users WHERE id = ?;
+\`\`\`
+
+### 마이그레이션 2단계
+
+\`\`\`
+-- DON'T — 컬럼명 in-place 변경 → 무중단 불가
+ALTER TABLE users RENAME COLUMN name TO display_name;
+
+-- DO — 추가 → 백필 → 코드 전환 → 제거 (4개 마이그레이션)
+-- 1) ADD COLUMN display_name
+-- 2) 백필 (UPDATE users SET display_name = name)
+-- 3) 읽기·쓰기 코드 전환
+-- 4) DROP COLUMN name
+\`\`\`
+
+### 기타 금지/권장
+
+| DON'T | DO |
+|-------|-----|
+| 애플리케이션 레벨 JOIN | DB JOIN 또는 eager loading |
+| WHERE 없는 큰 테이블 스캔 | 인덱스 + 조건 + 페이지네이션 |
+| 프로덕션 \`TRUNCATE\` / \`DROP\` | 마이그레이션 + 리뷰 + 백업 |
+| 외부 API 호출을 트랜잭션 내부에서 | 트랜잭션 밖, 필요 시 Outbox |
 `;

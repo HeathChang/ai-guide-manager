@@ -1,6 +1,13 @@
-export const backendGit = `# Git & PR Workflow
+export const backendGit = `---
+title: Git 워크플로우
+stack: backend
+category: 워크플로우
+extends: [base.md]
+---
 
-> 브랜치 전략, 커밋 메시지, PR 프로세스 규칙이다.
+# Git & PR Workflow
+
+> \`base.md\`를 상속한다. 브랜치 전략, 커밋 메시지, PR 프로세스 규칙이다.
 
 ## 브랜치 전략
 
@@ -55,9 +62,41 @@ export const backendGit = `# Git & PR Workflow
 - PR 생성 시 변경 범위를 요약하고 DB 변경 여부를 표시.
 - force push는 명시 요청 시에만.
 
-## 금지 패턴
+## 패턴 (DO / DON'T)
 
-- 의미 없는 커밋 (\`wip\`, \`update\`)
-- 마이그레이션 + 애플리케이션 동시 PR (단계 분리 권장)
-- PR 설명 없이 리뷰 요청
+### 마이그레이션 PR
+
+\`\`\`
+# DON'T — 마이그레이션 + 코드 변경 + 롤백 계획 없음
+feat: 사용자 프로필 확장
+  - ALTER TABLE users ADD COLUMN bio
+  - 프론트에서 bio 표시
+  - 배포 중 롤백 불가
+
+# DO — 단계 분리 + 롤백 계획
+1) chore(db): users.bio 컬럼 추가 (기본값 NULL, 하위호환)
+2) feat(api): bio 읽기/쓰기 엔드포인트
+3) feat(web): 프로필에 bio 표시
+롤백: 각 단계는 독립 revert 가능
+\`\`\`
+
+### 커밋 메시지
+
+\`\`\`
+# DON'T
+wip
+update
+
+# DO
+feat(order): 결제 실패 시 주문 자동 취소
+fix(auth): 만료 Refresh 토큰 검증 오류 수정
+\`\`\`
+
+### 기타 금지/권장
+
+| DON'T | DO |
+|-------|-----|
+| 하나의 커밋에 여러 관심사 혼합 | 관심사별 분할 |
+| PR 설명 없이 리뷰 요청 | 요약 + 테스트 방법 + 티켓 |
+| 미검토 force push | 명시 요청 + 리뷰 |
 `;

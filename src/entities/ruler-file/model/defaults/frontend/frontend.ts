@@ -1,4 +1,11 @@
-export const frontendFrontend = `# Frontend Rules (React)
+export const frontendFrontend = `---
+title: 프론트엔드 공통
+stack: frontend
+category: 공통
+extends: [base.md]
+---
+
+# Frontend Rules (React)
 
 > \`base.md\` 규칙을 상속한다. React 프론트엔드에 추가로 적용되는 규칙이다.
 
@@ -54,9 +61,34 @@ export const frontendFrontend = `# Frontend Rules (React)
 - 컴포넌트 생성 시 역할(UI / Container / Page)을 먼저 결정한다.
 - 성능 최적화는 **측정 후** 적용한다. 추측 기반 \`memo\` / \`useMemo\` 금지.
 
-## 금지 패턴
+## 패턴 (DO / DON'T)
 
-- 색상·간격·폰트 크기 하드코딩 (디자인 토큰 사용)
-- \`any\`를 포함한 props 타입
-- props drilling 3단계 이상 → Context 또는 구조 재검토
+### 클릭 요소
+
+\`\`\`tsx
+// DON'T — 키보드 접근 불가, 시맨틱 부재
+<div onClick={handleClick}>저장</div>
+
+// DO
+<button type="button" onClick={handleClick}>저장</button>
+\`\`\`
+
+### Props 타입
+
+\`\`\`tsx
+// DON'T
+type Props = { data: any };
+
+// DO
+type Props = { data: UserDto };
+\`\`\`
+
+### 기타 금지/권장
+
+| DON'T | DO |
+|-------|-----|
+| 색상·간격·폰트 크기 하드코딩 | 디자인 토큰 (\`text-text-main\`, \`p-4\`) |
+| props drilling 3단계 이상 | Context / 컴포넌트 재구성 |
+| \`fetch\` 직접 호출 | React Query / RTK Query |
+| 클래스 컴포넌트 | 함수 컴포넌트 + Hooks |
 `;

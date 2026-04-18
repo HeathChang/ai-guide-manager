@@ -1,4 +1,11 @@
-export const backendBackend = `# Backend Common Rules
+export const backendBackend = `---
+title: 백엔드 공통
+stack: backend
+category: 공통
+extends: [base.md]
+---
+
+# Backend Common Rules
 
 > \`base.md\`를 상속한다. 백엔드 공통 아키텍처/설계 원칙이다.
 
@@ -38,9 +45,39 @@ export const backendBackend = `# Backend Common Rules
 - 트랜잭션 경계를 Service에 명시.
 - 외부 호출은 **타임아웃 + 재시도** 정책 포함.
 
-## 금지 패턴
+## 패턴 (DO / DON'T)
 
-- Controller에서 Repository 직접 호출
-- Entity를 JSON으로 직접 응답
-- 설정값을 코드에 하드코딩
+### 레이어 경계
+
+\`\`\`ts
+// DON'T — Controller가 Repository 직접 호출
+@Get('/users/:id')
+async find(@Param('id') id: string) {
+  return this.userRepo.findById(id);   // 비즈니스 규칙·인가 우회
+}
+
+// DO — Service 경유
+@Get('/users/:id')
+async find(@Param('id') id: string) {
+  return this.userService.findByIdForViewer(id, this.viewer);
+}
+\`\`\`
+
+### Entity vs DTO
+
+\`\`\`ts
+// DON'T — 내부 필드(passwordHash 등) 그대로 노출
+res.json(userEntity);
+
+// DO — 전용 DTO 매핑
+res.json(toUserResponse(userEntity));
+\`\`\`
+
+### 기타 금지/권장
+
+| DON'T | DO |
+|-------|-----|
+| 설정값을 코드에 하드코딩 | 환경 변수 / 설정 파일 |
+| Service 없이 Controller↔Repository | Service 레이어 경유 |
+| 외부 호출에 타임아웃 누락 | 타임아웃 + 재시도 + 서킷브레이커 |
 `;

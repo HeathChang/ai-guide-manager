@@ -1,6 +1,13 @@
-export const backendErrorHandling = `# Error Handling & Resilience
+export const backendErrorHandling = `---
+title: 에러 핸들링
+stack: backend
+category: 안정성
+extends: [base.md, backend.md]
+---
 
-> 에러 분류, 예외 처리, 복원력 규칙이다.
+# Error Handling & Resilience
+
+> \`base.md\`, \`backend.md\`를 상속한다. 에러 분류, 예외 처리, 복원력 규칙이다.
 
 ## 에러 분류
 
@@ -52,9 +59,44 @@ export const backendErrorHandling = `# Error Handling & Resilience
 - catch 블록에서 삼키지 말고 **재분류 또는 rethrow**.
 - 사용자 노출 메시지는 기술 용어 제거.
 
-## 금지 패턴
+## 패턴 (DO / DON'T)
 
-- \`catch (Exception e)\` 로 모든 예외 삼키기
-- 클라이언트에 스택트레이스 노출
-- 무한 재시도
+### 예외 분류
+
+\`\`\`ts
+// DON'T — 모든 예외 삼킴
+try { ... } catch (e) { return null; }
+
+// DO — 분류 + 로깅 + 재분류
+try { ... } catch (e) {
+  if (e instanceof ValidationError) throw e;          // 4xx 로 전파
+  if (isTransient(e)) throw new RetryableError(e);    // 재시도 대상
+  logger.error({ err: e }, 'unexpected');
+  throw new InternalError('internal error', { cause: e });
+}
+\`\`\`
+
+### 재시도
+
+\`\`\`ts
+// DON'T — 무한 재시도
+while (true) { try { return call(); } catch { /* retry */ } }
+
+// DO — 지수 백오프 + 지터 + 횟수 제한
+for (let i = 0; i < 4; i++) {
+  try { return await call(); }
+  catch (e) {
+    if (!isRetryable(e) || i === 3) throw e;
+    await sleep(2 ** i * 1000 + Math.random() * 200);
+  }
+}
+\`\`\`
+
+### 기타 금지/권장
+
+| DON'T | DO |
+|-------|-----|
+| 클라이언트에 스택트레이스 노출 | 서버 로그에만 |
+| 4xx/5xx 무분별 재시도 | 재시도 가능 타입만 |
+| Idempotency Key 없이 결제 재요청 허용 | 헤더 기반 중복 방지 |
 `;
