@@ -16,6 +16,7 @@ export type FileCategory =
   | '운영'
   | '안정성'
   | '워크플로우'
+  | '하네스'
   | '사용자 정의';
 
 export interface RulerFile {
@@ -28,4 +29,5 @@ export interface RulerFile {
   readonly content: string;
   readonly architectureKind?: ArchitectureKind;
   readonly isCustom?: boolean;
+  readonly isHarness?: boolean;
 }

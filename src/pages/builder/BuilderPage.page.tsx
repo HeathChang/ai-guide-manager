@@ -16,6 +16,22 @@ import {
 import { getPresetList, getPresetFiles } from '@/features/presets';
 import type { Preset } from '@/features/presets';
 import { AddCustomFileDialog } from '@/features/custom-file';
+import { isAiTool } from '@/shared/types';
+import type { AiTool } from '@/shared/types';
+
+const isHarnessState = (state: unknown): boolean => {
+  if (state === null || typeof state !== 'object') return false;
+  const record = state as Record<string, unknown>;
+  return record.includeHarness === true;
+};
+
+const readAiToolFromState = (state: unknown): AiTool | undefined => {
+  if (state === null || typeof state !== 'object') return undefined;
+  const record = state as Record<string, unknown>;
+  const value = record.aiTool;
+  if (typeof value !== 'string') return undefined;
+  return isAiTool(value) ? value : undefined;
+};
 
 const BuilderPage = () => {
   const navigate = useNavigate();
@@ -29,7 +45,10 @@ const BuilderPage = () => {
     [location.search],
   );
 
-  const workspace = useRulerWorkspace({ stack, initialSelection });
+  const includeHarness = isHarnessState(location.state);
+  const aiTool = readAiToolFromState(location.state);
+
+  const workspace = useRulerWorkspace({ stack, initialSelection, includeHarness, aiTool });
   const presets = useMemo(() => getPresetList(), []);
 
   const [isCustomDialogOpen, setCustomDialogOpen] = useState(false);

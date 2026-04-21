@@ -23,6 +23,8 @@ import { backendLogging } from './backend/logging';
 import { backendErrorHandling } from './backend/error-handling';
 import { backendCaching } from './backend/caching';
 
+import { getHarnessFiles } from './harness';
+
 export const DEFAULT_FRONTEND_FILES: readonly RulerFile[] = [
   {
     fileName: 'base.md',
@@ -220,5 +222,20 @@ export const DEFAULT_BACKEND_FILES: readonly RulerFile[] = [
   },
 ];
 
-export const getDefaultFiles = (stack: 'frontend' | 'backend'): readonly RulerFile[] =>
-  stack === 'frontend' ? DEFAULT_FRONTEND_FILES : DEFAULT_BACKEND_FILES;
+import type { AiTool } from '@/shared/types';
+
+export interface GetDefaultFilesOptions {
+  readonly includeHarness?: boolean;
+  readonly aiTool?: AiTool;
+}
+
+export const getDefaultFiles = (
+  stack: 'frontend' | 'backend',
+  options: GetDefaultFilesOptions = {},
+): readonly RulerFile[] => {
+  const base = stack === 'frontend' ? DEFAULT_FRONTEND_FILES : DEFAULT_BACKEND_FILES;
+  if (options.includeHarness === true) {
+    return [...base, ...getHarnessFiles(stack, options.aiTool)];
+  }
+  return base;
+};

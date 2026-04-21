@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { RulerFile } from '@/entities/ruler-file';
 import { getDefaultFiles } from '@/entities/ruler-file';
-import type { Stack } from '@/shared/types';
+import type { AiTool, Stack } from '@/shared/types';
 import { createLocalStorage } from '@/shared/lib';
 import type { WorkspacePersisted } from './types';
 
 interface UseRulerWorkspaceParams {
   readonly stack: Stack;
   readonly initialSelection?: readonly string[] | undefined;
+  readonly includeHarness?: boolean;
+  readonly aiTool?: AiTool;
 }
 
 interface UseRulerWorkspaceResult {
@@ -37,12 +39,19 @@ const STORAGE_PREFIX = 'ai-ruler:v1:';
 export const useRulerWorkspace = ({
   stack,
   initialSelection,
+  includeHarness = false,
+  aiTool,
 }: UseRulerWorkspaceParams): UseRulerWorkspaceResult => {
+  const harnessSuffix = includeHarness ? `:harness:${aiTool ?? 'claude-code'}` : '';
+  const storageKey = `${STORAGE_PREFIX}${stack}${harnessSuffix}`;
   const storage = useMemo(
-    () => createLocalStorage<WorkspacePersisted>(`${STORAGE_PREFIX}${stack}`),
-    [stack],
+    () => createLocalStorage<WorkspacePersisted>(storageKey),
+    [storageKey],
   );
-  const defaultFiles = useMemo(() => getDefaultFiles(stack), [stack]);
+  const defaultFiles = useMemo(
+    () => getDefaultFiles(stack, { includeHarness, aiTool }),
+    [stack, includeHarness, aiTool],
+  );
   const persistedRef = useRef<WorkspacePersisted | undefined>(undefined);
   if (persistedRef.current === undefined) {
     persistedRef.current = storage.read();
