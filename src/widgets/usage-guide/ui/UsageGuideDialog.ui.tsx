@@ -43,8 +43,7 @@ export const UsageGuideDialog = ({ open, onClose }: UsageGuideDialogProps) => {
 
   return (
     <div
-      className="fixed inset-0 grid place-items-center p-4"
-      style={{ zIndex: 'var(--ds-z-modal)', backgroundColor: 'rgba(0,0,0,0.4)' }}
+      className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4"
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -55,21 +54,9 @@ export const UsageGuideDialog = ({ open, onClose }: UsageGuideDialogProps) => {
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="w-full max-w-2xl max-h-[85vh] flex flex-col"
-        style={{
-          backgroundColor: 'var(--ds-color-neutral-0)',
-          borderRadius: 'var(--ds-radius-xl)',
-          border: '1px solid var(--ds-color-neutral-200)',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
-        }}
+        className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-card border border-border-base bg-bg-card shadow-xl"
       >
-        <header
-          className="flex items-center justify-between"
-          style={{
-            padding: 'var(--ds-spacing-lg)',
-            borderBottom: '1px solid var(--ds-color-neutral-200)',
-          }}
-        >
+        <header className="flex items-center justify-between border-b border-border-base p-6">
           <Heading id={titleId} as="h2" size="lg">
             다운로드한 규칙 적용 방법
           </Heading>
@@ -78,10 +65,7 @@ export const UsageGuideDialog = ({ open, onClose }: UsageGuideDialogProps) => {
           </Button>
         </header>
 
-        <div
-          className="overflow-y-auto"
-          style={{ padding: 'var(--ds-spacing-lg)' }}
-        >
+        <div className="overflow-y-auto p-6">
           <Stack spacing="lg">
             <UsageStep
               index={1}
@@ -150,13 +134,7 @@ export const UsageGuideDialog = ({ open, onClose }: UsageGuideDialogProps) => {
           </Stack>
         </div>
 
-        <footer
-          className="flex justify-end"
-          style={{
-            padding: 'var(--ds-spacing-lg)',
-            borderTop: '1px solid var(--ds-color-neutral-200)',
-          }}
-        >
+        <footer className="flex justify-end border-t border-border-base p-6">
           <Button onClick={onClose}>닫기</Button>
         </footer>
       </div>
@@ -175,12 +153,7 @@ const UsageStep = ({ index, title, description, children }: UsageStepProps) => (
   <section>
     <Stack spacing="sm">
       <div className="flex items-baseline gap-2">
-        <span
-          className="font-mono font-semibold"
-          style={{ color: 'var(--ds-color-primary-600)' }}
-        >
-          {index}.
-        </span>
+        <span className="font-mono font-semibold text-brand">{index}.</span>
         <Heading as="h3" size="sm">
           {title}
         </Heading>
@@ -201,15 +174,9 @@ interface ToolSectionProps {
 }
 
 const ToolSection = ({ name, fileName, snippet, description }: ToolSectionProps) => (
-  <div
-    style={{
-      padding: 'var(--ds-spacing-md)',
-      borderRadius: 'var(--ds-radius-md)',
-      border: '1px solid var(--ds-color-neutral-200)',
-    }}
-  >
+  <div className="rounded-btn border border-border-base p-4">
     <Stack spacing="xs">
-      <div className="flex items-baseline gap-2 flex-wrap">
+      <div className="flex flex-wrap items-baseline gap-2">
         <Text weight="semibold">{name}</Text>
         <Text as="span" size="xs" color="muted" className="font-mono">
           {fileName}
@@ -228,16 +195,7 @@ interface CodeBlockProps {
 }
 
 const CodeBlock = ({ code }: CodeBlockProps) => (
-  <pre
-    className="font-mono text-xs overflow-x-auto whitespace-pre"
-    style={{
-      padding: 'var(--ds-spacing-3)',
-      backgroundColor: 'var(--ds-color-neutral-100)',
-      borderRadius: 'var(--ds-radius-md)',
-      color: 'var(--ds-color-neutral-900)',
-      margin: 0,
-    }}
-  >
+  <pre className="m-0 overflow-x-auto whitespace-pre rounded-btn bg-bg-muted p-3 font-mono text-xs text-text-main">
     <code>{code}</code>
   </pre>
 );

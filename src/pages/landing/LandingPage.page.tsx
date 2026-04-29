@@ -55,8 +55,8 @@ const LandingPage = () => {
   };
 
   return (
-    <Flex as="div" direction="column" style={{ minHeight: '100%' }}>
-      <Box as="header" paddingY="6" bg="var(--ds-color-neutral-0)" style={{ borderBottom: '1px solid var(--ds-color-neutral-200)' }}>
+    <Flex as="div" direction="column" className="min-h-full">
+      <Box as="header" paddingY="6" className="border-b border-border-base bg-bg-card">
         <Container maxWidth="xl">
           <Flex align="center" justify="space-between">
             <Flex align="center" gap="3">
@@ -64,13 +64,7 @@ const LandingPage = () => {
                 width="36px"
                 height="36px"
                 borderRadius="md"
-                bg="var(--ds-color-primary-600)"
-                style={{
-                  color: 'var(--ds-color-neutral-0)',
-                  display: 'grid',
-                  placeItems: 'center',
-                  fontWeight: 'var(--ds-font-weight-bold)',
-                }}
+                className="grid place-items-center bg-brand font-bold text-text-inverse"
                 aria-hidden="true"
               >
                 R
@@ -92,10 +86,7 @@ const LandingPage = () => {
                 href="https://github.com/"
                 target="_blank"
                 rel="noreferrer"
-                style={{
-                  fontSize: 'var(--ds-font-size-sm)',
-                  color: 'var(--ds-color-neutral-500)',
-                }}
+                className="text-sm text-text-muted"
               >
                 GitHub
               </a>
@@ -104,7 +95,7 @@ const LandingPage = () => {
         </Container>
       </Box>
 
-      <Box as="main" paddingY="16" style={{ flex: 1, display: 'grid', placeItems: 'center' }}>
+      <Box as="main" paddingY="16" className="grid flex-1 place-items-center">
         <Container maxWidth="xl">
           <Stack spacing="2xl">
             <Stack spacing="md" align="center">
@@ -193,7 +184,7 @@ const LandingPage = () => {
                         <Text size="sm" color="muted">
                           {option.description}
                         </Text>
-                        <Flex align="center" gap="1" style={{ marginTop: 'var(--ds-spacing-4)' }}>
+                        <Flex align="center" gap="1" className="mt-4">
                           <Text
                             as="span"
                             size="sm"
@@ -229,7 +220,7 @@ const LandingPage = () => {
               href="https://opensource.org/licenses/MIT"
               target="_blank"
               rel="noreferrer"
-              style={{ color: 'var(--ds-color-primary-600)', textDecoration: 'underline' }}
+              className="text-brand underline"
             >
               MIT License
             </a>

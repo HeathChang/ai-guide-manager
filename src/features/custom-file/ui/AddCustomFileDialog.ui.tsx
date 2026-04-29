@@ -48,8 +48,7 @@ export const AddCustomFileDialogUI = ({
 
   return (
     <div
-      className="fixed inset-0 grid place-items-center p-4"
-      style={{ zIndex: 'var(--ds-z-modal)', backgroundColor: 'rgba(0,0,0,0.4)' }}
+      className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4"
       onClick={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -59,30 +58,19 @@ export const AddCustomFileDialogUI = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="w-full max-w-md"
-        style={{
-          backgroundColor: 'var(--ds-color-neutral-0)',
-          borderRadius: 'var(--ds-radius-xl)',
-          border: '1px solid var(--ds-color-neutral-200)',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
-        }}
+        className="w-full max-w-md rounded-card border border-border-base bg-bg-card shadow-xl"
       >
         <Stack spacing="0">
-          <div
-            style={{
-              padding: 'var(--ds-spacing-lg)',
-              borderBottom: '1px solid var(--ds-color-neutral-200)',
-            }}
-          >
+          <div className="border-b border-border-base p-6">
             <Heading id={titleId} as="h2" size="lg">
               사용자 정의 파일 추가
             </Heading>
-            <Text size="sm" color="muted" style={{ marginTop: 'var(--ds-spacing-1)' }}>
+            <Text size="sm" color="muted" className="mt-1">
               팀/프로젝트에 특화된 규칙 파일을 추가합니다.
             </Text>
           </div>
 
-          <div style={{ padding: 'var(--ds-spacing-lg)' }}>
+          <div className="p-6">
             <Stack spacing="md">
               <Input
                 id="custom-filename"
@@ -116,12 +104,7 @@ export const AddCustomFileDialogUI = ({
             </Stack>
           </div>
 
-          <div
-            style={{
-              padding: 'var(--ds-spacing-lg)',
-              borderTop: '1px solid var(--ds-color-neutral-200)',
-            }}
-          >
+          <div className="border-t border-border-base p-6">
             <Flex justify="flex-end" gap="2">
               <Button variant="ghost" onClick={onClose}>
                 취소

@@ -35,40 +35,21 @@ export const BuilderHeader = ({
   const [presetOpen, setPresetOpen] = useState(false);
 
   return (
-    <header
-      style={{
-        borderBottom: '1px solid var(--ds-color-neutral-200)',
-        background: 'var(--ds-color-neutral-0)',
-      }}
-    >
-      <div
-        style={{
-          padding: 'var(--ds-spacing-3) var(--ds-spacing-4)',
-        }}
-      >
+    <header className="border-b border-border-base bg-bg-card">
+      <div className="px-4 py-3">
         <Flex align="center" justify="space-between" gap="3" wrap="wrap">
-          <Flex align="center" gap="3" style={{ minWidth: 0 }}>
+          <Flex align="center" gap="3" className="min-w-0">
             <Button size="sm" variant="ghost" onClick={onBack} aria-label="랜딩으로 돌아가기">
               ← 뒤로
             </Button>
-            <Flex align="center" gap="2" style={{ minWidth: 0 }}>
+            <Flex align="center" gap="2" className="min-w-0">
               <div
                 aria-hidden="true"
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: 'var(--ds-radius-md)',
-                  background: 'var(--ds-color-primary-600)',
-                  color: 'var(--ds-color-neutral-0)',
-                  display: 'grid',
-                  placeItems: 'center',
-                  fontWeight: 'var(--ds-font-weight-bold)',
-                  fontSize: 'var(--ds-font-size-sm)',
-                }}
+                className="grid h-8 w-8 place-items-center rounded-btn bg-brand text-sm font-bold text-text-inverse"
               >
                 R
               </div>
-              <div style={{ minWidth: 0 }}>
+              <div className="min-w-0">
                 <Text as="div" weight="semibold" truncate>
                   AI-Ruler
                 </Text>
@@ -80,7 +61,7 @@ export const BuilderHeader = ({
           </Flex>
 
           <Flex align="center" gap="2" wrap="wrap">
-            <div style={{ position: 'relative' }}>
+            <div className="relative">
               <Button
                 size="sm"
                 variant="secondary"
@@ -93,38 +74,14 @@ export const BuilderHeader = ({
               {presetOpen && (
                 <div
                   role="menu"
-                  style={{
-                    position: 'absolute',
-                    right: 0,
-                    marginTop: 'var(--ds-spacing-2)',
-                    width: '256px',
-                    background: 'var(--ds-color-neutral-0)',
-                    border: '1px solid var(--ds-color-neutral-200)',
-                    borderRadius: 'var(--ds-radius-lg)',
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-                    overflow: 'hidden',
-                    zIndex: 'var(--ds-z-dropdown)',
-                  }}
+                  className="absolute right-0 z-40 mt-2 w-64 overflow-hidden rounded-card border border-border-base bg-bg-card shadow-lg"
                 >
                   {presets.map((preset) => (
                     <button
                       key={preset.id}
                       type="button"
                       role="menuitem"
-                      style={{
-                        width: '100%',
-                        textAlign: 'left',
-                        padding: 'var(--ds-spacing-3) var(--ds-spacing-4)',
-                        background: 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                      }}
-                      onMouseEnter={(event) => {
-                        event.currentTarget.style.background = 'var(--ds-color-neutral-100)';
-                      }}
-                      onMouseLeave={(event) => {
-                        event.currentTarget.style.background = 'transparent';
-                      }}
+                      className="w-full cursor-pointer border-none bg-transparent px-4 py-3 text-left hover:bg-bg-muted"
                       onClick={() => {
                         onApplyPreset(preset);
                         setPresetOpen(false);
@@ -133,7 +90,7 @@ export const BuilderHeader = ({
                       <Text weight="medium" size="sm">
                         {preset.label}
                       </Text>
-                      <Text size="xs" color="muted" style={{ marginTop: '2px' }}>
+                      <Text size="xs" color="muted" className="mt-0.5">
                         {preset.description}
                       </Text>
                     </button>
@@ -167,7 +124,7 @@ export const BuilderHeader = ({
         </Flex>
       </div>
       {notice !== undefined && (
-        <div style={{ padding: '0 var(--ds-spacing-4) var(--ds-spacing-3)' }}>
+        <div className="px-4 pb-3">
           <Alert variant={notice.variant}>{notice.message}</Alert>
         </div>
       )}
