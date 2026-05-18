@@ -10,8 +10,18 @@ import {
   Text,
 } from 'null_ong2-design-system';
 import { Button, Card, Checkbox, ThemeToggle, Tooltip } from '@/shared/ui';
-import type { AiTool, Stack as StackType } from '@/shared/types';
-import { AI_TOOL_LIST, AI_TOOL_LABELS } from '@/shared/types';
+import type {
+  AiTool,
+  FrontendFramework,
+  Stack as StackType,
+} from '@/shared/types';
+import {
+  AI_TOOL_LABELS,
+  AI_TOOL_LIST,
+  DEFAULT_FRAMEWORK,
+  FRONTEND_FRAMEWORK_LABELS,
+  FRONTEND_FRAMEWORK_LIST,
+} from '@/shared/types';
 import { UsageGuideDialog } from '@/widgets/usage-guide';
 
 const HARNESS_TOOLTIP_TEXT =
@@ -20,34 +30,23 @@ const HARNESS_TOOLTIP_TEXT =
 const AI_TOOL_TOOLTIP_TEXT =
   '선택한 툴의 자동 로드 규약에 맞춰 부트스트랩 파일이 함께 생성됩니다. 매 세션 프롬프트 복붙 없이 하네스가 자동 시작됩니다.';
 
-const STACK_OPTIONS: ReadonlyArray<{
-  stack: StackType;
-  title: string;
-  description: string;
-  icon: string;
-}> = [
-  {
-    stack: 'frontend',
-    title: 'Frontend',
-    description: 'React / 브라우저 기반 UI를 개발할 때 사용하는 규칙 세트',
-    icon: '🎨',
-  },
-  {
-    stack: 'backend',
-    title: 'Backend',
-    description: 'API / 데이터베이스 / 서버 운영 중심의 규칙 세트',
-    icon: '🛠️',
-  },
-];
+const FRAMEWORK_TOOLTIP_TEXT =
+  '선택한 프레임워크/라이브러리에 맞는 규칙 세트가 자동 구성됩니다. 빌더에서 상태 관리 도구를 추가로 선택할 수 있습니다.';
 
 const LandingPage = () => {
   const navigate = useNavigate();
   const [isUsageDialogOpen, setUsageDialogOpen] = useState(false);
   const [isHarnessIncluded, setHarnessIncluded] = useState(false);
   const [aiTool, setAiTool] = useState<AiTool>('claude-code');
+  const [frontendFramework, setFrontendFramework] = useState<FrontendFramework>(
+    DEFAULT_FRAMEWORK.frontend,
+  );
+
   const handleSelect = (stack: StackType) => {
+    const framework = stack === 'frontend' ? frontendFramework : undefined;
     navigate(`/builder/${stack}`, {
       state: {
+        framework,
         includeHarness: isHarnessIncluded,
         aiTool: isHarnessIncluded ? aiTool : undefined,
       },
@@ -165,42 +164,73 @@ const LandingPage = () => {
                 스택 선택
               </Heading>
               <Grid columns="repeat(auto-fit, minmax(280px, 1fr))" gap="lg">
-                {STACK_OPTIONS.map((option) => (
-                  <Card
-                    key={option.stack}
-                    className="p-6 md:p-8 hover:border-border-accent hover:shadow-md transition-all"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => handleSelect(option.stack)}
-                      className="w-full text-left focus-visible:outline-none"
-                      aria-label={`${option.title} 룰셋 선택`}
+                <Card className="p-6 md:p-8 hover:border-border-accent hover:shadow-md transition-all">
+                  <Stack spacing="sm">
+                    <Text as="span" size="4xl" aria-hidden="true">
+                      🎨
+                    </Text>
+                    <Heading as="h3">Frontend</Heading>
+                    <Text size="sm" color="muted">
+                      React / Vue / Svelte 등 브라우저 기반 UI 규칙 세트
+                    </Text>
+                    <Flex align="center" gap="2" className="mt-2">
+                      <label
+                        htmlFor="frontend-framework-select"
+                        className="text-sm text-text-muted"
+                      >
+                        프레임워크
+                      </label>
+                      <select
+                        id="frontend-framework-select"
+                        value={frontendFramework}
+                        onChange={(event) =>
+                          setFrontendFramework(event.target.value as FrontendFramework)
+                        }
+                        className="flex-1 text-sm rounded-md border border-border-base bg-bg-card text-text-main px-2 py-1 focus:outline-none focus:border-border-accent"
+                      >
+                        {FRONTEND_FRAMEWORK_LIST.map((framework) => (
+                          <option key={framework} value={framework}>
+                            {FRONTEND_FRAMEWORK_LABELS[framework]}
+                          </option>
+                        ))}
+                      </select>
+                      <Tooltip content={FRAMEWORK_TOOLTIP_TEXT}>
+                        <span
+                          aria-label="프레임워크 선택 설명"
+                          className="inline-flex items-center justify-center w-[18px] h-[18px] rounded-full border-[1.5px] border-text-main text-text-main text-[11px] font-bold leading-none select-none"
+                        >
+                          ?
+                        </span>
+                      </Tooltip>
+                    </Flex>
+                    <Button
+                      onClick={() => handleSelect('frontend')}
+                      aria-label="Frontend 룰셋 시작하기"
+                      className="mt-4"
                     >
-                      <Stack spacing="sm">
-                        <Text as="span" size="4xl" aria-hidden="true">
-                          {option.icon}
-                        </Text>
-                        <Heading as="h3">{option.title}</Heading>
-                        <Text size="sm" color="muted">
-                          {option.description}
-                        </Text>
-                        <Flex align="center" gap="1" className="mt-4">
-                          <Text
-                            as="span"
-                            size="sm"
-                            weight="medium"
-                            color="primary"
-                          >
-                            시작하기
-                          </Text>
-                          <Text as="span" color="primary" aria-hidden="true">
-                            →
-                          </Text>
-                        </Flex>
-                      </Stack>
-                    </button>
-                  </Card>
-                ))}
+                      시작하기 →
+                    </Button>
+                  </Stack>
+                </Card>
+
+                <Card className="p-6 md:p-8 hover:border-border-accent hover:shadow-md transition-all">
+                  <Stack spacing="sm">
+                    <Text as="span" size="4xl" aria-hidden="true">
+                      🛠️
+                    </Text>
+                    <Heading as="h3">Backend</Heading>
+                    <Text size="sm" color="muted">
+                      API / 데이터베이스 / 서버 운영 중심의 규칙 세트
+                    </Text>
+                    <Button
+                      onClick={() => handleSelect('backend')}
+                      aria-label="Backend 룰셋 시작하기"
+                      className="mt-4"
+                    >
+                      시작하기 →
+                    </Button>
+                  </Stack>
+                </Card>
               </Grid>
             </Box>
           </Stack>

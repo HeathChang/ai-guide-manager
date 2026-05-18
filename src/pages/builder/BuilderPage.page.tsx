@@ -1,7 +1,18 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { isStack } from '@/shared/types';
-import type { Stack } from '@/shared/types';
+import {
+  DEFAULT_FRAMEWORK,
+  isAiTool,
+  isBackendFramework,
+  isFrontendFramework,
+  isStack,
+} from '@/shared/types';
+import type {
+  AiTool,
+  BackendFramework,
+  FrontendFramework,
+  Stack,
+} from '@/shared/types';
 import { BuilderHeader } from '@/widgets/builder-header';
 import type { BuilderNotice } from '@/widgets/builder-header';
 import { FileListPanel } from '@/widgets/file-list';
@@ -11,13 +22,12 @@ import { buildAndSaveZip } from '@/features/download-zip';
 import {
   buildShareUrl,
   copyToClipboard,
+  parseFrameworkFromQuery,
   parseSelectedFromQuery,
 } from '@/features/share-url';
 import { getPresetList, getPresetFiles } from '@/features/presets';
 import type { Preset } from '@/features/presets';
 import { AddCustomFileDialog } from '@/features/custom-file';
-import { isAiTool } from '@/shared/types';
-import type { AiTool } from '@/shared/types';
 
 const isHarnessState = (state: unknown): boolean => {
   if (state === null || typeof state !== 'object') return false;
@@ -31,6 +41,21 @@ const readAiToolFromState = (state: unknown): AiTool | undefined => {
   const value = record.aiTool;
   if (typeof value !== 'string') return undefined;
   return isAiTool(value) ? value : undefined;
+};
+
+const readFrameworkFromState = (
+  state: unknown,
+  stack: Stack,
+): FrontendFramework | BackendFramework => {
+  if (state !== null && typeof state === 'object') {
+    const record = state as Record<string, unknown>;
+    const value = record.framework;
+    if (typeof value === 'string') {
+      if (stack === 'frontend' && isFrontendFramework(value)) return value;
+      if (stack === 'backend' && isBackendFramework(value)) return value;
+    }
+  }
+  return stack === 'frontend' ? DEFAULT_FRAMEWORK.frontend : DEFAULT_FRAMEWORK.backend;
 };
 
 const BuilderPage = () => {
@@ -47,8 +72,16 @@ const BuilderPage = () => {
 
   const includeHarness = isHarnessState(location.state);
   const aiTool = readAiToolFromState(location.state);
+  const queryFramework = useMemo(() => {
+    const candidate = parseFrameworkFromQuery(location.search);
+    if (candidate === undefined) return undefined;
+    if (stack === 'frontend' && isFrontendFramework(candidate)) return candidate;
+    if (stack === 'backend' && isBackendFramework(candidate)) return candidate;
+    return undefined;
+  }, [location.search, stack]);
+  const framework = queryFramework ?? readFrameworkFromState(location.state, stack);
 
-  const workspace = useRulerWorkspace({ stack, initialSelection, includeHarness, aiTool });
+  const workspace = useRulerWorkspace({ stack, framework, initialSelection, includeHarness, aiTool });
   const presets = useMemo(() => getPresetList(), []);
 
   const [isCustomDialogOpen, setCustomDialogOpen] = useState(false);
@@ -85,6 +118,7 @@ const BuilderPage = () => {
       origin: window.location.origin,
       pathname: location.pathname,
       selected: Array.from(workspace.selectedFileNames),
+      framework,
     });
     try {
       await copyToClipboard(url);
@@ -92,7 +126,7 @@ const BuilderPage = () => {
     } catch {
       window.prompt('링크를 수동으로 복사하세요', url);
     }
-  }, [location.pathname, workspace.selectedFileNames, showNotice]);
+  }, [location.pathname, workspace.selectedFileNames, framework, showNotice]);
 
   const handleDownload = useCallback(async () => {
     const entries = Array.from(workspace.selectedFileNames).map((fileName) => ({
@@ -101,7 +135,7 @@ const BuilderPage = () => {
     }));
     setIsDownloading(true);
     try {
-      await buildAndSaveZip({ stack, entries });
+      await buildAndSaveZip({ stack, framework, entries });
       showNotice({
         variant: 'success',
         message: `${entries.length}개 파일을 다운로드했습니다`,
@@ -112,7 +146,7 @@ const BuilderPage = () => {
     } finally {
       setIsDownloading(false);
     }
-  }, [stack, workspace, showNotice]);
+  }, [stack, framework, workspace, showNotice]);
 
   const editedFileNames = useMemo(() => {
     const set = new Set<string>();
@@ -131,6 +165,7 @@ const BuilderPage = () => {
     <div className="min-h-full flex flex-col">
       <BuilderHeader
         stack={stack}
+        framework={framework}
         selectedCount={workspace.selectedFileNames.size}
         presets={presets}
         isDownloading={isDownloading}

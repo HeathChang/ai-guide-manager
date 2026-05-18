@@ -11,6 +11,23 @@ import { frontendA11y } from './frontend/a11y';
 import { frontendStyling } from './frontend/styling';
 import { frontendPerformance } from './frontend/performance';
 
+import { frameworkNext } from './frontend/framework/next';
+import { frameworkVue } from './frontend/framework/vue';
+import { frameworkNuxt } from './frontend/framework/nuxt';
+import { frameworkSvelte } from './frontend/framework/svelte';
+import { frameworkSveltekit } from './frontend/framework/sveltekit';
+import { frameworkSolid } from './frontend/framework/solid';
+import { frameworkVanilla } from './frontend/framework/vanilla';
+
+import { stateReduxToolkit } from './frontend/state/redux-toolkit';
+import { stateZustand } from './frontend/state/zustand';
+import { stateJotai } from './frontend/state/jotai';
+import { stateRecoil } from './frontend/state/recoil';
+import { stateMobx } from './frontend/state/mobx';
+import { statePinia } from './frontend/state/pinia';
+import { stateVuex } from './frontend/state/vuex';
+import { stateSvelteStores } from './frontend/state/svelte-stores';
+
 import { backendBase } from './backend/base';
 import { backendBackend } from './backend/backend';
 import { backendApiDesign } from './backend/api-design';
@@ -25,7 +42,16 @@ import { backendCaching } from './backend/caching';
 
 import { getHarnessFiles } from './harness';
 
-export const DEFAULT_FRONTEND_FILES: readonly RulerFile[] = [
+import type {
+  AiTool,
+  BackendFramework,
+  FrontendFramework,
+  Stack,
+  StateManager,
+} from '@/shared/types';
+import { DEFAULT_FRAMEWORK, STATE_MANAGERS_BY_FRAMEWORK } from '@/shared/types';
+
+const COMMON_FRONTEND_FILES: readonly RulerFile[] = [
   {
     fileName: 'base.md',
     title: '기본 코딩 규칙',
@@ -34,15 +60,6 @@ export const DEFAULT_FRONTEND_FILES: readonly RulerFile[] = [
     stack: 'frontend',
     defaultSelected: true,
     content: frontendBase,
-  },
-  {
-    fileName: 'frontend.md',
-    title: '프론트엔드 공통',
-    category: '공통',
-    description: 'React 컨벤션, 컴포넌트 설계 원칙, 상태 관리 가이드라인',
-    stack: 'frontend',
-    defaultSelected: true,
-    content: frontendFrontend,
   },
   {
     fileName: 'fsd.md',
@@ -109,9 +126,21 @@ export const DEFAULT_FRONTEND_FILES: readonly RulerFile[] = [
     defaultSelected: false,
     content: frontendStyling,
   },
+];
+
+const REACT_BASE_FILES: readonly RulerFile[] = [
+  {
+    fileName: 'frontend.md',
+    title: '프론트엔드 공통 (React)',
+    category: '프레임워크',
+    description: 'React 컨벤션, 컴포넌트 설계 원칙, 상태 관리 가이드라인',
+    stack: 'frontend',
+    defaultSelected: true,
+    content: frontendFrontend,
+  },
   {
     fileName: 'performance.md',
-    title: '성능',
+    title: '성능 (React)',
     category: '성능',
     description: '번들 사이즈, 코드 스플리팅, 이미지 최적화, Core Web Vitals',
     stack: 'frontend',
@@ -120,7 +149,190 @@ export const DEFAULT_FRONTEND_FILES: readonly RulerFile[] = [
   },
 ];
 
-export const DEFAULT_BACKEND_FILES: readonly RulerFile[] = [
+const FRONTEND_FRAMEWORK_BUNDLES: Readonly<Record<FrontendFramework, readonly RulerFile[]>> = {
+  react: REACT_BASE_FILES,
+  next: [
+    ...REACT_BASE_FILES,
+    {
+      fileName: 'next.md',
+      title: 'Next.js (App Router)',
+      category: '프레임워크',
+      description: 'Server/Client Components, Server Actions, 캐싱, next/image · next/link',
+      stack: 'frontend',
+      defaultSelected: true,
+      content: frameworkNext,
+    },
+  ],
+  vue: [
+    {
+      fileName: 'vue.md',
+      title: 'Vue 3',
+      category: '프레임워크',
+      description: 'Composition API, <script setup>, ref/reactive, defineModel',
+      stack: 'frontend',
+      defaultSelected: true,
+      content: frameworkVue,
+    },
+  ],
+  nuxt: [
+    {
+      fileName: 'vue.md',
+      title: 'Vue 3',
+      category: '프레임워크',
+      description: 'Composition API, <script setup>, ref/reactive, defineModel',
+      stack: 'frontend',
+      defaultSelected: true,
+      content: frameworkVue,
+    },
+    {
+      fileName: 'nuxt.md',
+      title: 'Nuxt 3',
+      category: '프레임워크',
+      description: '파일 라우팅, useFetch/useAsyncData, server routes, runtimeConfig',
+      stack: 'frontend',
+      defaultSelected: true,
+      content: frameworkNuxt,
+    },
+  ],
+  svelte: [
+    {
+      fileName: 'svelte.md',
+      title: 'Svelte 5',
+      category: '프레임워크',
+      description: 'Runes ($state, $derived, $effect, $props), snippets, callback props',
+      stack: 'frontend',
+      defaultSelected: true,
+      content: frameworkSvelte,
+    },
+  ],
+  sveltekit: [
+    {
+      fileName: 'svelte.md',
+      title: 'Svelte 5',
+      category: '프레임워크',
+      description: 'Runes ($state, $derived, $effect, $props), snippets, callback props',
+      stack: 'frontend',
+      defaultSelected: true,
+      content: frameworkSvelte,
+    },
+    {
+      fileName: 'sveltekit.md',
+      title: 'SvelteKit',
+      category: '프레임워크',
+      description: 'load 함수, form actions, hooks, $env, adapter',
+      stack: 'frontend',
+      defaultSelected: true,
+      content: frameworkSveltekit,
+    },
+  ],
+  solid: [
+    {
+      fileName: 'solid.md',
+      title: 'SolidJS',
+      category: '프레임워크',
+      description: 'createSignal, fine-grained reactivity, props non-destructure, For/Show',
+      stack: 'frontend',
+      defaultSelected: true,
+      content: frameworkSolid,
+    },
+  ],
+  vanilla: [
+    {
+      fileName: 'vanilla.md',
+      title: 'Vanilla TypeScript',
+      category: '프레임워크',
+      description: '표준 DOM API, Web Components, XSS 방어, 빌드 (Vite)',
+      stack: 'frontend',
+      defaultSelected: true,
+      content: frameworkVanilla,
+    },
+  ],
+};
+
+const STATE_FILE_BY_KIND: Readonly<Record<StateManager, RulerFile>> = {
+  'redux-toolkit': {
+    fileName: 'state/redux-toolkit.md',
+    title: '상태 관리 — Redux Toolkit',
+    category: '상태 관리',
+    description: 'createSlice, RTK Query, createEntityAdapter, typed hooks, selector 메모이즈',
+    stack: 'frontend',
+    defaultSelected: false,
+    content: stateReduxToolkit,
+    stateManagerKind: 'redux-toolkit',
+  },
+  zustand: {
+    fileName: 'state/zustand.md',
+    title: '상태 관리 — Zustand',
+    category: '상태 관리',
+    description: '도메인별 store, shallow selector, 슬라이스 패턴, persist/devtools',
+    stack: 'frontend',
+    defaultSelected: false,
+    content: stateZustand,
+    stateManagerKind: 'zustand',
+  },
+  jotai: {
+    fileName: 'state/jotai.md',
+    title: '상태 관리 — Jotai',
+    category: '상태 관리',
+    description: 'atom/derived/atomFamily, useAtomValue/useSetAtom 분리, Suspense 통합',
+    stack: 'frontend',
+    defaultSelected: false,
+    content: stateJotai,
+    stateManagerKind: 'jotai',
+  },
+  recoil: {
+    fileName: 'state/recoil.md',
+    title: '상태 관리 — Recoil',
+    category: '상태 관리',
+    description: 'atom/selector + 마이그레이션 권고. Meta archive 후 maintenance 모드',
+    stack: 'frontend',
+    defaultSelected: false,
+    content: stateRecoil,
+    stateManagerKind: 'recoil',
+  },
+  mobx: {
+    fileName: 'state/mobx.md',
+    title: '상태 관리 — MobX',
+    category: '상태 관리',
+    description: 'observable/observer/action/computed, enforceActions, runInAction',
+    stack: 'frontend',
+    defaultSelected: false,
+    content: stateMobx,
+    stateManagerKind: 'mobx',
+  },
+  pinia: {
+    fileName: 'state/pinia.md',
+    title: '상태 관리 — Pinia',
+    category: '상태 관리',
+    description: 'defineStore (setup), storeToRefs, $patch, 영속화 플러그인',
+    stack: 'frontend',
+    defaultSelected: false,
+    content: statePinia,
+    stateManagerKind: 'pinia',
+  },
+  vuex: {
+    fileName: 'state/vuex.md',
+    title: '상태 관리 — Vuex (Legacy)',
+    category: '상태 관리',
+    description: 'namespaced 모듈, mutations/actions 분리, Pinia 마이그레이션 가이드',
+    stack: 'frontend',
+    defaultSelected: false,
+    content: stateVuex,
+    stateManagerKind: 'vuex',
+  },
+  'svelte-stores': {
+    fileName: 'state/svelte-stores.md',
+    title: '상태 관리 — Svelte Stores',
+    category: '상태 관리',
+    description: 'writable/readable/derived, $ 자동 구독, custom store 캡슐화',
+    stack: 'frontend',
+    defaultSelected: false,
+    content: stateSvelteStores,
+    stateManagerKind: 'svelte-stores',
+  },
+};
+
+const COMMON_BACKEND_FILES: readonly RulerFile[] = [
   {
     fileName: 'base.md',
     title: '기본 코딩 규칙',
@@ -222,20 +434,53 @@ export const DEFAULT_BACKEND_FILES: readonly RulerFile[] = [
   },
 ];
 
-import type { AiTool } from '@/shared/types';
+const buildStateFiles = (
+  framework: FrontendFramework,
+  selected: StateManager | undefined,
+): readonly RulerFile[] => {
+  const compatible = STATE_MANAGERS_BY_FRAMEWORK[framework];
+  return compatible.map((kind) => {
+    const base = STATE_FILE_BY_KIND[kind];
+    return {
+      ...base,
+      defaultSelected: selected === kind,
+    };
+  });
+};
 
 export interface GetDefaultFilesOptions {
+  readonly framework?: FrontendFramework | BackendFramework;
+  readonly stateManager?: StateManager;
   readonly includeHarness?: boolean;
   readonly aiTool?: AiTool;
 }
 
 export const getDefaultFiles = (
-  stack: 'frontend' | 'backend',
+  stack: Stack,
   options: GetDefaultFilesOptions = {},
 ): readonly RulerFile[] => {
-  const base = stack === 'frontend' ? DEFAULT_FRONTEND_FILES : DEFAULT_BACKEND_FILES;
-  if (options.includeHarness === true) {
-    return [...base, ...getHarnessFiles(stack, options.aiTool)];
+  if (stack === 'frontend') {
+    const framework: FrontendFramework =
+      (options.framework as FrontendFramework | undefined) ?? DEFAULT_FRAMEWORK.frontend;
+    const files: RulerFile[] = [
+      ...COMMON_FRONTEND_FILES,
+      ...FRONTEND_FRAMEWORK_BUNDLES[framework],
+      ...buildStateFiles(framework, options.stateManager),
+    ];
+    if (options.includeHarness === true) {
+      return [...files, ...getHarnessFiles(stack, options.aiTool)];
+    }
+    return files;
   }
-  return base;
+
+  // Backend framework bundles arrive in a follow-up commit; current backend stack
+  // resolves to the framework-agnostic common file set.
+  const files: RulerFile[] = [...COMMON_BACKEND_FILES];
+  if (options.includeHarness === true) {
+    return [...files, ...getHarnessFiles(stack, options.aiTool)];
+  }
+  return files;
 };
+
+export const DEFAULT_FRONTEND_FILES: readonly RulerFile[] = getDefaultFiles('frontend');
+export const DEFAULT_BACKEND_FILES: readonly RulerFile[] = getDefaultFiles('backend');

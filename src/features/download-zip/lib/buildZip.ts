@@ -1,6 +1,6 @@
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
-import type { Stack } from '@/shared/types';
+import type { BackendFramework, FrontendFramework, Stack } from '@/shared/types';
 import { formatDateYYYYMMDD } from '@/shared/lib';
 
 interface ZipEntry {
@@ -10,12 +10,14 @@ interface ZipEntry {
 
 interface BuildZipParams {
   readonly stack: Stack;
+  readonly framework?: FrontendFramework | BackendFramework;
   readonly entries: readonly ZipEntry[];
   readonly now?: Date;
 }
 
 export const buildAndSaveZip = async ({
   stack,
+  framework,
   entries,
   now = new Date(),
 }: BuildZipParams): Promise<void> => {
@@ -27,6 +29,7 @@ export const buildAndSaveZip = async ({
     zip.file(entry.fileName, entry.content);
   });
   const blob = await zip.generateAsync({ type: 'blob' });
-  const filename = `ai-ruler-${stack}-${formatDateYYYYMMDD(now)}.zip`;
+  const slug = framework !== undefined ? `${stack}-${framework}` : stack;
+  const filename = `ai-ruler-${slug}-${formatDateYYYYMMDD(now)}.zip`;
   saveAs(blob, filename);
 };

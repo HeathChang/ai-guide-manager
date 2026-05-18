@@ -1,4 +1,4 @@
-import type { Stack } from '@/shared/types/stack';
+import type { Stack, StateManager } from '@/shared/types';
 
 export type ArchitectureKind = 'fsd' | 'atomic';
 
@@ -17,6 +17,8 @@ export type FileCategory =
   | '안정성'
   | '워크플로우'
   | '하네스'
+  | '프레임워크'
+  | '상태 관리'
   | '사용자 정의';
 
 export interface RulerFile {
@@ -28,6 +30,7 @@ export interface RulerFile {
   readonly defaultSelected: boolean;
   readonly content: string;
   readonly architectureKind?: ArchitectureKind;
+  readonly stateManagerKind?: StateManager;
   readonly isCustom?: boolean;
   readonly isHarness?: boolean;
 }

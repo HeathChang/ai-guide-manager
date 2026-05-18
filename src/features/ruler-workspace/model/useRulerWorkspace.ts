@@ -1,12 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { RulerFile } from '@/entities/ruler-file';
 import { getDefaultFiles } from '@/entities/ruler-file';
-import type { AiTool, Stack } from '@/shared/types';
+import type {
+  AiTool,
+  BackendFramework,
+  FrontendFramework,
+  Stack,
+} from '@/shared/types';
+import { DEFAULT_FRAMEWORK } from '@/shared/types';
 import { createLocalStorage } from '@/shared/lib';
 import type { WorkspacePersisted } from './types';
 
 interface UseRulerWorkspaceParams {
   readonly stack: Stack;
+  readonly framework?: FrontendFramework | BackendFramework;
   readonly initialSelection?: readonly string[] | undefined;
   readonly includeHarness?: boolean;
   readonly aiTool?: AiTool;
@@ -38,23 +45,43 @@ const STORAGE_PREFIX = 'ai-ruler:v1:';
 
 export const useRulerWorkspace = ({
   stack,
+  framework,
   initialSelection,
   includeHarness = false,
   aiTool,
 }: UseRulerWorkspaceParams): UseRulerWorkspaceResult => {
   const harnessSuffix = includeHarness ? `:harness:${aiTool ?? 'claude-code'}` : '';
-  const storageKey = `${STORAGE_PREFIX}${stack}${harnessSuffix}`;
+  const frameworkSuffix = framework !== undefined ? `:${framework}` : '';
+  const storageKey = `${STORAGE_PREFIX}${stack}${frameworkSuffix}${harnessSuffix}`;
   const storage = useMemo(
     () => createLocalStorage<WorkspacePersisted>(storageKey),
     [storageKey],
   );
   const defaultFiles = useMemo(
-    () => getDefaultFiles(stack, { includeHarness, aiTool }),
-    [stack, includeHarness, aiTool],
+    () => getDefaultFiles(stack, { framework, includeHarness, aiTool }),
+    [stack, framework, includeHarness, aiTool],
   );
   const persistedRef = useRef<WorkspacePersisted | undefined>(undefined);
   if (persistedRef.current === undefined) {
     persistedRef.current = storage.read();
+    // framework 도입 이전(v1 prefix)에 저장된 데이터를 1회 마이그레이션.
+    // 기본 framework(React/Express) 진입 시점에만 시도 — 그 외 framework 사용자에겐 영향 없음.
+    if (persistedRef.current === undefined) {
+      const isDefaultFramework =
+        framework === undefined ||
+        (stack === 'frontend' && framework === DEFAULT_FRAMEWORK.frontend) ||
+        (stack === 'backend' && framework === DEFAULT_FRAMEWORK.backend);
+      if (isDefaultFramework) {
+        const legacyKey = `${STORAGE_PREFIX}${stack}${harnessSuffix}`;
+        const legacyStorage = createLocalStorage<WorkspacePersisted>(legacyKey);
+        const legacy = legacyStorage.read();
+        if (legacy !== undefined) {
+          persistedRef.current = legacy;
+          storage.write(legacy);
+          legacyStorage.clear();
+        }
+      }
+    }
   }
   const persisted = persistedRef.current;
 
@@ -117,6 +144,11 @@ export const useRulerWorkspace = ({
     [files],
   );
 
+  const findStateManagerKindOf = useCallback(
+    (fileName: string) => files.find((file) => file.fileName === fileName)?.stateManagerKind,
+    [files],
+  );
+
   const toggleSelection = useCallback(
     (fileName: string) => {
       setSelected((previous) => {
@@ -126,10 +158,18 @@ export const useRulerWorkspace = ({
           return next;
         }
         next.add(fileName);
-        const kind = findArchitectureKindOf(fileName);
-        if (kind !== undefined) {
+        const architectureKind = findArchitectureKindOf(fileName);
+        if (architectureKind !== undefined) {
           files.forEach((file) => {
-            if (file.architectureKind !== undefined && file.architectureKind !== kind) {
+            if (file.architectureKind !== undefined && file.architectureKind !== architectureKind) {
+              next.delete(file.fileName);
+            }
+          });
+        }
+        const stateManagerKind = findStateManagerKindOf(fileName);
+        if (stateManagerKind !== undefined) {
+          files.forEach((file) => {
+            if (file.stateManagerKind !== undefined && file.stateManagerKind !== stateManagerKind) {
               next.delete(file.fileName);
             }
           });
@@ -137,7 +177,7 @@ export const useRulerWorkspace = ({
         return next;
       });
     },
-    [files, findArchitectureKindOf],
+    [files, findArchitectureKindOf, findStateManagerKindOf],
   );
 
   const applySelection = useCallback(

@@ -1,11 +1,18 @@
 import { useState } from 'react';
 import { Alert, Flex, Spinner, Text } from 'null_ong2-design-system';
-import type { Stack } from '@/shared/types';
+import type { BackendFramework, FrontendFramework, Stack } from '@/shared/types';
+import {
+  BACKEND_FRAMEWORK_LABELS,
+  FRONTEND_FRAMEWORK_LABELS,
+  isBackendFramework,
+  isFrontendFramework,
+} from '@/shared/types';
 import { Button, ThemeToggle } from '@/shared/ui';
 import type { Preset } from '@/features/presets';
 
 interface BuilderHeaderProps {
   readonly stack: Stack;
+  readonly framework?: FrontendFramework | BackendFramework;
   readonly selectedCount: number;
   readonly presets: readonly Preset[];
   readonly isDownloading: boolean;
@@ -16,6 +23,15 @@ interface BuilderHeaderProps {
   readonly notice?: BuilderNotice | undefined;
 }
 
+const frameworkLabel = (
+  framework: FrontendFramework | BackendFramework | undefined,
+): string | undefined => {
+  if (framework === undefined) return undefined;
+  if (isFrontendFramework(framework)) return FRONTEND_FRAMEWORK_LABELS[framework];
+  if (isBackendFramework(framework)) return BACKEND_FRAMEWORK_LABELS[framework];
+  return undefined;
+};
+
 export interface BuilderNotice {
   readonly message: string;
   readonly variant: 'info' | 'success' | 'warning' | 'danger';
@@ -23,6 +39,7 @@ export interface BuilderNotice {
 
 export const BuilderHeader = ({
   stack,
+  framework,
   selectedCount,
   presets,
   isDownloading,
@@ -33,6 +50,7 @@ export const BuilderHeader = ({
   notice,
 }: BuilderHeaderProps) => {
   const [presetOpen, setPresetOpen] = useState(false);
+  const fwLabel = frameworkLabel(framework);
 
   return (
     <header className="border-b border-border-base bg-bg-card">
@@ -54,7 +72,8 @@ export const BuilderHeader = ({
                   AI-Ruler
                 </Text>
                 <Text as="div" size="xs" color="muted" truncate>
-                  {stack === 'frontend' ? 'Frontend' : 'Backend'} · {selectedCount}개 선택
+                  {stack === 'frontend' ? 'Frontend' : 'Backend'}
+                  {fwLabel !== undefined ? ` · ${fwLabel}` : ''} · {selectedCount}개 선택
                 </Text>
               </div>
             </Flex>
