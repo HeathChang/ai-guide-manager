@@ -12,12 +12,15 @@ import {
 import { Button, Card, Checkbox, ThemeToggle, Tooltip } from '@/shared/ui';
 import type {
   AiTool,
+  BackendFramework,
   FrontendFramework,
   Stack as StackType,
 } from '@/shared/types';
 import {
   AI_TOOL_LABELS,
   AI_TOOL_LIST,
+  BACKEND_FRAMEWORK_LABELS,
+  BACKEND_FRAMEWORK_LIST,
   DEFAULT_FRAMEWORK,
   FRONTEND_FRAMEWORK_LABELS,
   FRONTEND_FRAMEWORK_LIST,
@@ -41,9 +44,12 @@ const LandingPage = () => {
   const [frontendFramework, setFrontendFramework] = useState<FrontendFramework>(
     DEFAULT_FRAMEWORK.frontend,
   );
+  const [backendFramework, setBackendFramework] = useState<BackendFramework>(
+    DEFAULT_FRAMEWORK.backend,
+  );
 
   const handleSelect = (stack: StackType) => {
-    const framework = stack === 'frontend' ? frontendFramework : undefined;
+    const framework = stack === 'frontend' ? frontendFramework : backendFramework;
     navigate(`/builder/${stack}`, {
       state: {
         framework,
@@ -222,6 +228,36 @@ const LandingPage = () => {
                     <Text size="sm" color="muted">
                       API / 데이터베이스 / 서버 운영 중심의 규칙 세트
                     </Text>
+                    <Flex align="center" gap="2" className="mt-2">
+                      <label
+                        htmlFor="backend-framework-select"
+                        className="text-sm text-text-muted"
+                      >
+                        프레임워크
+                      </label>
+                      <select
+                        id="backend-framework-select"
+                        value={backendFramework}
+                        onChange={(event) =>
+                          setBackendFramework(event.target.value as BackendFramework)
+                        }
+                        className="flex-1 text-sm rounded-md border border-border-base bg-bg-card text-text-main px-2 py-1 focus:outline-none focus:border-border-accent"
+                      >
+                        {BACKEND_FRAMEWORK_LIST.map((framework) => (
+                          <option key={framework} value={framework}>
+                            {BACKEND_FRAMEWORK_LABELS[framework]}
+                          </option>
+                        ))}
+                      </select>
+                      <Tooltip content={FRAMEWORK_TOOLTIP_TEXT}>
+                        <span
+                          aria-label="프레임워크 선택 설명"
+                          className="inline-flex items-center justify-center w-[18px] h-[18px] rounded-full border-[1.5px] border-text-main text-text-main text-[11px] font-bold leading-none select-none"
+                        >
+                          ?
+                        </span>
+                      </Tooltip>
+                    </Flex>
                     <Button
                       onClick={() => handleSelect('backend')}
                       aria-label="Backend 룰셋 시작하기"

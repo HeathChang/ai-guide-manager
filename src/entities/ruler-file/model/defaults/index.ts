@@ -40,6 +40,14 @@ import { backendLogging } from './backend/logging';
 import { backendErrorHandling } from './backend/error-handling';
 import { backendCaching } from './backend/caching';
 
+import { frameworkNodeExpress } from './backend/framework/node-express';
+import { frameworkNodeNestjs } from './backend/framework/node-nestjs';
+import { frameworkNodeFastify } from './backend/framework/node-fastify';
+import { frameworkSpringBoot } from './backend/framework/spring-boot';
+import { frameworkDjango } from './backend/framework/django';
+import { frameworkRails } from './backend/framework/rails';
+import { frameworkGoGin } from './backend/framework/go-gin';
+
 import { getHarnessFiles } from './harness';
 
 import type {
@@ -434,6 +442,86 @@ const COMMON_BACKEND_FILES: readonly RulerFile[] = [
   },
 ];
 
+const BACKEND_FRAMEWORK_BUNDLES: Readonly<Record<BackendFramework, readonly RulerFile[]>> = {
+  'node-express': [
+    {
+      fileName: 'node-express.md',
+      title: 'Node.js + Express',
+      category: '프레임워크',
+      description: '미들웨어 순서, 검증 미들웨어, asyncHandler, 중앙 에러 핸들러',
+      stack: 'backend',
+      defaultSelected: true,
+      content: frameworkNodeExpress,
+    },
+  ],
+  'node-nestjs': [
+    {
+      fileName: 'nestjs.md',
+      title: 'NestJS',
+      category: '프레임워크',
+      description: '모듈 구조, DTO + class-validator, 생성자 주입, Guard/Pipe/Interceptor',
+      stack: 'backend',
+      defaultSelected: true,
+      content: frameworkNodeNestjs,
+    },
+  ],
+  'node-fastify': [
+    {
+      fileName: 'fastify.md',
+      title: 'Fastify',
+      category: '프레임워크',
+      description: '스키마 우선 라우트, TypeBox/zod, plugin 시스템, pino 빌트인',
+      stack: 'backend',
+      defaultSelected: true,
+      content: frameworkNodeFastify,
+    },
+  ],
+  'spring-boot': [
+    {
+      fileName: 'spring-boot.md',
+      title: 'Spring Boot',
+      category: '프레임워크',
+      description: '도메인 패키지, 생성자 주입, ControllerAdvice, Bean Validation, JPA 안전성',
+      stack: 'backend',
+      defaultSelected: true,
+      content: frameworkSpringBoot,
+    },
+  ],
+  django: [
+    {
+      fileName: 'django.md',
+      title: 'Django',
+      category: '프레임워크',
+      description: '앱 분리, DRF Serializer, services.py 패턴, ALLOWED_HOSTS, N+1 방지',
+      stack: 'backend',
+      defaultSelected: true,
+      content: frameworkDjango,
+    },
+  ],
+  rails: [
+    {
+      fileName: 'rails.md',
+      title: 'Ruby on Rails',
+      category: '프레임워크',
+      description: 'Strong Parameters, service 객체, ActiveJob, includes로 N+1, Pundit',
+      stack: 'backend',
+      defaultSelected: true,
+      content: frameworkRails,
+    },
+  ],
+  'go-gin': [
+    {
+      fileName: 'go-gin.md',
+      title: 'Go + Gin',
+      category: '프레임워크',
+      description: 'internal 패키지, context 전파, error wrap, slog, sqlc 또는 ORM',
+      stack: 'backend',
+      defaultSelected: true,
+      content: frameworkGoGin,
+    },
+  ],
+};
+
 const buildStateFiles = (
   framework: FrontendFramework,
   selected: StateManager | undefined,
@@ -473,9 +561,12 @@ export const getDefaultFiles = (
     return files;
   }
 
-  // Backend framework bundles arrive in a follow-up commit; current backend stack
-  // resolves to the framework-agnostic common file set.
-  const files: RulerFile[] = [...COMMON_BACKEND_FILES];
+  const framework: BackendFramework =
+    (options.framework as BackendFramework | undefined) ?? DEFAULT_FRAMEWORK.backend;
+  const files: RulerFile[] = [
+    ...COMMON_BACKEND_FILES,
+    ...BACKEND_FRAMEWORK_BUNDLES[framework],
+  ];
   if (options.includeHarness === true) {
     return [...files, ...getHarnessFiles(stack, options.aiTool)];
   }
