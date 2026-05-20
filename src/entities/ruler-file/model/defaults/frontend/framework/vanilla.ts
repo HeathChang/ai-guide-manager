@@ -36,9 +36,11 @@ extends: [base.md]
 ## DOM 안전 조작
 
 - \`innerHTML\` 사용 금지 (XSS).
+  - 근거: \`innerHTML\` 은 입력을 HTML로 파싱. 사용자 데이터에 \`<script>\` / \`onerror\` / \`javascript:\` 가 있으면 즉시 실행 또는 이벤트 핸들러 등록. \`textContent\` 는 문자 그대로 노드 텍스트로 삽입 — 파싱 안 함.
 - 동적 콘텐츠는 \`textContent\` 또는 \`createElement\` + \`appendChild\`.
 - 사용자 입력은 렌더 전 escape 또는 텍스트 노드로.
 - \`document.write\` 절대 금지.
+  - 근거: 페이지 로드 완료 후 호출하면 문서 전체를 덮어쓴다. 비동기 컨텍스트(이벤트 핸들러, setTimeout)에서 호출 시 빈 페이지로 만든다.
 
 ## 쿼리 / 이벤트
 

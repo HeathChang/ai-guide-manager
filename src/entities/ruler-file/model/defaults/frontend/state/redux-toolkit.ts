@@ -22,7 +22,9 @@ extends: [base.md, frontend.md]
 ## Store 구성
 
 - \`configureStore\` 한 번만, \`store.ts\`에 둔다.
+  - 근거: 여러 store 인스턴스는 devtools 통합이 깨지고 RTK Query 캐시 무효화가 store 경계를 못 넘는다.
 - \`combineReducers\` 직접 호출 금지 — \`configureStore({ reducer: { ... } })\` 사용.
+  - 근거: configureStore가 내부적으로 combineReducers + serializableCheck/immutableCheck/thunk 미들웨어 + devtools 를 자동 구성. 직접 조립하면 그 안전망이 사라진다.
 - 미들웨어 추가는 \`getDefaultMiddleware().concat(...)\` 패턴.
 - \`serializableCheck\` / \`immutableCheck\` 비활성화 금지 — 비직렬화 값(Date, Map, Class)이 들어가면 Redux의 시간여행이 깨진다. 필요하면 ignoredPaths로 한정.
 
@@ -30,6 +32,7 @@ extends: [base.md, frontend.md]
 
 - 파일 위치: \`features/{domain}/{domain}Slice.ts\` (FSD라면 \`entities/{domain}/model/slice.ts\`).
 - 액션 타입은 자동 — \`{sliceName}/{reducerName}\`. **수동 액션 타입 작성 금지**.
+  - 근거: slice 이름이 바뀌면 액션 타입도 자동 갱신. 수동 작성하면 동기화 누락 → 사일런트 미스매치(아무 reducer도 매칭 안 됨).
 - reducer 내부에서 \`state.x = y\` 직접 변경 OK (Immer가 immutable 처리).
   - 단, \`return\` 으로 새 객체 반환할 거면 spread 사용. **둘을 섞지 마라.**
 - \`extraReducers\`로 외부 액션(다른 slice, thunk) 처리.

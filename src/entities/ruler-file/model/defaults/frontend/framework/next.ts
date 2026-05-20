@@ -85,6 +85,7 @@ extends: [base.md, frontend.md]
 - 서버 전용: \`process.env.X\` (어떤 키든).
 - 클라이언트 노출: **\`NEXT_PUBLIC_\`** prefix 필수.
 - 시크릿은 절대 \`NEXT_PUBLIC_\` 붙이지 마라.
+  - 근거: \`NEXT_PUBLIC_\` 변수는 빌드 시점에 클라이언트 JS 번들에 인라인된다. 한 번 빌드되면 브라우저 DevTools에서 raw 문자열로 조회 가능. API 키/DB 비밀번호가 들어가면 즉시 누출.
 - \`.env.local\` 은 \`.gitignore\` 필수.
 
 ## 캐시 모델

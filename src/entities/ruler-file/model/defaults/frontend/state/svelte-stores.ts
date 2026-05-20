@@ -72,6 +72,7 @@ export const addItem = (item: CartItem) => {
 ## Subscribe 직접 사용
 
 - 컴포넌트 안에서는 항상 \`$store\` 사용 — 직접 subscribe 금지.
+  - 근거: 컴포넌트 안 수동 subscribe는 \`onDestroy\` 에 unsubscribe 등록 누락 시 즉시 메모리 누수. \`$\` prefix는 컴파일러가 lifecycle 묶음을 보장.
 - 컴포넌트 **밖**(util 함수, 이벤트 핸들러 외부)에서만 직접 subscribe + unsubscribe.
   \`\`\`ts
   const unsub = items.subscribe((v) => { ... });

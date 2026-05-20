@@ -40,6 +40,7 @@ export async function load({ params, locals }) {
 ## Form Actions
 
 - mutation은 form action으로 작성. JS 비활성 환경에서도 동작.
+  - 근거: form 표준 submit은 JS 없이도 작동. \`use:enhance\` 는 JS가 로드되면 progressive enhancement로 SPA 경험을 추가. fetch + onClick 패턴은 JS 실패 시 완전 동작 불가.
 - \`+page.server.ts\` 의 \`actions\` export:
   \`\`\`ts
   export const actions = {
@@ -70,7 +71,7 @@ export async function load({ params, locals }) {
 ## 에러 / 404
 
 - \`+error.svelte\` : 라우트별 에러 페이지.
-- \`error(status, message)\` from \`@sveltejs/kit\` — load 함수 안에서 던지면 적절히 처리.
+- \`error(status, message)\` from \`@sveltejs/kit\` — load 함수 안에서 throw 하면 가장 가까운 \`+error.svelte\` 가 자동 렌더링되고 상태 코드도 응답에 반영된다. 일반 \`throw new Error\` 는 500 fallback.
 - \`redirect(status, location)\` 도 같은 방식.
 
 ## 환경 변수

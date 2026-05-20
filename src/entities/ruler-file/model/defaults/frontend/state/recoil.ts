@@ -28,6 +28,7 @@ extends: [base.md, frontend.md]
 ## 정의 위치
 
 - atom/selector는 **모듈 레벨**. 컴포넌트 내부 정의 금지(매 렌더마다 새 등록 시도 → key 충돌).
+  - 근거: Recoil은 key 기반 글로벌 레지스트리에 atom을 등록한다. 컴포넌트가 리렌더되면 같은 key로 다시 등록 시도 → "duplicate atom key" 경고 + 상태 동작 불안정.
 
 ## 읽기 / 쓰기 hook
 

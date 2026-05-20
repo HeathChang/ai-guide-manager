@@ -38,12 +38,14 @@ extends: [base.md, frontend.md]
 ## 리렌더 최적화 — 가장 중요한 규칙
 
 - **selector 없이 \`useStore()\` 전체를 가져오면 모든 변경에 리렌더**.
-- 항상 selector + 필요시 비교 함수:
+- selector 사용 규칙:
+  - 단일 primitive 반환 → selector 1개, 비교 함수 불필요
+  - **여러 값을 객체/배열로 묶어 반환 → \`shallow\` 비교 함수 필수**
   \`\`\`ts
   // 한 개 값
   const count = useStore((s) => s.count);
 
-  // 여러 값 → shallow
+  // 여러 값 → shallow 필수
   import { shallow } from 'zustand/shallow';
   const { a, b } = useStore((s) => ({ a: s.a, b: s.b }), shallow);
   \`\`\`
@@ -52,6 +54,7 @@ extends: [base.md, frontend.md]
 ## TypeScript
 
 - \`create<T>()(...)\` 형태(curried)로 — 일반 \`create<T>(...)\` 는 미들웨어와 조합 시 타입 추론 깨짐.
+  - 근거: Zustand v4부터 미들웨어 체인의 타입을 추론하려면 curried 형태 필요. 비-curried는 \`devtools(persist(...))\` 같은 조합에서 \`set\` 의 타입이 \`any\` 로 떨어진다.
 - 명시적 \`StateCreator<T>\` 로 슬라이스 타이핑.
 
 ## 미들웨어

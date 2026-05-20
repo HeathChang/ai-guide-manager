@@ -30,6 +30,7 @@ extends: [base.md, vue.md]
 - \`components/\`, \`composables/\`, \`utils/\` 의 export는 자동 import.
 - Vue API(\`ref\`, \`computed\`, \`watch\`) / Nuxt 컴포저블(\`useFetch\`, \`useRoute\`)도 자동.
 - 명시 import 작성 금지 — 자동 import와 중복되면 IDE 경고.
+  - 근거: Nuxt가 \`.nuxt/auto-imports.d.ts\` 에 타입 매핑을 자동 생성. 명시 import 추가하면 vue-tsc가 같은 이름 두 번 선언으로 인식, 빌드 경고 발생.
 - 자동 import 비활성 옵션은 명확한 이유가 있을 때만.
 
 ## 데이터 페칭 — \`useFetch\` vs \`useAsyncData\` vs \`$fetch\`

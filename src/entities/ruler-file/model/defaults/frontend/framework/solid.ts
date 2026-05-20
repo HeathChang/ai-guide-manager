@@ -78,6 +78,7 @@ const [user] = createResource(userId, async (id) => {
 
 - \`Suspense\` boundary와 자연스럽게 통합.
 - 서버 데이터는 항상 \`createResource\` — 직접 fetch + signal 금지.
+  - 근거: createResource는 source signal 변경 시 자동 refetch + race condition 자동 처리(이전 요청 무시) + Suspense 통합. 직접 구현하면 매번 같은 동시성 함정을 재발명한다.
 
 ## Show / For — JSX 흐름 제어
 
@@ -116,7 +117,7 @@ const [user] = createResource(userId, async (id) => {
 
 ## AI 행동 규칙
 
-- 컴포넌트 시그니처에 props destructure 발견 시 즉시 \`props.x\` 패턴 + 필요시 \`splitProps\`.
+- 컴포넌트 시그니처에 props destructure 발견 시 즉시 \`props.x\` 패턴으로 교체. 일부 props만 분리해서 자식에 전달해야 한다면 \`splitProps(props, ['a', 'b'])\` 사용 (reactivity 보존).
 - \`useState\` / \`useEffect\` / \`useMemo\` 시도 발견 시 Solid API로 교체.
 - 리스트 렌더링에 \`.map()\` 사용 시 \`<For>\` 권고.
 - signal 읽기에서 \`count\` (괄호 누락) 사용 시 \`count()\` 로 즉시 수정.

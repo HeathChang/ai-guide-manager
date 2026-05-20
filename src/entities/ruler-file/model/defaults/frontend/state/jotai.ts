@@ -65,6 +65,7 @@ const incAtom = atom(null, (get, set) => set(countAtom, get(countAtom) + 1)); //
 - 기본 store(\`getDefaultStore()\`)는 앱 전역에 1개.
 - 테스트, 모달, SSR 격리는 \`<Provider>\` 로 별도 store 생성.
 - 같은 atom이라도 Provider 안/밖에서 다른 인스턴스 — 의도적 격리에만 사용.
+  - 근거: SSR에서 Provider 없이 모듈 스코프 store를 쓰면 요청 간 상태가 누수된다. 테스트도 마찬가지 — Provider로 매 테스트 격리해야 다른 테스트의 atom 변화가 새지 않는다.
 
 ## 서버 상태와의 관계
 

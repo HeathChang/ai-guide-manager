@@ -86,6 +86,7 @@ extends: [base.md]
   let { onSelect }: { onSelect: (id: string) => void } = $props();
   <button onclick={() => onSelect('x')}>...</button>
   \`\`\`
+  - 근거: \`createEventDispatcher\` 는 Svelte 5에서 deprecated. 콜백 prop은 타입 추론이 더 강하고 (제네릭 매개변수 OK), DOM 이벤트와 동일 시그니처(\`onclick\`)라 학습 부담이 없다.
 - 깊은 트리: context API (\`setContext\` / \`getContext\`).
 - 전역: Svelte Stores (\`state/svelte-stores.md\`).
 

@@ -30,6 +30,7 @@ const cartModule = {
 ## State
 
 - \`state: () => ({...})\` — **반드시 함수**. 객체 직접 대입은 SSR/테스트 시 모든 인스턴스가 같은 객체 공유.
+  - 근거: SSR은 요청마다 새 store 인스턴스를 만들지만 객체 리터럴은 모듈 평가 시점에 한 번 생성 → 요청 간 상태 누수 + 동시 요청 간 race condition.
 - 새 속성 추가 시 \`Vue.set\` (Vue 2) 또는 직접 spread (Vue 3) — 반응성 등록.
 
 ## Mutation

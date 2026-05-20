@@ -52,6 +52,7 @@ button { color: var(--color-brand); }
   \`\`\`
 - 기본값: \`withDefaults(defineProps<...>(), { count: 0 })\`.
 - props를 **mutate 금지** — readonly. 변경 필요하면 emit으로 부모에 알림.
+  - 근거: props는 부모 reactive 객체의 참조다. 자식이 mutate하면 부모도 변하고 — 그 변경이 *왜* 일어났는지 부모는 모른다. 단방향 데이터 흐름이 깨져서 디버깅 난이도가 폭증한다.
 
 ## v-model
 
@@ -71,7 +72,8 @@ button { color: var(--color-brand); }
 | \`watch(source, cb)\` | 특정 source 변화에 side effect, lazy |
 | \`watchEffect(cb)\` | 의존성 자동 감지, immediate 실행 |
 
-- 가능한 한 \`computed\` 우선 — 명시적이고 메모됨.
+- side-effect가 없는 파생값은 **무조건 \`computed\`** — \`ref + watch\` 로 같은 결과를 만들 수 있어도 금지.
+  - 근거: computed는 의존성 자동 추적 + 메모, watch는 둘 다 수동. 같은 결과를 더 비싸게 만든다.
 - watch 의 \`{ immediate, deep, flush }\` 옵션을 명시.
 - watchEffect 는 의존성이 불명확해 디버깅이 어려움 — 단순 케이스에만.
 

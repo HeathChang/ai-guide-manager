@@ -63,13 +63,18 @@ const { addItem, clear } = cart;              // 액션은 그냥 destructure OK
 
 ## State 변경 규칙
 
-- 컴포넌트에서 \`cart.items = []\` 같은 직접 대체 가능하지만 **권장하지 않음**.
-  - 항상 store의 action을 통해서.
-- 여러 필드 동시 변경 시 \`store.$patch({...})\` 또는 \`store.$patch((state) => {...})\`:
+세 단계 계단:
+
+1. **금지** — 컴포넌트에서 store state 직접 대입 (\`cart.items = []\`).
+2. **표준** — store에 정의된 action 호출 (\`cart.clear()\`, \`cart.addItem(item)\`).
+3. **허용 (action 내부만)** — 액션 함수 안에서는 \`items.value = []\` 같은 직접 변경 OK.
+
+- 여러 필드 동시 변경은 \`store.$patch({...})\` 또는 \`store.$patch((state) => {...})\`:
   \`\`\`ts
   cart.$patch({ items: [], total: 0 });   // 한 번의 reactivity 트리거
   \`\`\`
   - 근거: 개별 대입은 각각 update를 일으킴. $patch는 한 번에 묶음 → 미세 성능 + 의도 명확.
+- 근거(왜 컴포넌트 직접 변경 금지): action 경계를 두면 devtools에서 변경 출처를 추적 가능. 컴포넌트 직접 변경은 누가 언제 바꿨는지 grep으로만 찾아야 한다. 중대형 앱에서 디버깅 비용 폭증.
 
 ## Reset
 

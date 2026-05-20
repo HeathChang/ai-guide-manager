@@ -36,9 +36,11 @@ extends: [base.md, frontend.md]
 
 ## Store 작성
 
-- **\`makeAutoObservable(this)\` 권장** — class 또는 plain 객체 모두 가능.
+- **\`makeAutoObservable(this)\` 의무 사용** — class 또는 plain 객체 모두 가능.
+  - 근거: getter는 자동으로 computed, 메서드는 자동으로 action, 그 외 필드는 observable로 분류. 수동 \`makeObservable\` 은 필드 타입을 일일이 명시해야 하며 누락 시 silent하게 reactive에서 빠진다.
 - 한 store = 한 도메인. cross-domain 의존이 있으면 rootStore 패턴.
-- \`@observable / @action / @computed\` 데코레이터는 환경 설정이 복잡 → 권장하지 않음. \`makeAutoObservable\` 로 통일.
+- \`@observable / @action / @computed\` 데코레이터는 환경 설정이 복잡 → 사용 금지. \`makeAutoObservable\` 로 통일.
+  - 근거: TypeScript 5의 표준 데코레이터(stage-3)는 MobX의 legacy 데코레이터와 비호환. \`experimentalDecorators: true\` 설정 시 TS 5 신기능과 충돌한다.
 
 \`\`\`ts
 class CartStore {
