@@ -35,7 +35,7 @@ src/
     },
   }, handler);
   \`\`\`
-- 근거: 검증·직렬화·OpenAPI 자동화·성능 최적화가 전부 스키마에서 파생. 누락하면 Fastify를 쓸 이유의 절반이 사라진다.
+- 근거: 검증·직렬화·OpenAPI 자동화·성능 최적화가 전부 스키마에서 파생. 누락하면 Fastify를 쓸 이유의 절반이 사라진다. 특히 response 스키마는 JSON.stringify 대신 빠른 직렬화 코드를 빌드 시점에 생성 — Express 대비 처리량 차이의 큰 부분이 여기서 나온다.
 - TypeBox 또는 zod + \`fastify-type-provider-zod\` 권장 — TS 타입 추론 자동.
 
 ## TypeScript

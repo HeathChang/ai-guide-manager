@@ -28,6 +28,9 @@ import {
 import { getPresetList, getPresetFiles } from '@/features/presets';
 import type { Preset } from '@/features/presets';
 import { AddCustomFileDialog } from '@/features/custom-file';
+import { LintDialog, lintRules } from '@/features/rule-lint';
+import type { LintResult } from '@/features/rule-lint';
+import { VerifyPromptsDialog } from '@/widgets/verify-prompts';
 
 const isHarnessState = (state: unknown): boolean => {
   if (state === null || typeof state !== 'object') return false;
@@ -87,6 +90,8 @@ const BuilderPage = () => {
   const [isCustomDialogOpen, setCustomDialogOpen] = useState(false);
   const [notice, setNotice] = useState<BuilderNotice | undefined>();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [lintResult, setLintResult] = useState<LintResult | undefined>();
+  const [isVerifyPromptsOpen, setVerifyPromptsOpen] = useState(false);
 
   const showNotice = useCallback(
     (next: BuilderNotice) => {
@@ -127,6 +132,15 @@ const BuilderPage = () => {
       window.prompt('링크를 수동으로 복사하세요', url);
     }
   }, [location.pathname, workspace.selectedFileNames, framework, showNotice]);
+
+  const handleLint = useCallback(() => {
+    const result = lintRules({
+      files: workspace.files,
+      selected: workspace.selectedFileNames,
+      getContent: workspace.getContent,
+    });
+    setLintResult(result);
+  }, [workspace]);
 
   const handleDownload = useCallback(async () => {
     const entries = Array.from(workspace.selectedFileNames).map((fileName) => ({
@@ -173,6 +187,8 @@ const BuilderPage = () => {
         onApplyPreset={handleApplyPreset}
         onShare={handleShare}
         onDownload={handleDownload}
+        onLint={handleLint}
+        onOpenVerifyPrompts={() => setVerifyPromptsOpen(true)}
         notice={notice}
       />
 
@@ -217,6 +233,17 @@ const BuilderPage = () => {
         existingFileNames={existingFileNames}
         onClose={() => setCustomDialogOpen(false)}
         onSubmit={workspace.addCustomFile}
+      />
+
+      <LintDialog
+        open={lintResult !== undefined}
+        result={lintResult}
+        onClose={() => setLintResult(undefined)}
+      />
+
+      <VerifyPromptsDialog
+        open={isVerifyPromptsOpen}
+        onClose={() => setVerifyPromptsOpen(false)}
       />
     </div>
   );

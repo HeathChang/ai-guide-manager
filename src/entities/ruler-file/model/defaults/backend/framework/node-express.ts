@@ -73,6 +73,7 @@ src/
   const asyncHandler = (fn: AsyncHandler) =>
     (req: Request, res: Response, next: NextFunction) => fn(req, res, next).catch(next);
   \`\`\`
+  - 근거: Express 4의 라우트 핸들러는 Promise rejection을 자동으로 catch하지 않는다. 에러 핸들러에 도달 못 하고 요청이 hang → 결국 timeout 또는 \`unhandledRejection\`. Express 5는 자동 catch 지원하지만 4가 여전히 표준.
 - 커스텀 에러 클래스 (\`AppError\` extends Error) — status / code / message.
 - 4-arg 에러 핸들러에서 분기:
   \`\`\`ts

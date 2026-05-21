@@ -62,6 +62,7 @@ app/
 
 - 검증 + 서비스 호출 + 응답.
 - 표준 7개 액션(\`index\`, \`show\`, \`new\`, \`create\`, \`edit\`, \`update\`, \`destroy\`) 외엔 다른 controller로 분리 검토.
+  - 근거: Rails 라우팅(\`resources :users\`)이 7개 액션을 자동 매핑. 8번째 액션을 추가하면 라우트를 수동 선언해야 하고, 컨벤션을 거스른다. 새 책임은 거의 항상 새 리소스(\`UserPasswordsController\`, \`UserSessionsController\`) 로 분리하는 게 더 깨끗하다.
 
 ## Service 객체
 

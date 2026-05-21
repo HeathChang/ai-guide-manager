@@ -20,6 +20,8 @@ interface BuilderHeaderProps {
   readonly onApplyPreset: (preset: Preset) => void;
   readonly onShare: () => void;
   readonly onDownload: () => void;
+  readonly onLint: () => void;
+  readonly onOpenVerifyPrompts: () => void;
   readonly notice?: BuilderNotice | undefined;
 }
 
@@ -47,6 +49,8 @@ export const BuilderHeader = ({
   onApplyPreset,
   onShare,
   onDownload,
+  onLint,
+  onOpenVerifyPrompts,
   notice,
 }: BuilderHeaderProps) => {
   const [presetOpen, setPresetOpen] = useState(false);
@@ -117,6 +121,25 @@ export const BuilderHeader = ({
                 </div>
               )}
             </div>
+
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={onLint}
+              disabled={selectedCount === 0}
+              aria-label="룰셋 분석"
+            >
+              분석
+            </Button>
+
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={onOpenVerifyPrompts}
+              aria-label="Claude 검증 프롬프트"
+            >
+              검증 프롬프트
+            </Button>
 
             <Button size="sm" variant="secondary" onClick={onShare}>
               공유 링크 복사

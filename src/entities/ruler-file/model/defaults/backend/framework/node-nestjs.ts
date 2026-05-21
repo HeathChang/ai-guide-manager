@@ -102,7 +102,9 @@ src/
   });
   \`\`\`
 - 서비스에서 \`ConfigService\` 주입 — \`process.env\` 직접 참조 금지.
+  - 근거: ConfigService는 부팅 시점에 검증된 값을 캐시. 테스트에서 mock provider로 교체 가능. \`process.env\` 직접 참조는 테스트가 환경에 의존하고, 값 변환(string→number) 검증 누락.
 - \`getOrThrow\` 사용 — 누락 키는 부팅 실패가 안전.
+  - 근거: \`get\` 는 undefined 반환 → 라우트 처리 중 NPE. \`getOrThrow\` 는 부팅 시점에 발견 → 배포 차단.
 
 ## 데이터베이스
 

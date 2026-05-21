@@ -40,6 +40,7 @@ com.company.app
 
 - 요청 검증 + 서비스 호출 + 응답 매핑.
 - 비즈니스 로직 금지. 트랜잭션 어노테이션 금지(\`@Transactional\` 은 Service에).
+  - 근거: \`@Transactional\` 은 Spring의 AOP 프록시로 동작. 같은 클래스 내부 호출(\`this.method()\`)에는 트랜잭션이 안 걸린다. Controller에 두면 Service 호출은 트랜잭션 안인데, Service 내부 다른 메서드 호출은 트랜잭션 밖이라는 비대칭이 생긴다. Service 단에 두면 외부 호출이라 모든 메서드가 일관되게 트랜잭션 안.
 
 ## Service
 

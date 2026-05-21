@@ -50,6 +50,7 @@ project/
   \`\`\`
 - 프로덕션에서 \`DEBUG = True\` 절대 금지 — 에러 페이지에 코드/환경 노출.
 - \`ALLOWED_HOSTS\` 명시. \`['*']\` 금지.
+  - 근거: ALLOWED_HOSTS 는 Host 헤더 검증으로 HTTP Host header attack(캐시 포이즈닝, 패스워드 리셋 위변조)을 차단한다. \`['*']\` 는 검증 스킵이라 공격자가 임의 Host로 요청 가능 → 잘못된 도메인으로 패스워드 리셋 이메일이 발송될 수 있다.
 
 ## Models — ORM
 

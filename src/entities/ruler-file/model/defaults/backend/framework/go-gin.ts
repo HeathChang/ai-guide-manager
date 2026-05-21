@@ -78,6 +78,7 @@ func (h *UserHandler) Create(c *gin.Context) {
   }
   \`\`\`
 - \`ShouldBindJSON\` / \`ShouldBindQuery\` — \`MustBind\` 시리즈(\`BindJSON\`)는 자동 400 응답을 보내므로 분기 제어 어려움. \`Should\` 시리즈 권장.
+  - 근거: Should* 는 에러만 반환 → 핸들러가 응답 포맷·로깅·메트릭을 자기 정책대로 제어. Must* 는 \`c.AbortWithStatusJSON\` 을 내부 호출 → 응답이 미들웨어 후처리를 우회하고 에러 포맷이 라이브러리 디폴트로 고정.
 
 ## 에러 처리
 
