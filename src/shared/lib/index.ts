@@ -14,3 +14,9 @@ export {
   writeStoredTheme,
   isTheme,
 } from './theme';
+export {
+  RECOMMENDED_TOKEN_LIMIT,
+  estimateTokens,
+  estimateTokensFromBytes,
+  formatTokenCount,
+} from './tokenEstimate';

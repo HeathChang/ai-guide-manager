@@ -1,4 +1,5 @@
 import type { RulerFile } from '@/entities/ruler-file';
+import { RECOMMENDED_TOKEN_LIMIT, estimateTokensFromBytes } from '@/shared/lib';
 
 export type LintSeverity = 'error' | 'warning' | 'info';
 
@@ -45,8 +46,6 @@ const AMBIGUOUS_TERMS = [
 
 const STRONG_DIRECTIVES = ['금지', '필수', '반드시', '절대'] as const;
 
-const TOKEN_PER_BYTE = 1 / 3;
-const RECOMMENDED_TOKEN_LIMIT = 10_000;
 const SHORT_CONTENT_THRESHOLD = 200;
 
 export const lintRules = (input: LintInput): LintResult => {
@@ -66,7 +65,7 @@ export const lintRules = (input: LintInput): LintResult => {
     findings.push(...detectShortContent(file.fileName, content));
   }
 
-  const totalTokensEstimate = Math.ceil(totalBytes * TOKEN_PER_BYTE);
+  const totalTokensEstimate = estimateTokensFromBytes(totalBytes);
   if (totalTokensEstimate > RECOMMENDED_TOKEN_LIMIT) {
     findings.push({
       severity: 'warning',

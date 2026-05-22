@@ -2,21 +2,26 @@
 
 > AI 코딩 에이전트(Claude Code, Cursor, Copilot 등)에 주입할 `.ruler/` 규칙 세트를 브라우저에서 조합·편집·다운로드하는 웹 도구.
 
-프론트엔드/백엔드 스택별로 미리 준비된 마크다운 규칙 파일을 체크박스로 선택하고, Monaco 에디터로 편집한 뒤, ZIP으로 내려받아 프로젝트 루트의 `.ruler/` 디렉토리에 그대로 풀면 된다. 편집 내용과 선택 상태는 `localStorage`에 자동 저장되며, 공유 링크로 팀원과 같은 선택 상태를 재현할 수 있다.
+랜딩 페이지에서 **Frontend / Backend 스택**과 **프레임워크**를 고르고, 빌더에서 룰 파일을 체크박스로 선택, Monaco 에디터로 편집한 뒤, ZIP으로 내려받아 프로젝트 루트의 `.ruler/` 디렉토리에 풀면 된다. 편집 내용과 선택 상태는 `localStorage`에 자동 저장되며, 공유 링크로 팀원과 같은 선택 상태를 재현할 수 있다.
 
 ---
 
 ## 주요 기능
 
-- **스택별 기본 룰셋 제공** — Frontend 10개 / Backend 11개 규칙 파일 내장 (base, fsd, security, testing, a11y, api-design, database, auth, caching 등)
-- **3단계 프리셋** — Minimal / Moderate / Strict
-- **Markdown 미리보기 + 인라인 편집** — `react-markdown` + `@monaco-editor/react`
-- **사용자 정의 파일 추가** — 팀/프로젝트에 특화된 규칙을 직접 작성
-- **아키텍처 단일 선택 가드** — `fsd.md`와 `atomic.md`는 동시 선택 불가 (자동 배타 처리)
-- **공유 URL** — 선택한 파일 목록을 쿼리스트링에 담아 팀원에게 공유
-- **ZIP 다운로드** — `ai-ruler-{stack}-{YYYYMMDD}.zip` 형식
-- **자동 저장** — 편집/선택/사용자 파일 상태를 localStorage에 스택별 분리 저장
-- **다크 모드** — 헤더의 테마 토글 버튼으로 전환. OS 기본 설정(`prefers-color-scheme`)을 따르며 선택한 테마는 localStorage에 유지. Monaco 에디터도 함께 전환
+- **스택 + 프레임워크 선택** — Frontend 8종(React / Next.js / Vue 3 / Nuxt 3 / Svelte 5 / SvelteKit / SolidJS / Vanilla), Backend 7종(Express / NestJS / Fastify / Spring Boot / Django / Rails / Go+Gin). 선택한 프레임워크에 맞는 룰셋이 자동 구성.
+- **상태 관리 8종 (단일 선택)** — Redux Toolkit / Zustand / Jotai / Recoil / MobX / Pinia / Vuex / Svelte Stores. 프레임워크별 호환 매트릭스로 가능한 옵션만 노출. 동시 선택 불가(자동 배타 처리).
+- **공통 룰셋 내장** — base / security / testing / a11y / styling / fsd / atomic / git 등 프레임워크 무관 항목 + 선택 프레임워크 전용 룰 (예: Next.js App Router, Nuxt useFetch, Pinia setup 문법).
+- **3단계 프리셋** — Minimal / Moderate / Strict.
+- **하네스 엔지니어링 옵션** — Planner→Researcher→Implementer→Reviewer→QA→Security Auditor→Guardian→Reporter 8역할 협업 모델. 선택한 AI 툴(Claude Code / Cursor / Copilot / 수동)에 맞춰 부트스트랩 파일 자동 생성.
+- **Markdown 미리보기 + 인라인 편집** — `react-markdown` + `@monaco-editor/react`.
+- **사용자 정의 파일 추가** — 팀/프로젝트에 특화된 규칙을 직접 작성.
+- **아키텍처 단일 선택 가드** — `fsd.md`와 `atomic.md`는 동시 선택 불가.
+- **룰셋 정적 분석 (분석 버튼)** — 모호 표현 / 절대 금지에 근거 누락 / 토큰 예산 초과(>10K) / 빈 섹션 / 짧은 본문을 한 번에 검출.
+- **Claude 검증 프롬프트 (검증 프롬프트 버튼)** — 부트스트랩 확인 / 본문 적용 검증 / 위반 인식 테스트의 3-step 프롬프트를 복사 가능한 형태로 제공.
+- **공유 URL** — 선택한 파일 목록 + 프레임워크를 쿼리스트링에 담아 팀원에게 공유. `state/x.md` 같은 서브경로 파일도 지원.
+- **ZIP 다운로드** — `ai-ruler-{stack}-{framework}-{YYYYMMDD}.zip` 형식.
+- **자동 저장** — 편집/선택/사용자 파일 상태를 localStorage에 `{stack}:{framework}` 단위로 분리 저장. 이전 버전 데이터는 1회 자동 마이그레이션.
+- **다크 모드** — 헤더의 테마 토글 버튼으로 전환. OS 기본 설정(`prefers-color-scheme`)을 따르며 선택한 테마는 localStorage에 유지. Monaco 에디터도 함께 전환.
 
 ---
 
@@ -26,7 +31,7 @@
 
 ### 1. ZIP 파일 압축 해제
 
-다운로드받은 `ai-ruler-{stack}-{YYYYMMDD}.zip`을 압축 해제하면 선택한 규칙 파일들이 나타난다.
+다운로드받은 `ai-ruler-{stack}-{framework}-{YYYYMMDD}.zip`을 압축 해제하면 선택한 규칙 파일들이 나타난다.
 
 ### 2. 프로젝트 루트에 `.ruler/` 디렉토리 배치
 
@@ -38,7 +43,9 @@
 ├── package.json
 └── .ruler/          ← 여기에 복사
     ├── base.md
-    ├── frontend.md
+    ├── vue.md             ← 또는 frontend.md / next.md / svelte.md ...
+    ├── state/
+    │   └── pinia.md       ← 선택한 상태 관리 룰 (있을 경우)
     └── ...
 ```
 
@@ -153,27 +160,37 @@ src/
 │   ├── App.tsx
 │   └── styles/     # design-system.css, globals.css
 ├── pages/          # 라우트 단위 페이지 (.page.tsx)
-│   ├── landing/    # LandingPage.page.tsx — 스택 선택
+│   ├── landing/    # LandingPage.page.tsx — 스택·프레임워크 선택
 │   └── builder/    # BuilderPage.page.tsx  — 룰셋 편집기
 ├── widgets/        # 복합 UI 블록 (.ui.tsx)
-│   ├── builder-header/
+│   ├── builder-header/    # 분석/검증 프롬프트/공유/다운로드 버튼 + framework 라벨
 │   ├── file-list/
 │   ├── file-editor/
-│   └── usage-guide/        # 사용 방법 안내 모달
+│   ├── usage-guide/       # 사용 방법 안내 모달
+│   └── verify-prompts/    # Claude 검증 프롬프트 3-step 다이얼로그
 ├── features/       # 사용자 행동 단위
 │   ├── ruler-workspace/  # 워크스페이스 상태 훅 + persistence
 │   ├── custom-file/      # 사용자 정의 파일 추가 다이얼로그
 │   ├── presets/          # Minimal/Moderate/Strict 프리셋
+│   ├── rule-lint/        # 룰셋 정적 분석 (모호 표현/근거/토큰/빈 섹션)
 │   ├── download-zip/     # ZIP 생성 + 저장
-│   └── share-url/        # 공유 URL 파싱/생성
+│   └── share-url/        # 공유 URL 파싱/생성 (framework 포함)
 ├── entities/       # 도메인 모델
 │   └── ruler-file/
-│       ├── model/types.ts              # RulerFile, FileCategory
-│       └── model/defaults/             # 내장 규칙 본문 (frontend/backend)
+│       ├── model/types.ts                  # RulerFile, FileCategory, stateManagerKind
+│       └── model/defaults/                 # 내장 규칙 본문
+│           ├── frontend/
+│           │   ├── *.md.ts                 # 공통 (base, security, a11y, ...)
+│           │   ├── framework/              # react / next / vue / nuxt / svelte / ...
+│           │   └── state/                  # redux-toolkit / zustand / jotai / recoil / ...
+│           ├── backend/
+│           │   ├── *.md.ts                 # 공통 (base, api-design, auth, ...)
+│           │   └── framework/              # node-express / nestjs / fastify / spring-boot / ...
+│           └── harness/                    # 하네스 엔지니어링 8역할 + 부트스트랩
 └── shared/         # 재사용 UI/유틸/타입
-    ├── ui/         # Button, Card, Checkbox, Tabs, ThemeToggle
+    ├── ui/         # Button, Card, Checkbox, Tabs, ThemeToggle, Tooltip
     ├── lib/        # cn, formatDate, storage, theme, useTheme
-    └── types/      # Stack
+    └── types/      # Stack, AiTool, Framework, StateManager
 ```
 
 ### 의존성 방향
@@ -235,9 +252,10 @@ npm run test          # 전체 한 번 실행
 npm run test:watch    # 변경 감지
 ```
 
-현재 커버리지: 유틸 · 테마 · Share URL 파싱 등 순수 함수 중심으로 **37개 테스트**.
+현재 커버리지: 유틸·테마·Share URL 파싱·룰셋 정적 분석 등 순수 함수 중심으로 **52개 테스트**.
 - `src/shared/lib/cn.test.ts`, `formatDate.test.ts`, `storage.test.ts`, `theme.test.ts`
 - `src/features/share-url/lib/shareUrl.test.ts`
+- `src/features/rule-lint/model/lintRules.test.ts`
 
 훅(`useRulerWorkspace`) 통합 테스트와 `.ui.tsx` Storybook은 향후 추가 예정.
 

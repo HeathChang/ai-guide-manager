@@ -575,3 +575,19 @@ export const getDefaultFiles = (
 
 export const DEFAULT_FRONTEND_FILES: readonly RulerFile[] = getDefaultFiles('frontend');
 export const DEFAULT_BACKEND_FILES: readonly RulerFile[] = getDefaultFiles('backend');
+
+/**
+ * 선택된 frontend framework의 entry 파일명 목록을 반환한다.
+ * 프리셋에서 가상 토큰 'frontend.md' 를 실제 framework 파일들로 치환할 때 사용.
+ * 예: 'vue' → ['vue.md'], 'nuxt' → ['vue.md', 'nuxt.md'], 'next' → ['frontend.md', 'next.md']
+ */
+export const getFrameworkEntryFiles = (framework: FrontendFramework): readonly string[] =>
+  FRONTEND_FRAMEWORK_BUNDLES[framework].map((file) => file.fileName);
+
+/**
+ * 선택된 backend framework의 entry 파일명을 반환한다.
+ */
+export const getBackendFrameworkEntryFiles = (
+  framework: BackendFramework,
+): readonly string[] =>
+  BACKEND_FRAMEWORK_BUNDLES[framework].map((file) => file.fileName);

@@ -31,6 +31,7 @@ import { AddCustomFileDialog } from '@/features/custom-file';
 import { LintDialog, lintRules } from '@/features/rule-lint';
 import type { LintResult } from '@/features/rule-lint';
 import { VerifyPromptsDialog } from '@/widgets/verify-prompts';
+import { RECOMMENDED_TOKEN_LIMIT, estimateTokens } from '@/shared/lib';
 
 const isHarnessState = (state: unknown): boolean => {
   if (state === null || typeof state !== 'object') return false;
@@ -112,10 +113,10 @@ const BuilderPage = () => {
 
   const handleApplyPreset = useCallback(
     (preset: Preset) => {
-      workspace.applySelection(getPresetFiles(preset, stack));
+      workspace.applySelection(getPresetFiles(preset, stack, framework));
       showNotice({ variant: 'info', message: `${preset.label} 프리셋을 적용했습니다` });
     },
-    [workspace, stack, showNotice],
+    [workspace, stack, framework, showNotice],
   );
 
   const handleShare = useCallback(async () => {
@@ -152,8 +153,11 @@ const BuilderPage = () => {
       await buildAndSaveZip({ stack, framework, entries });
       showNotice({
         variant: 'success',
-        message: `${entries.length}개 파일을 다운로드했습니다`,
+        message: `${entries.length}개 파일을 다운로드했습니다 — 다음 단계: 검증 프롬프트`,
       });
+      // 다운로드 성공 직후 검증 프롬프트를 자동 노출 — "ZIP만 풀면 끝"이 아니라
+      // "받고 → 검증 → 사용" 흐름을 기본 동선으로 강제한다.
+      setVerifyPromptsOpen(true);
     } catch (error) {
       const message = error instanceof Error ? error.message : '다운로드 중 오류가 발생했습니다';
       showNotice({ variant: 'danger', message });
@@ -175,12 +179,30 @@ const BuilderPage = () => {
     [workspace.files],
   );
 
+  const tokensByFile = useMemo(() => {
+    const map = new Map<string, number>();
+    workspace.files.forEach((file) => {
+      map.set(file.fileName, estimateTokens(workspace.getContent(file.fileName)));
+    });
+    return map;
+  }, [workspace]);
+
+  const totalTokens = useMemo(() => {
+    let sum = 0;
+    workspace.selectedFileNames.forEach((name) => {
+      sum += tokensByFile.get(name) ?? 0;
+    });
+    return sum;
+  }, [tokensByFile, workspace.selectedFileNames]);
+
   return (
     <div className="min-h-full flex flex-col">
       <BuilderHeader
         stack={stack}
         framework={framework}
         selectedCount={workspace.selectedFileNames.size}
+        totalTokens={totalTokens}
+        recommendedTokenLimit={RECOMMENDED_TOKEN_LIMIT}
         presets={presets}
         isDownloading={isDownloading}
         onBack={handleBack}
@@ -198,6 +220,7 @@ const BuilderPage = () => {
           selected={workspace.selectedFileNames}
           activeFileName={workspace.activeFileName}
           editedFileNames={editedFileNames}
+          tokensByFile={tokensByFile}
           onToggle={workspace.toggleSelection}
           onActivate={workspace.setActiveFileName}
           onRemoveCustom={workspace.removeCustomFile}

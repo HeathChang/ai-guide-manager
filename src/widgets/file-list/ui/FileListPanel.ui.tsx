@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react';
 import type { RulerFile } from '@/entities/ruler-file';
 import { Button, Checkbox } from '@/shared/ui';
-import { cn } from '@/shared/lib';
+import { cn, formatTokenCount } from '@/shared/lib';
 
 interface FileListPanelProps {
   readonly files: readonly RulerFile[];
   readonly selected: ReadonlySet<string>;
   readonly activeFileName: string | undefined;
   readonly editedFileNames: ReadonlySet<string>;
+  readonly tokensByFile: ReadonlyMap<string, number>;
   readonly onToggle: (fileName: string) => void;
   readonly onActivate: (fileName: string) => void;
   readonly onRemoveCustom: (fileName: string) => void;
@@ -29,6 +30,7 @@ export const FileListPanel = ({
   selected,
   activeFileName,
   editedFileNames,
+  tokensByFile,
   onToggle,
   onActivate,
   onRemoveCustom,
@@ -113,6 +115,15 @@ export const FileListPanel = ({
                             aria-label="편집됨"
                           >
                             ●
+                          </span>
+                        )}
+                        {tokensByFile.has(file.fileName) && (
+                          <span
+                            className="ml-auto shrink-0 text-[10px] font-mono text-text-muted"
+                            aria-label={`약 ${tokensByFile.get(file.fileName)} 토큰`}
+                            title={`≈ ${tokensByFile.get(file.fileName)?.toLocaleString()} tok`}
+                          >
+                            ≈ {formatTokenCount(tokensByFile.get(file.fileName) ?? 0)} tok
                           </span>
                         )}
                       </div>

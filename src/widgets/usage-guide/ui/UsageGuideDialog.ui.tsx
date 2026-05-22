@@ -67,16 +67,34 @@ export const UsageGuideDialog = ({ open, onClose }: UsageGuideDialogProps) => {
 
         <div className="overflow-y-auto p-6">
           <Stack spacing="lg">
+            <div className="rounded-btn border border-border-base bg-bg-base p-4">
+              <Stack spacing="xs">
+                <Text weight="semibold" size="sm">
+                  빌더 화면의 보조 도구
+                </Text>
+                <Text size="sm" color="muted">
+                  · 헤더의 <strong>토큰 진행바</strong> — 선택된 룰셋이 권장 한도(≈ 10K tok) 안에 들어오는지 항상 확인할 수 있습니다.
+                </Text>
+                <Text size="sm" color="muted">
+                  · <strong>분석</strong> 버튼 — 모호 표현·근거 누락·토큰 초과·빈 섹션을 한 번에 검출합니다.
+                </Text>
+                <Text size="sm" color="muted">
+                  · <strong>검증 프롬프트</strong> 버튼 — Claude가 룰을 실제로 따르는지 확인하는 3-step 프롬프트를 복사할 수 있습니다.
+                  다운로드 직후에도 자동으로 노출됩니다.
+                </Text>
+              </Stack>
+            </div>
+
             <UsageStep
               index={1}
               title="ZIP 파일 압축 해제"
-              description="다운로드받은 ai-ruler-{stack}-{날짜}.zip 을 압축 해제하면 선택한 규칙 파일들이 나타납니다."
+              description="다운로드받은 ai-ruler-{stack}-{framework}-{날짜}.zip 을 압축 해제하면 선택한 규칙 파일들이 나타납니다."
             />
 
             <UsageStep
               index={2}
               title="프로젝트 루트에 .ruler/ 디렉토리 배치"
-              description="프로젝트 루트에 .ruler/ 디렉토리를 만들고, 압축 해제한 파일들을 그 안에 복사합니다."
+              description="프로젝트 루트에 .ruler/ 디렉토리를 만들고, 압축 해제한 파일들을 그 안에 복사합니다. 선택한 프레임워크와 상태 관리 라이브러리에 맞춰 파일 구성이 달라집니다."
             >
               <CodeBlock
                 code={`프로젝트루트/
@@ -84,7 +102,9 @@ export const UsageGuideDialog = ({ open, onClose }: UsageGuideDialogProps) => {
 ├── package.json
 └── .ruler/          ← 여기에 복사
     ├── base.md
-    ├── frontend.md
+    ├── vue.md             ← 또는 frontend.md / next.md / svelte.md ...
+    ├── state/
+    │   └── pinia.md       ← 선택한 상태 관리 룰 (있을 경우)
     └── ...`}
               />
             </UsageStep>
@@ -123,12 +143,23 @@ export const UsageGuideDialog = ({ open, onClose }: UsageGuideDialogProps) => {
 
             <UsageStep
               index={5}
-              title="동작 확인"
-              description="AI 에이전트에게 다음과 같이 질문해 연동 여부를 검증합니다."
+              title="검증 프롬프트로 작동 확인"
+              description="ZIP만 풀고 끝내지 말고, 빌더 화면의 검증 프롬프트 버튼에서 제공하는 3-step 프롬프트를 그대로 복사해 검증하세요. (다운로드 직후에도 자동 노출)"
             >
-              <CodeBlock code={`.ruler/base.md 파일을 읽고 요약해줘`} />
+              <Stack spacing="xs">
+                <Text size="sm" color="muted">
+                  · <strong>Step 1</strong> — 부트스트랩이 작동했는지 (Claude가 어떤 파일을 읽었는지)
+                </Text>
+                <Text size="sm" color="muted">
+                  · <strong>Step 2</strong> — 룰 본문까지 컨텍스트에 들어왔는지 (인용 여부)
+                </Text>
+                <Text size="sm" color="muted">
+                  · <strong>Step 3</strong> — Claude가 룰을 인식하면서 어기는지 (위반 인식)
+                </Text>
+              </Stack>
+              <CodeBlock code={`.ruler/ 디렉토리의 어떤 파일을 자동으로 읽었는지 알려줘.\n읽지 않은 파일이 있다면 그 이유는?`} />
               <Text size="sm" color="muted">
-                AI가 base.md 내용을 정확히 요약하면 연동 성공입니다.
+                Claude가 실제 파일 목록을 답하면 부트스트랩 성공. 일반론으로 답하면 CLAUDE.md / .cursorrules 설정을 재확인하세요.
               </Text>
             </UsageStep>
           </Stack>
