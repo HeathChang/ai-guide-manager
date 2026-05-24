@@ -4,5 +4,4 @@ export {
   parseSelectedFromQuery,
   parseFrameworkFromQuery,
   buildShareUrl,
-  copyToClipboard,
 } from './lib/shareUrl';

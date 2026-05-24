@@ -61,12 +61,20 @@ export const useRulerWorkspace = ({
     () => getDefaultFiles(stack, { framework, includeHarness, aiTool }),
     [stack, framework, includeHarness, aiTool],
   );
-  const persistedRef = useRef<WorkspacePersisted | undefined>(undefined);
-  if (persistedRef.current === undefined) {
-    persistedRef.current = storage.read();
-    // framework 도입 이전(v1 prefix)에 저장된 데이터를 1회 마이그레이션.
-    // 기본 framework(React/Express) 진입 시점에만 시도 — 그 외 framework 사용자에겐 영향 없음.
-    if (persistedRef.current === undefined) {
+
+  // storageKey 변경 시(예: framework 전환된 공유 URL로 navigate) 매번 재로드.
+  // 기존 패턴은 첫 마운트 시 한 번만 storage.read() 하여 stale 데이터로 남는 버그가 있었다.
+  const persistedCacheRef = useRef<{ key: string; data: WorkspacePersisted | undefined } | null>(
+    null,
+  );
+  const persisted = useMemo<WorkspacePersisted | undefined>(() => {
+    if (persistedCacheRef.current?.key === storageKey) {
+      return persistedCacheRef.current.data;
+    }
+    let data = storage.read();
+    if (data === undefined) {
+      // framework 도입 이전(v1 prefix)에 저장된 데이터를 1회 마이그레이션.
+      // 기본 framework(React/Express) 진입 시점에만 시도 — 그 외 framework 사용자에겐 영향 없음.
       const isDefaultFramework =
         framework === undefined ||
         (stack === 'frontend' && framework === DEFAULT_FRAMEWORK.frontend) ||
@@ -76,14 +84,15 @@ export const useRulerWorkspace = ({
         const legacyStorage = createLocalStorage<WorkspacePersisted>(legacyKey);
         const legacy = legacyStorage.read();
         if (legacy !== undefined) {
-          persistedRef.current = legacy;
+          data = legacy;
           storage.write(legacy);
           legacyStorage.clear();
         }
       }
     }
-  }
-  const persisted = persistedRef.current;
+    persistedCacheRef.current = { key: storageKey, data };
+    return data;
+  }, [storageKey, storage, stack, framework, harnessSuffix]);
 
   const [customFiles, setCustomFiles] = useState<readonly RulerFile[]>(() =>
     (persisted?.customFiles ?? []).map(

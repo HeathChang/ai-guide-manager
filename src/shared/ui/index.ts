@@ -1,6 +1,8 @@
 export { Button } from './Button';
 export { Card } from './Card';
 export { Checkbox } from './Checkbox';
+export { Modal } from './Modal';
+export type { ModalSize } from './Modal';
 export { Tabs } from './Tabs';
 export type { TabItem } from './Tabs';
 export { ThemeToggle } from './ThemeToggle';

@@ -1,6 +1,6 @@
-import { useEffect, useId, useMemo, useRef } from 'react';
+import { useId, useMemo } from 'react';
 import { Heading, Stack, Text } from 'null_ong2-design-system';
-import { Button } from '@/shared/ui';
+import { Button, Modal } from '@/shared/ui';
 import type { LintFinding, LintResult, LintSeverity, LintCategory } from '../model/lintRules';
 
 interface LintDialogProps {
@@ -37,21 +37,6 @@ const groupBySeverity = (findings: readonly LintFinding[]) => {
 
 export const LintDialog = ({ open, result, onClose }: LintDialogProps) => {
   const titleId = useId();
-  const dialogRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const previouslyFocused = document.activeElement;
-    dialogRef.current?.focus();
-    const handleKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => {
-      window.removeEventListener('keydown', handleKey);
-      if (previouslyFocused instanceof HTMLElement) previouslyFocused.focus();
-    };
-  }, [open, onClose]);
 
   const grouped = useMemo(
     () => (result !== undefined ? groupBySeverity(result.findings) : undefined),
@@ -64,21 +49,8 @@ export const LintDialog = ({ open, result, onClose }: LintDialogProps) => {
   const tokenOver = result.totalTokensEstimate > result.recommendedTokenLimit;
 
   return (
-    <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4"
-      onClick={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
-    >
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        tabIndex={-1}
-        className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-card border border-border-base bg-bg-card shadow-xl"
-      >
-        <header className="flex items-center justify-between border-b border-border-base p-6">
+    <Modal open={open} onClose={onClose} labelledBy={titleId} size="lg">
+      <header className="flex items-center justify-between border-b border-border-base p-6">
           <Heading id={titleId} as="h2" size="lg">
             룰셋 분석
           </Heading>
@@ -139,8 +111,7 @@ export const LintDialog = ({ open, result, onClose }: LintDialogProps) => {
         <footer className="flex justify-end border-t border-border-base p-4">
           <Button onClick={onClose}>확인</Button>
         </footer>
-      </div>
-    </div>
+    </Modal>
   );
 };
 

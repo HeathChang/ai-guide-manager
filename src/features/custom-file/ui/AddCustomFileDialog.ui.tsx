@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef } from 'react';
 import { Flex, Heading, Input, Stack, Text } from 'null_ong2-design-system';
-import { Button } from '@/shared/ui';
+import { Button, Modal } from '@/shared/ui';
 
 interface AddCustomFileDialogUIProps {
   readonly open: boolean;
@@ -28,38 +28,16 @@ export const AddCustomFileDialogUI = ({
   onClose,
 }: AddCustomFileDialogUIProps) => {
   const titleId = useId();
-  const dialogRef = useRef<HTMLDivElement>(null);
+  const firstFieldRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
-    const previouslyFocused = document.activeElement;
-    dialogRef.current?.querySelector<HTMLInputElement>('input')?.focus();
-    const handleKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => {
-      window.removeEventListener('keydown', handleKey);
-      if (previouslyFocused instanceof HTMLElement) previouslyFocused.focus();
-    };
-  }, [open, onClose]);
-
-  if (!open) return null;
+    // Modal이 컨테이너 focus를 잡은 직후 첫 입력 필드로 이동.
+    firstFieldRef.current?.focus();
+  }, [open]);
 
   return (
-    <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4"
-      onClick={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
-    >
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        className="w-full max-w-md rounded-card border border-border-base bg-bg-card shadow-xl"
-      >
+    <Modal open={open} onClose={onClose} labelledBy={titleId} size="md">
         <Stack spacing="0">
           <div className="border-b border-border-base p-6">
             <Heading id={titleId} as="h2" size="lg">
@@ -73,6 +51,7 @@ export const AddCustomFileDialogUI = ({
           <div className="p-6">
             <Stack spacing="md">
               <Input
+                ref={firstFieldRef}
                 id="custom-filename"
                 label="파일명"
                 value={fileName}
@@ -113,7 +92,6 @@ export const AddCustomFileDialogUI = ({
             </Flex>
           </div>
         </Stack>
-      </div>
-    </div>
+    </Modal>
   );
 };

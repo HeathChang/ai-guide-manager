@@ -21,7 +21,6 @@ import { useRulerWorkspace } from '@/features/ruler-workspace';
 import { buildAndSaveZip } from '@/features/download-zip';
 import {
   buildShareUrl,
-  copyToClipboard,
   parseFrameworkFromQuery,
   parseSelectedFromQuery,
 } from '@/features/share-url';
@@ -31,7 +30,7 @@ import { AddCustomFileDialog } from '@/features/custom-file';
 import { LintDialog, lintRules } from '@/features/rule-lint';
 import type { LintResult } from '@/features/rule-lint';
 import { VerifyPromptsDialog } from '@/widgets/verify-prompts';
-import { RECOMMENDED_TOKEN_LIMIT, estimateTokens } from '@/shared/lib';
+import { RECOMMENDED_TOKEN_LIMIT, copyToClipboard, estimateTokens } from '@/shared/lib';
 
 const isHarnessState = (state: unknown): boolean => {
   if (state === null || typeof state !== 'object') return false;

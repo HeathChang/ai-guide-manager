@@ -1,6 +1,6 @@
-import { useEffect, useId, useRef } from 'react';
+import { useId } from 'react';
 import { Heading, Stack, Text } from 'null_ong2-design-system';
-import { Button } from '@/shared/ui';
+import { Button, Modal } from '@/shared/ui';
 
 interface UsageGuideDialogProps {
   readonly open: boolean;
@@ -23,40 +23,10 @@ CLAUDE.md
 
 export const UsageGuideDialog = ({ open, onClose }: UsageGuideDialogProps) => {
   const titleId = useId();
-  const dialogRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const previouslyFocused = document.activeElement;
-    dialogRef.current?.focus();
-    const handleKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => {
-      window.removeEventListener('keydown', handleKey);
-      if (previouslyFocused instanceof HTMLElement) previouslyFocused.focus();
-    };
-  }, [open, onClose]);
-
-  if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4"
-      onClick={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
-    >
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        tabIndex={-1}
-        className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-card border border-border-base bg-bg-card shadow-xl"
-      >
-        <header className="flex items-center justify-between border-b border-border-base p-6">
+    <Modal open={open} onClose={onClose} labelledBy={titleId} size="lg">
+      <header className="flex items-center justify-between border-b border-border-base p-6">
           <Heading id={titleId} as="h2" size="lg">
             다운로드한 규칙 적용 방법
           </Heading>
@@ -168,8 +138,7 @@ export const UsageGuideDialog = ({ open, onClose }: UsageGuideDialogProps) => {
         <footer className="flex justify-end border-t border-border-base p-6">
           <Button onClick={onClose}>닫기</Button>
         </footer>
-      </div>
-    </div>
+    </Modal>
   );
 };
 

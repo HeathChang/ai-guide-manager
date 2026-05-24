@@ -1,7 +1,7 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useId, useState } from 'react';
 import { Heading, Stack, Text } from 'null_ong2-design-system';
-import { Button } from '@/shared/ui';
-import { copyToClipboard } from '@/features/share-url';
+import { Button, Modal } from '@/shared/ui';
+import { copyToClipboard } from '@/shared/lib';
 
 interface VerifyPromptsDialogProps {
   readonly open: boolean;
@@ -51,22 +51,7 @@ const PROMPTS: readonly VerifyPrompt[] = [
 
 export const VerifyPromptsDialog = ({ open, onClose }: VerifyPromptsDialogProps) => {
   const titleId = useId();
-  const dialogRef = useRef<HTMLDivElement>(null);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const previouslyFocused = document.activeElement;
-    dialogRef.current?.focus();
-    const handleKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => {
-      window.removeEventListener('keydown', handleKey);
-      if (previouslyFocused instanceof HTMLElement) previouslyFocused.focus();
-    };
-  }, [open, onClose]);
 
   const handleCopy = async (idx: number, text: string) => {
     try {
@@ -78,24 +63,9 @@ export const VerifyPromptsDialog = ({ open, onClose }: VerifyPromptsDialogProps)
     }
   };
 
-  if (!open) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4"
-      onClick={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
-    >
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        tabIndex={-1}
-        className="flex max-h-[85vh] w-full max-w-2xl flex-col rounded-card border border-border-base bg-bg-card shadow-xl"
-      >
-        <header className="flex items-center justify-between border-b border-border-base p-6">
+    <Modal open={open} onClose={onClose} labelledBy={titleId} size="lg">
+      <header className="flex items-center justify-between border-b border-border-base p-6">
           <div>
             <Heading id={titleId} as="h2" size="lg">
               Claude 검증 프롬프트
@@ -150,7 +120,6 @@ export const VerifyPromptsDialog = ({ open, onClose }: VerifyPromptsDialogProps)
         <footer className="flex justify-end border-t border-border-base p-4">
           <Button onClick={onClose}>확인</Button>
         </footer>
-      </div>
-    </div>
+    </Modal>
   );
 };
