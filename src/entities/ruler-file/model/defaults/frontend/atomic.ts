@@ -13,7 +13,9 @@ extends: [base.md, frontend.md]
 
 - UI를 5단계 계층 (\`atoms → molecules → organisms → templates → pages\`)으로 분리한다.
 - 하위 레벨은 상위 레벨을 **모른다** (의존성 역전 금지).
+  - 근거: atom이 organism을 import 하면 atom 재사용성이 사라짐. 의존성 그래프가 그물망이 되면 변경 영향 추적 불가.
 - 한 컴포넌트는 **하나의 단계**에만 속한다.
+  - 근거: 한 컴포넌트가 두 단계에 걸치면 어느 룰을 적용할지 매번 결정해야 함 — 일관성 무너짐.
 
 ## 단계 정의
 
@@ -47,9 +49,10 @@ src/
 
 ## AI 행동 규칙
 
-- 새 컴포넌트 생성 시 단계를 먼저 결정한다.
-- atom은 **도메인 지식 없는 순수 UI**여야 한다.
-- molecule이 2~3개 이상의 atom을 조합하면 organism으로 승격 검토.
+- 새 컴포넌트 생성 시 **단계를 먼저 명시**한다 — 코드를 먼저 짜고 나중에 단계를 정하지 마라.
+- atom은 **도메인 지식 없는 순수 UI**여야 한다 — atom에서 \`User\`, \`Post\` 같은 도메인 타입 import 발견 시 즉시 상위로 옮긴다.
+- molecule이 atom 4개 이상을 조합하면 organism으로 즉시 승격.
+- 라우팅(\`useNavigate\`, \`<Link>\`) 은 **page 외에서 사용 금지** — 발견 시 page로 옮긴다.
 
 ## 패턴 (DO / DON'T)
 

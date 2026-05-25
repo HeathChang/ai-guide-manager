@@ -19,7 +19,9 @@ extends: [base.md, backend.md]
 | API Key | 서버 대 서버 |
 
 - 토큰은 **httpOnly + Secure + SameSite=Lax/Strict** 쿠키 우선.
+  - 근거: localStorage / JS 접근 가능한 저장소는 XSS 한 번에 전부 탈취. httpOnly는 JS에서 읽을 수 없어 XSS 영향 차단. SameSite는 CSRF 방어.
 - Access token TTL은 **짧게** (5~15분), Refresh는 **Rotation** 적용.
+  - 근거: Access 토큰이 유출돼도 짧은 TTL이면 피해 시간 제한. Refresh rotation은 *재사용 감지*가 핵심 — 옛 refresh가 재사용되면 토큰 탈취 신호 → 전 세션 무효화.
 
 ## 인가 모델
 
@@ -44,9 +46,11 @@ extends: [base.md, backend.md]
 
 ## AI 행동 규칙
 
-- 권한 체크는 **항상 서버에서** — 클라이언트 단독 의존 금지.
-- 민감 작업은 **재인증** 요구 (비밀번호 변경 등).
+- 권한 체크는 **항상 서버에서** — 클라이언트 단독 의존 금지. \`if (user.role === 'admin')\` 가 *프론트만* 있고 서버 검증 없으면 즉시 서버 가드 추가.
+- 민감 작업(비밀번호 변경, 결제 정보 수정, 계정 삭제)은 **재인증** 요구 — 기존 세션만으로 진행 금지.
 - 인증 실패 메시지는 **통합**한다 (\`이메일 없음\` vs \`비밀번호 틀림\` 구분 노출 금지).
+  - 근거: 구분된 메시지는 *계정 enumeration* 공격에 노출 — 공격자가 어떤 이메일이 존재하는지 알아낸다.
+- \`crypto.createHash('md5'|'sha1')\` 같은 약한 해시를 비밀번호에 사용 시도 시 즉시 Argon2id로 교체.
 
 ## 패턴 (DO / DON'T)
 

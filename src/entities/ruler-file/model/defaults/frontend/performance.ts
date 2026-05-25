@@ -35,12 +35,16 @@ extends: [base.md, frontend.md]
 ## 측정 기반
 
 - **측정 없이 최적화 금지** — React DevTools Profiler / Lighthouse 수치로 의사결정.
+  - 근거: 추측 기반 최적화는 *느려지는* 경우가 빈번하다(불필요한 memo로 비교 비용 ↑, 코드 가독성 ↓). "프로파일러가 이 컴포넌트를 N ms 라고 보여줬다" 같은 근거가 있어야 변경 정당.
 - 회귀 방지를 위해 번들 사이즈를 CI에서 추적.
+  - 근거: 의존성 1개가 100KB+ 늘릴 수 있고, 그게 사용자 LCP 1초+로 직결. CI에서 자동 체크 안 하면 PR 리뷰어가 매번 \`dist/\` 사이즈를 외워야 한다.
 
 ## AI 행동 규칙
 
-- \`memo\` / \`useMemo\` 추가 전 **비용 근거**를 주석으로 명시.
-- 새 의존성 추가 시 번들 영향(gzip size)을 확인.
+- \`memo\` / \`useMemo\` / \`useCallback\` 추가 시 — **프로파일러 측정 결과 또는 명백한 비교 근거**를 주석으로. 근거 없으면 추가 금지.
+  - 근거: 빈 \`useCallback\` 은 dependency array 의존성 추적 비용만 더한다. 자식 컴포넌트가 \`memo\` 로 감싸져 있고 핸들러를 비교하는 경우에만 의미.
+- 새 npm 패키지 추가 시 \`bundlephobia.com\` 또는 \`pkg-size\` 로 gzip 사이즈 확인 후 PR 설명에 명시.
+- \`<img>\` 추가 시 \`loading="lazy"\` + \`width\`/\`height\` 명시 — 누락 시 layout shift(CLS) 발생.
 
 ## 패턴 (DO / DON'T)
 

@@ -19,12 +19,16 @@ extends: [base.md]
 | Domain / Entity | 도메인 규칙, 불변식 | 외부 의존 |
 
 - 의존성은 **안쪽으로만** 흐른다 (Controller → Service → Repository).
+  - 근거: Repository 가 Controller 를 참조하면 도메인 로직이 HTTP에 묶인다 = 같은 비즈니스 로직을 CLI/스케줄러/큐 워커에서 재사용 불가. 안쪽으로만 흐르면 외피(HTTP/CLI/큐)는 교체 가능한 어댑터가 된다.
 - Domain은 프레임워크에 의존하지 않는다.
+  - 근거: Domain 이 Spring/Nest/Django 같은 프레임워크 import 하면 도메인 단위 테스트에 프레임워크 부팅이 필요. 도메인은 plain 클래스/함수로 유지 — 부팅 0초 테스트 가능.
 
 ## DTO / Entity 분리
 
 - 외부 노출은 **DTO**로만 — Entity 직접 노출 금지.
+  - 근거: Entity 직접 노출 = 모든 내부 필드(passwordHash, createdBy, internalFlags 등)가 응답에 포함될 위험 + Entity 스키마 변경이 곧 API breaking change. DTO 경계가 *API 계약*을 분리.
 - DTO는 입력(Request) / 출력(Response)을 분리.
+  - 근거: Request에는 \`password\` 가 필요하지만 Response엔 없어야 함. 같은 DTO를 양방향에 쓰면 *입력 필드를 응답에 노출*하거나 *응답 필드를 요청에 받아들이는* 사고 가능.
 - Entity ↔ DTO 변환은 **전용 매퍼**에서 처리.
 
 ## 에러 처리 전략
@@ -41,9 +45,10 @@ extends: [base.md]
 
 ## AI 행동 규칙
 
-- 새 기능은 **Domain → Service → Controller** 순서로 작성.
-- 트랜잭션 경계를 Service에 명시.
-- 외부 호출은 **타임아웃 + 재시도** 정책 포함.
+- 새 기능은 **Domain → Service → Controller** 순서로 작성. Controller 부터 짜기 시작하면 비즈니스 로직이 Controller에 새어들어간다.
+- 트랜잭션 경계를 Service에 명시 — Controller 또는 Repository 에 \`@Transactional\` 발견 시 즉시 Service로 이전.
+- 외부 호출(HTTP, DB, 큐) 코드 작성 시 **타임아웃 명시 없이는 작성 금지** — 기본 무한 대기는 사고 원인.
+- Entity 를 그대로 \`res.json(...)\` / \`return entity\` 시도 시 즉시 DTO 매퍼 추가 권고.
 
 ## 패턴 (DO / DON'T)
 

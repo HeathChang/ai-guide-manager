@@ -20,7 +20,9 @@ extends: [base.md]
 | \`hotfix/*\` | 긴급 수정 | \`main\` + \`develop\` |
 
 - 브랜치명은 **소문자 kebab-case**: \`feature/login-redesign\`
+  - 근거: 대소문자 혼용 시 macOS(case-insensitive FS)는 동작하지만 Linux CI는 실패. kebab-case는 모든 환경 호환.
 - \`main\`, \`develop\`에 직접 push 금지 — 반드시 PR.
+  - 근거: 리뷰·CI 검증·rollback 추적을 PR 단위로 가두기 위함. 직접 push는 이력에서 *왜 이 변경이 들어갔는지* 컨텍스트가 사라진다.
 
 ## 커밋 메시지 (Conventional Commits)
 
@@ -54,9 +56,10 @@ extends: [base.md]
 ## AI 행동 규칙
 
 - 커밋 메시지 작성 시 위 컨벤션을 따른다.
-- PR 생성 시 변경 파일 전체를 분석하여 요약한다.
+- PR 생성 시 변경 파일 전체를 분석하여 요약한다 — 최근 1커밋이 아닌 *PR의 모든 커밋 합본*을 기준으로.
 - \`main\` / \`develop\`에 직접 push 금지.
-- force push는 사용자 명시 요청 시에만.
+- **force push는 사용자 명시 요청 시에만** — 그 외엔 절대 금지. 공유 브랜치에 force push 발견 시 즉시 멈추고 사용자에게 확인.
+- 사용자가 명시적으로 "커밋해 / 푸시해" 라고 말하기 전엔 \`git commit\` / \`git push\` 호출 금지.
 
 ## 패턴 (DO / DON'T)
 

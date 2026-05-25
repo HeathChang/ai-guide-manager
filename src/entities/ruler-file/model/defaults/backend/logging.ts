@@ -24,8 +24,10 @@ extends: [base.md, backend.md]
 ## 구조화된 로깅
 
 - **JSON 포맷**으로 출력 — 후처리(검색·집계) 용이.
+  - 근거: 텍스트 로그(\`"user logged in user_id=42"\`)는 grep 가능하지만 *집계·필터링*은 정규식 지옥. JSON은 ELK/Datadog/CloudWatch가 native로 인덱싱 → \`userId:42\` 한 줄 쿼리.
 - 최소 필드: \`timestamp\`, \`level\`, \`service\`, \`traceId\`, \`message\`.
 - 추가 컨텍스트는 평탄한 key-value로 (중첩 최소화).
+  - 근거: 중첩 객체는 검색 엔진이 인덱싱 비용 ↑ + 대시보드 필터 표현이 복잡. \`user.profile.name\` 보다 \`userName\` 평탄화가 운영 친화적.
 
 \`\`\`json
 {"level":"INFO","service":"order","traceId":"abc","userId":42,"action":"create","orderId":"ord_01"}
@@ -50,9 +52,10 @@ extends: [base.md, backend.md]
 
 ## AI 행동 규칙
 
-- 새 로그 추가 시 **레벨 선택 근거**를 고려 (ERROR 남용 금지).
-- PII를 로그에 포함하는 코드는 경고.
-- catch 블록의 로그는 **trace 포함** (스택트레이스).
+- 새 로그 추가 시 **레벨 선택 근거** 의식: 사용자 대응이 필요한가? → ERROR. 정상이지만 주의? → WARN. 비즈니스 이벤트? → INFO. ERROR 남용은 알림 피로 → 진짜 ERROR 무시.
+- \`password\`, \`token\`, \`apiKey\`, \`secret\`, \`ssn\`, \`email\`, \`phone\` 같은 키가 로그 인자에 포함된 패턴 발견 시 즉시 마스킹 또는 제거.
+- \`catch (e)\` 블록의 로그에 \`err: e\` 또는 stack 포함 — 누락 시 추가.
+- \`console.log\` / \`System.out.println\` / \`fmt.Println\` 발견 시 구조화 logger로 즉시 교체.
 
 ## 패턴 (DO / DON'T)
 

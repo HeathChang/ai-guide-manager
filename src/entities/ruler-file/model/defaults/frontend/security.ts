@@ -12,14 +12,19 @@ extends: [base.md]
 ## 입력 값 처리
 
 - 사용자 입력은 **항상 검증** (클라이언트 + 서버 양쪽).
+  - 근거: 클라이언트 검증만으로는 공격자가 DevTools / 직접 HTTP 요청으로 우회 가능. 서버 검증만으론 UX(즉각 피드백) 손실. 둘 다 필수.
 - \`dangerouslySetInnerHTML\`은 **원칙적 금지**. 불가피하면 DOMPurify 등으로 새니타이즈.
+  - 근거: React가 자동 escape 하는 안전망을 의도적으로 끄는 API. 외부 입력이 한 번이라도 흘러들어가면 XSS 가능. *왜 이걸 쓰는지* 주석으로 명시 못 하면 사용 금지.
 - URL 파라미터·쿼리스트링 값은 사용 전 **타입/범위 검증**.
+  - 근거: \`useParams\` / \`useSearchParams\` 결과는 \`string\` — 사용자가 임의 값 주입 가능. DB 조회/리다이렉트에 raw로 쓰면 SQL injection / open redirect.
 
 ## 민감 정보
 
 - API 키·시크릿·토큰을 **코드에 하드코딩 금지**.
+  - 근거: git history는 영원. 한 번 push 된 시크릿은 즉시 무효화 + 재발급 필요 — 삭제 commit 해도 history엔 남는다.
 - \`.env\`는 커밋 금지 (\`.gitignore\` 필수).
 - 클라이언트 노출 env (\`VITE_*\`, \`NEXT_PUBLIC_*\`)에 민감 정보 금지.
+  - 근거: 이 prefix는 빌드 시점에 클라이언트 JS 번들에 **인라인**된다. 브라우저 DevTools에서 raw 문자열로 검색 가능 = 누구나 조회.
 
 ## 인증 / 인가
 
@@ -34,9 +39,10 @@ extends: [base.md]
 
 ## AI 행동 규칙
 
-- 코드에 민감 정보가 포함되면 **즉시 경고**.
-- 외부 입력값을 그대로 렌더링하면 XSS 위험 알림.
-- \`dangerouslySetInnerHTML\` 사용 시 새니타이즈 여부 확인.
+- 정규식 \`[A-Za-z0-9_-]{20,}\` 형태의 문자열 리터럴 발견 시 **시크릿 의심**, 즉시 사용자에게 확인.
+- 외부 입력값을 그대로 렌더링 (\`{userInput}\`이 \`<div>\` 자식) 하기 전 — XSS 검토. React 기본 escape에 의존하더라도 한 번 명시.
+- \`dangerouslySetInnerHTML\` 사용 시 새니타이즈 라이브러리 호출 없이는 코드 작성 금지.
+- \`localStorage.setItem('token'\` / \`localStorage.setItem('jwt'\` 패턴 발견 시 즉시 httpOnly 쿠키로 변경 권고.
 
 ## 패턴 (DO / DON'T)
 

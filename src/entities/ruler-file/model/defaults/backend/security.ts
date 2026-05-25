@@ -12,14 +12,18 @@ extends: [base.md, backend.md]
 ## 입력 검증
 
 - **모든 외부 입력**은 서버에서 검증한다 (클라이언트 검증은 UX용).
+  - 근거: 클라이언트는 공격자 통제 영역 — DevTools / curl / Postman으로 임의 페이로드 가능. 서버 검증이 *유일한* 보안 경계.
 - 스키마 검증(Zod, Joi, Pydantic, Bean Validation)을 레이어 경계에서 수행.
 - 바이너리/파일 업로드는 **타입·크기·내용** 검증.
+  - 근거: \`Content-Type\` 헤더는 위조 가능 — 실제 magic bytes 검사 필수. 크기 한도 없으면 디스크·메모리 고갈 DoS.
 
 ## SQL / Injection
 
 - **Prepared statement / Parameter binding** 사용, 문자열 결합 금지.
+  - 근거: 문자열 결합은 SQL Injection의 #1 원인. ORM/쿼리빌더가 안전하다고 *raw query 일부만* 결합해도 그 한 줄에서 뚫린다.
 - ORM이라도 raw query 작성 시 파라미터 바인딩 확인.
 - 동적 테이블/컬럼명은 **허용 목록 기반 치환**.
+  - 근거: 컬럼/테이블명은 prepared statement로 바인딩 불가 (식별자). 사용자 입력을 그대로 \`ORDER BY \${col}\` 에 넣으면 즉시 인젝션 — \`{ name: 'display_name', created: 'created_at' }\` 같은 매핑 테이블이 유일 안전 패턴.
 
 ## Rate Limiting
 
@@ -30,6 +34,7 @@ extends: [base.md, backend.md]
 ## CORS
 
 - 명시적 origin 허용 목록 — 와일드카드(\`*\`) + 자격증명 동시 사용 금지.
+  - 근거: CORS 스펙이 \`Access-Control-Allow-Origin: *\` 와 \`Allow-Credentials: true\` 동시 사용을 금지(브라우저가 거부). 또 \`*\` 는 어느 사이트든 cross-origin 요청 허용 — 자격증명 동반 공격에 노출.
 - Preflight 캐시 시간을 적절히 설정.
 
 ## 시크릿 관리
@@ -48,9 +53,10 @@ extends: [base.md, backend.md]
 
 ## AI 행동 규칙
 
-- 사용자 입력을 DB/파일시스템/HTTP에 직접 전달하는 코드를 보면 경고.
-- 새 엔드포인트에 인증/인가/Rate Limit 누락이 있으면 지적.
-- 로그에 PII/시크릿 포함 여부 검사.
+- \`req.body.\` / \`req.params.\` / \`req.query.\` 가 DB 쿼리·파일경로·HTTP fetch URL에 *직접* 들어가는 코드 발견 시 즉시 검증/sanitize 추가.
+- 새 엔드포인트 추가 시 — 인증 미들웨어 / 인가 가드 / Rate Limit 세 가지를 *명시적으로* 확인. 누락 시 즉시 추가.
+- \`logger.info({ password, token, secret, ... })\` 같은 패턴 발견 시 즉시 redact(\`***\` 마스킹) 권고.
+- \`fetch(req.body.url)\` 같이 사용자 입력 URL로 아웃바운드 요청 — **SSRF 위험**. URL 허용 목록 / 내부 IP 차단 필수.
 
 ## 패턴 (DO / DON'T)
 
