@@ -58,8 +58,8 @@ export const useRulerWorkspace = ({
     [storageKey],
   );
   const defaultFiles = useMemo(
-    () => getDefaultFiles(stack, { framework, includeHarness, aiTool }),
-    [stack, framework, includeHarness, aiTool],
+    () => getDefaultFiles(stack, { framework, includeHarness }),
+    [stack, framework, includeHarness],
   );
 
   // storageKey 변경 시(예: framework 전환된 공유 URL로 navigate) 매번 재로드.

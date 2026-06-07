@@ -17,8 +17,10 @@ import { BuilderHeader } from '@/widgets/builder-header';
 import type { BuilderNotice } from '@/widgets/builder-header';
 import { FileListPanel } from '@/widgets/file-list';
 import { EditorPanel } from '@/widgets/file-editor';
+import { getBootstrapEntry, getStartHereEntry } from '@/entities/ruler-file';
 import { useRulerWorkspace } from '@/features/ruler-workspace';
 import { buildAndSaveZip } from '@/features/download-zip';
+import type { ZipEntry } from '@/features/download-zip';
 import {
   buildShareUrl,
   parseFrameworkFromQuery,
@@ -143,16 +145,35 @@ const BuilderPage = () => {
   }, [workspace]);
 
   const handleDownload = useCallback(async () => {
-    const entries = Array.from(workspace.selectedFileNames).map((fileName) => ({
+    const resolvedAiTool: AiTool = aiTool ?? 'claude-code';
+    // 룰 파일은 모두 `ruler/` 하위로(atRoot 미지정), 툴 부트스트랩과 START-HERE는 루트로.
+    const ruleEntries: ZipEntry[] = Array.from(workspace.selectedFileNames).map((fileName) => ({
       fileName,
       content: workspace.getContent(fileName),
     }));
+    // 부트스트랩은 항상 동봉되지만, 빈 ruler/ 만 받는 건 의미가 없으므로 규칙 1개 이상을 요구한다.
+    if (ruleEntries.length === 0) {
+      showNotice({ variant: 'danger', message: '다운로드할 규칙을 1개 이상 선택하세요' });
+      return;
+    }
+    const bootstrap = getBootstrapEntry(resolvedAiTool, includeHarness);
+    const startHere = getStartHereEntry(
+      resolvedAiTool,
+      includeHarness,
+      framework,
+      ruleEntries.map((entry) => entry.fileName),
+    );
+    const entries: ZipEntry[] = [
+      ...ruleEntries,
+      { ...bootstrap, atRoot: true },
+      { ...startHere, atRoot: true },
+    ];
     setIsDownloading(true);
     try {
       await buildAndSaveZip({ stack, framework, entries });
       showNotice({
         variant: 'success',
-        message: `${entries.length}개 파일을 다운로드했습니다 — 다음 단계: 검증 프롬프트`,
+        message: `${ruleEntries.length}개 규칙 + 부트스트랩을 다운로드했습니다 — 다음 단계: 검증 프롬프트`,
       });
       // 다운로드 성공 직후 검증 프롬프트를 자동 노출 — "ZIP만 풀면 끝"이 아니라
       // "받고 → 검증 → 사용" 흐름을 기본 동선으로 강제한다.
@@ -163,7 +184,7 @@ const BuilderPage = () => {
     } finally {
       setIsDownloading(false);
     }
-  }, [stack, framework, workspace, showNotice]);
+  }, [stack, framework, includeHarness, aiTool, workspace, showNotice]);
 
   const editedFileNames = useMemo(() => {
     const set = new Set<string>();

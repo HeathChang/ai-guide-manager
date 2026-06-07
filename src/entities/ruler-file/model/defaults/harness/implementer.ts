@@ -98,18 +98,18 @@ LLM이 가장 흔하게 망치는 지점. 다음 규칙을 반드시 지킨다:
 
 할루시네이션이 의심되면 즉시 멈추고 Researcher 질의 또는 유저에게 보고.
 
-## 기존 룰셋(.ruler/*.md) 준수
+## 기존 룰셋(ruler/*.md) 준수
 
 Implementer는 다음을 **위반 불가 절대 규칙**으로 따른다:
 
-- \`.ruler/base.md\` — 언어·타입·네이밍·함수·에러 핸들링 규칙
-- \`.ruler/frontend.md\` 또는 \`.ruler/backend.md\` — 스택별 규칙
-- \`.ruler/fsd.md\` / \`.ruler/atomic.md\` 중 선택된 것 — 아키텍처 레이어 규칙
-- \`.ruler/security.md\` — 최소 보안 기준선
-- \`.ruler/git-workflow.md\` — 커밋·브랜치 규약
+- \`ruler/base.md\` — 언어·타입·네이밍·함수·에러 핸들링 규칙
+- \`ruler/frontend.md\` 또는 \`ruler/backend.md\` — 스택별 규칙
+- \`ruler/fsd.md\` / \`ruler/atomic.md\` 중 선택된 것 — 아키텍처 레이어 규칙
+- \`ruler/security.md\` — 최소 보안 기준선
+- \`ruler/git.md\` — 커밋·브랜치 규약
 
-하네스 규칙은 \`.ruler\` 규칙 **위에** 얹혀있다. 충돌 시 \`.ruler\`가 우선하며,
-만약 하네스 규칙 이행이 \`.ruler\`를 위반하게 만든다면 **Guardian에게 정합성 판정 요청**.
+하네스 규칙은 \`ruler\` 규칙 **위에** 얹혀있다. 충돌 시 \`ruler\`가 우선하며,
+만약 하네스 규칙 이행이 \`ruler\`를 위반하게 만든다면 **Guardian에게 정합성 판정 요청**.
 
 ## Reviewer 핸드오프 포맷
 

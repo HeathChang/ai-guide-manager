@@ -48,10 +48,9 @@ import { frameworkDjango } from './backend/framework/django';
 import { frameworkRails } from './backend/framework/rails';
 import { frameworkGoGin } from './backend/framework/go-gin';
 
-import { getHarnessFiles } from './harness';
+import { getHarnessRuleFiles } from './harness';
 
 import type {
-  AiTool,
   BackendFramework,
   FrontendFramework,
   Stack,
@@ -540,7 +539,6 @@ export interface GetDefaultFilesOptions {
   readonly framework?: FrontendFramework | BackendFramework;
   readonly stateManager?: StateManager;
   readonly includeHarness?: boolean;
-  readonly aiTool?: AiTool;
 }
 
 export const getDefaultFiles = (
@@ -556,7 +554,7 @@ export const getDefaultFiles = (
       ...buildStateFiles(framework, options.stateManager),
     ];
     if (options.includeHarness === true) {
-      return [...files, ...getHarnessFiles(stack, options.aiTool)];
+      return [...files, ...getHarnessRuleFiles(stack)];
     }
     return files;
   }
@@ -568,7 +566,7 @@ export const getDefaultFiles = (
     ...BACKEND_FRAMEWORK_BUNDLES[framework],
   ];
   if (options.includeHarness === true) {
-    return [...files, ...getHarnessFiles(stack, options.aiTool)];
+    return [...files, ...getHarnessRuleFiles(stack)];
   }
   return files;
 };

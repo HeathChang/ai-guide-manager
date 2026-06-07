@@ -7,4 +7,10 @@ export {
   getBackendFrameworkEntryFiles,
 } from './model/defaults';
 export type { GetDefaultFilesOptions } from './model/defaults';
-export { getHarnessFiles } from './model/defaults/harness';
+export {
+  getHarnessRuleFiles,
+  getBootstrapEntry,
+  getStartHereEntry,
+  BOOTSTRAP_PATH_BY_TOOL,
+} from './model/defaults/harness';
+export type { BootstrapEntry } from './model/defaults/harness';

@@ -7,19 +7,18 @@ interface UsageGuideDialogProps {
   readonly onClose: () => void;
 }
 
-const CLAUDE_SNIPPET = `# Project Rules
+interface BootstrapTarget {
+  readonly tool: string;
+  readonly fileName: string;
+  readonly description: string;
+}
 
-이 프로젝트의 코딩 규칙은 \`.ruler/\` 디렉토리에 정의되어 있다.
-코드를 작성하거나 리뷰하기 전에 반드시 \`.ruler/\` 의 모든 파일을 읽고 준수할 것.`;
-
-const CURSOR_SNIPPET = `# Project Rules
-
-이 프로젝트의 코딩 규칙은 \`.ruler/\` 디렉토리에 정의되어 있다.
-코드를 작성하거나 리뷰하기 전에 반드시 \`.ruler/\` 의 모든 파일을 읽고 준수할 것.`;
-
-const GITIGNORE_SNIPPET = `# AI tool configs (개인 환경 — .ruler/ 는 공유)
-CLAUDE.md
-.cursorrules`;
+const BOOTSTRAP_TARGETS: readonly BootstrapTarget[] = [
+  { tool: 'Claude Code', fileName: 'CLAUDE.md', description: '세션 시작 시 자동 로드' },
+  { tool: 'Cursor', fileName: '.cursor/rules/ruler.mdc', description: 'alwaysApply 규칙으로 자동 주입' },
+  { tool: 'GitHub Copilot', fileName: '.github/copilot-instructions.md', description: '레포 전체 지침으로 자동 적용' },
+  { tool: '직접 설정 / 기타', fileName: 'RULER-BOOTSTRAP.md', description: '매 세션 복붙용 프롬프트 + 경로 안내' },
+];
 
 export const UsageGuideDialog = ({ open, onClose }: UsageGuideDialogProps) => {
   const titleId = useId();
@@ -37,6 +36,18 @@ export const UsageGuideDialog = ({ open, onClose }: UsageGuideDialogProps) => {
 
         <div className="overflow-y-auto p-6">
           <Stack spacing="lg">
+            <div className="rounded-btn border border-border-base bg-bg-base p-4">
+              <Stack spacing="xs">
+                <Text weight="semibold" size="sm">
+                  핵심 — ZIP을 풀어 프로젝트 루트에 그대로 복사하면 끝
+                </Text>
+                <Text size="sm" color="muted">
+                  ZIP에는 규칙 본문(<span className="font-mono">ruler/</span>)과 선택한 AI 툴의 <strong>부트스트랩 파일이 이미 함께</strong> 들어 있습니다.
+                  예전처럼 <span className="font-mono">ruler/</span> 를 직접 만들거나 <span className="font-mono">CLAUDE.md</span> 를 손으로 작성할 필요가 없습니다.
+                </Text>
+              </Stack>
+            </div>
+
             <div className="rounded-btn border border-border-base bg-bg-base p-4">
               <Stack spacing="xs">
                 <Text weight="semibold" size="sm">
@@ -58,58 +69,65 @@ export const UsageGuideDialog = ({ open, onClose }: UsageGuideDialogProps) => {
             <UsageStep
               index={1}
               title="ZIP 파일 압축 해제"
-              description="다운로드받은 ai-ruler-{stack}-{framework}-{날짜}.zip 을 압축 해제하면 선택한 규칙 파일들이 나타납니다."
+              description="다운로드받은 ai-ruler-{stack}-{framework}-{날짜}.zip 을 풀면 규칙 본문(ruler/), 선택한 AI 툴의 부트스트랩 파일, 설치 안내(START-HERE.md)가 함께 나타납니다."
             />
 
             <UsageStep
               index={2}
-              title="프로젝트 루트에 .ruler/ 디렉토리 배치"
-              description="프로젝트 루트에 .ruler/ 디렉토리를 만들고, 압축 해제한 파일들을 그 안에 복사합니다. 선택한 프레임워크와 상태 관리 라이브러리에 맞춰 파일 구성이 달라집니다."
+              title="폴더 내용을 프로젝트 루트로 복사"
+              description="압축 해제된 폴더의 내용을 통째로 프로젝트 루트에 복사합니다. 별도 디렉토리 생성·파일 재배치가 필요 없습니다. 선택한 프레임워크와 상태 관리 라이브러리에 맞춰 ruler/ 안의 파일 구성이 달라집니다."
             >
               <CodeBlock
                 code={`프로젝트루트/
+├── CLAUDE.md           ← 선택한 툴의 부트스트랩 (자동 생성)
+├── START-HERE.md       ← 설치 안내
 ├── src/
 ├── package.json
-└── .ruler/          ← 여기에 복사
+└── ruler/             ← 규칙 본문 (AI가 읽는 실제 룰)
     ├── base.md
-    ├── vue.md             ← 또는 frontend.md / next.md / svelte.md ...
+    ├── frontend.md         ← React 기본 / 또는 vue.md · next.md · svelte.md ...
     ├── state/
-    │   └── pinia.md       ← 선택한 상태 관리 룰 (있을 경우)
+    │   └── zustand.md      ← 선택한 상태 관리 룰 (있을 경우)
     └── ...`}
               />
+              <Text size="sm" color="muted">
+                💡 <span className="font-mono">ruler/</span> 와 <span className="font-mono">CLAUDE.md</span> 는 보이는 그대로 복사하면 됩니다. 단, <strong>Cursor·Copilot을 선택</strong>했다면 부트스트랩 파일이 <span className="font-mono">.cursor/</span>·<span className="font-mono">.github/</span> 같은 숨김 폴더에 있으니, Finder에서 <span className="font-mono">Cmd+Shift+.</span> 로 표시하거나 터미널 <span className="font-mono">cp -R . 대상경로/</span> 로 빠짐없이 복사하세요.
+              </Text>
             </UsageStep>
 
             <UsageStep
               index={3}
-              title="AI 도구 연동"
-              description=".ruler/ 자체는 AI가 자동으로 읽지 않습니다. 사용하는 AI 도구의 설정 파일에서 참조하도록 연결합니다."
+              title="AI 도구 연동 — 추가 작성 불필요"
+              description="선택한 AI 툴에 맞는 부트스트랩 파일이 ZIP에 이미 포함되어 있어, ruler/ 를 자동으로 읽도록 연결합니다. 직접 만들 필요가 없습니다."
             >
-              <Stack spacing="md">
-                <ToolSection
-                  name="Claude Code"
-                  fileName="CLAUDE.md"
-                  snippet={CLAUDE_SNIPPET}
-                  description="프로젝트 루트에 CLAUDE.md 파일을 생성하고 아래 내용을 추가합니다. Claude Code는 대화 시작 시 이 파일을 자동으로 읽습니다."
-                />
-                <ToolSection
-                  name="Cursor AI"
-                  fileName=".cursorrules"
-                  snippet={CURSOR_SNIPPET}
-                  description="프로젝트 루트에 .cursorrules 파일을 생성하고 아래 내용을 추가합니다. Cursor는 이 파일을 프로젝트 규칙으로 자동 인식합니다."
-                />
-                <Text size="sm" color="muted">
-                  GitHub Copilot / Windsurf / Cline 등도 동일 방식으로 각 도구의 설정 파일(<span className="font-mono">.github/copilot-instructions.md</span>, <span className="font-mono">.windsurfrules</span>, <span className="font-mono">.clinerules</span>)에 참조를 추가하면 됩니다.
-                </Text>
-              </Stack>
+              <div className="overflow-hidden rounded-btn border border-border-base">
+                {BOOTSTRAP_TARGETS.map((target, idx) => (
+                  <div
+                    key={target.fileName}
+                    className={`flex flex-wrap items-baseline gap-x-3 gap-y-1 p-3 ${idx > 0 ? 'border-t border-border-base' : ''}`}
+                  >
+                    <Text as="span" size="sm" weight="semibold" className="min-w-[120px]">
+                      {target.tool}
+                    </Text>
+                    <Text as="span" size="xs" color="muted" className="font-mono">
+                      {target.fileName}
+                    </Text>
+                    <Text as="span" size="sm" color="muted">
+                      {target.description}
+                    </Text>
+                  </div>
+                ))}
+              </div>
+              <Text size="sm" color="muted">
+                Windsurf · Cline 등 다른 도구는 <span className="font-mono">RULER-BOOTSTRAP.md</span>(직접 설정 옵션)의 경로 표를 참고해 각 도구의 설정 파일이 <span className="font-mono">ruler/</span> 를 읽도록 연결하면 됩니다.
+              </Text>
             </UsageStep>
 
             <UsageStep
               index={4}
-              title=".gitignore 설정"
-              description=".ruler/ 는 팀이 공유하도록 Git에 포함하고, 개별 AI 도구 설정 파일은 개인 환경이므로 ignore 처리합니다."
-            >
-              <CodeBlock code={GITIGNORE_SNIPPET} />
-            </UsageStep>
+              title="Git 공유"
+              description="ruler/ 와 부트스트랩 파일(CLAUDE.md 등)은 팀이 공유하도록 모두 커밋합니다. 규칙은 ruler/ 한 곳에만 두고 부트스트랩이 그걸 가리키므로 중복이 없습니다. 개인용 로컬 오버라이드만 .gitignore 처리하세요."
+            />
 
             <UsageStep
               index={5}
@@ -127,9 +145,9 @@ export const UsageGuideDialog = ({ open, onClose }: UsageGuideDialogProps) => {
                   · <strong>Step 3</strong> — Claude가 룰을 인식하면서 어기는지 (위반 인식)
                 </Text>
               </Stack>
-              <CodeBlock code={`.ruler/ 디렉토리의 어떤 파일을 자동으로 읽었는지 알려줘.\n읽지 않은 파일이 있다면 그 이유는?`} />
+              <CodeBlock code={`ruler/ 디렉토리의 어떤 파일을 자동으로 읽었는지 알려줘.\n읽지 않은 파일이 있다면 그 이유는?`} />
               <Text size="sm" color="muted">
-                Claude가 실제 파일 목록을 답하면 부트스트랩 성공. 일반론으로 답하면 CLAUDE.md / .cursorrules 설정을 재확인하세요.
+                Claude가 실제 파일 목록을 답하면 부트스트랩 성공. 일반론으로 답하면 부트스트랩 파일(CLAUDE.md 등)이 프로젝트 루트에 있는지 재확인하세요.
               </Text>
             </UsageStep>
           </Stack>
@@ -164,30 +182,6 @@ const UsageStep = ({ index, title, description, children }: UsageStepProps) => (
       {children}
     </Stack>
   </section>
-);
-
-interface ToolSectionProps {
-  readonly name: string;
-  readonly fileName: string;
-  readonly snippet: string;
-  readonly description: string;
-}
-
-const ToolSection = ({ name, fileName, snippet, description }: ToolSectionProps) => (
-  <div className="rounded-btn border border-border-base p-4">
-    <Stack spacing="xs">
-      <div className="flex flex-wrap items-baseline gap-2">
-        <Text weight="semibold">{name}</Text>
-        <Text as="span" size="xs" color="muted" className="font-mono">
-          {fileName}
-        </Text>
-      </div>
-      <Text size="sm" color="muted">
-        {description}
-      </Text>
-      <CodeBlock code={snippet} />
-    </Stack>
-  </div>
 );
 
 interface CodeBlockProps {

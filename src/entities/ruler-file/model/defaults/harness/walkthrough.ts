@@ -7,13 +7,13 @@ category: 하네스
 
 > 이 문서는 **실제 sub-goal 하나**가 유저 → Planner → Researcher → Implementer → Reviewer → Security Auditor → QA → Guardian → Reporter 를 지나는 전 사이클을 보여준다.
 > 에이전트 규칙이 어떻게 **실전에서 맞물리는지** 확인하는 용도.
-> vision.md 예시(카페 재고 SaaS)를 기준으로 작성되었다.
+> ruler/vision.md 예시(카페 재고 SaaS)를 기준으로 작성되었다.
 
 ---
 
 ## 상황
 
-- vision.md 작성 완료 (§1~§9 채워짐)
+- ruler/vision.md 작성 완료 (§1~§9 채워짐)
 - 오늘의 대상: **Sub-Goal #1 — POST /api/items 엔드포인트로 재고 아이템 1개 생성**
 - 스택: backend (Node 20 + Fastify + Postgres)
 
@@ -21,21 +21,21 @@ category: 하네스
 
 ## 0. 유저 → Reporter
 
-유저: "vision.md 첫 번째 목표부터 진행해줘."
+유저: "ruler/vision.md 첫 번째 목표부터 진행해줘."
 
-**[Reporter]** \`세션 시작 · vision.md §4 in-scope "재고 아이템 CRUD"를 대상 · Planner 호출\`
+**[Reporter]** \`세션 시작 · ruler/vision.md §4 in-scope "재고 아이템 CRUD"를 대상 · Planner 호출\`
 
 ---
 
 ## 1. Planner
 
-**입력:** vision.md
+**입력:** ruler/vision.md
 
 **출력:**
 
 \`\`\`
 Sub-Goal #1 — POST /api/items 구현
-근거: vision.md §4 "재고 아이템 CRUD"
+근거: ruler/vision.md §4 "재고 아이템 CRUD"
 기여하는 성공 기준: §3-[ ] "셋업 5분 이내"
 완료 기준:
   - POST /api/items 가 name/unit/quantity 받아 201 반환
@@ -70,7 +70,7 @@ Sub-Goal #1 — POST /api/items 구현
 ## 추천
 - 옵션 A: Fastify 내장 schema (의존성 추가 없음, JSON Schema 문법)
 - 옵션 B: zod (TS 타입과 연동 강력, 의존성 +1)
-트레이드오프: A는 가볍고 표준적, B는 타입 추론 유리하나 .ruler/base.md "외부 라이브러리 불가피한 경우만" 관점에서 보수적 선택이 A.
+트레이드오프: A는 가볍고 표준적, B는 타입 추론 유리하나 ruler/base.md "외부 라이브러리 불가피한 경우만" 관점에서 보수적 선택이 A.
 
 **결정은 Planner가.**
 \`\`\`
@@ -94,7 +94,7 @@ Sub-Goal #1 — POST /api/items 구현
 
 **[Guardian]** (자동 호출)
 판정: PASS
-\`근거: vision.md §4 in-scope, §6 기술제약(Fastify) 준수, §5 out-of-scope 침범 없음\`
+\`근거: ruler/vision.md §4 in-scope, §6 기술제약(Fastify) 준수, §5 out-of-scope 침범 없음\`
 
 **[Reporter]** \`[Planner] Sub-Goal #1 확정 (옵션 A 채택) · Guardian PASS · Implementer 대기\`
 
@@ -107,7 +107,7 @@ Sub-Goal #1 — POST /api/items 구현
 **수행:**
 1. \`src/app.ts\` 읽어 라우트 등록 패턴 파악
 2. \`src/db/migrations/\` 폴더 구조 확인 (기존 마이그레이션 네이밍)
-3. \`.ruler/backend.md\` 레이어 규칙, \`.ruler/api-design.md\` REST 규약 로드
+3. \`ruler/backend.md\` 레이어 규칙, \`ruler/api-design.md\` REST 규약 로드
 4. 최소 변경으로 구현
 
 **출력 (Reviewer 핸드오프 포맷):**
@@ -151,7 +151,7 @@ Sub-Goal: #1 POST /api/items 구현
 ### [MAJOR] src/api/items/create.ts:12-40
 문제: schema 객체가 핸들러 파일 내부에 40줄로 인라인. 향후 update/list 핸들러도 같은 schema 필요.
 제안: src/api/items/schema.ts로 추출.
-근거: .ruler/base.md SRP, 후속 sub-goal과의 중복 방지.
+근거: ruler/base.md SRP, 후속 sub-goal과의 중복 방지.
 
 ### [MINOR] src/api/items/create.ts:50
 문제: catch 블록이 그냥 throw. 에러 래핑 일관성 없음.
@@ -199,12 +199,12 @@ Sub-Goal: #1 POST /api/items 구현
 - 인증: 이 sub-goal은 아직 인증 범위 아님 (Planner 확인 필요)
 
 ### Planner 확인 요청
-- POST /api/items 가 인증 없이 열려 있음. vision.md §2 primary user는 "사장"이라 보호된 엔드포인트여야 할 것으로 추정.
+- POST /api/items 가 인증 없이 열려 있음. ruler/vision.md §2 primary user는 "사장"이라 보호된 엔드포인트여야 할 것으로 추정.
 - 이번 sub-goal이 아니면 Sub-Goal #<next>로 반드시 인증 추가 필요.
 \`\`\`
 
 **[Guardian]** 자동 판정:
-\`DRIFT 가능성 — vision.md §7 보안에 "감사 로그" 명시 있으나 인증 자체는 §6 "argon2"만 언급. Planner에게 다음 sub-goal로 인증 추가 확인 요청.\`
+\`DRIFT 가능성 — ruler/vision.md §7 보안에 "감사 로그" 명시 있으나 인증 자체는 §6 "argon2"만 언급. Planner에게 다음 sub-goal로 인증 추가 확인 요청.\`
 
 **[Reporter]** \`[Security Auditor] FINDINGS(low) · 인증 누락은 별도 sub-goal로 Planner 확인 · QA 이동\`
 
@@ -230,16 +230,16 @@ Sub-Goal: #1 POST /api/items 구현
 - quantity: -1: 422 PASS
 - name 너무 길 때 (256자): 422 PASS (schema maxLength 확인)
 - unit: 허용 외 값: 422 PASS
-- 동일 name 중복 insert: 현재 성공 (unique 제약 없음) — vision.md에 언급 없어 추후 결정 필요
+- 동일 name 중복 insert: 현재 성공 (unique 제약 없음) — ruler/vision.md에 언급 없어 추후 결정 필요
 
 ## 회귀
 - 기존 헬스체크 엔드포인트 정상.
 
 ## 후속 제안
-- name 중복 허용/거부 정책은 vision.md §9 Open Questions로 추가 제안.
+- name 중복 허용/거부 정책은 ruler/vision.md §9 Open Questions로 추가 제안.
 \`\`\`
 
-**[Reporter]** \`[QA] PASS (엣지 4/4) · 중복 정책은 vision.md §9로 · Guardian 최종 판정\`
+**[Reporter]** \`[QA] PASS (엣지 4/4) · 중복 정책은 ruler/vision.md §9로 · Guardian 최종 판정\`
 
 ---
 
@@ -248,32 +248,32 @@ Sub-Goal: #1 POST /api/items 구현
 **출력:**
 
 \`\`\`
-[Guardian] PASS — Sub-Goal #1 vision.md §4 in-scope 충족, §5 out-of-scope 침범 없음
+[Guardian] PASS — Sub-Goal #1 ruler/vision.md §4 in-scope 충족, §5 out-of-scope 침범 없음
 
 ## 근거
-- vision.md §4: "재고 아이템 CRUD" — C(Create) 부분 충족
+- ruler/vision.md §4: "재고 아이템 CRUD" — C(Create) 부분 충족
 - §3 성공 기준 "셋업 5분": 이 엔드포인트는 등록 플로우의 핵심 1단계
 - §6 기술 제약(Fastify, Postgres): 준수
 - §5 out-of-scope(멀티 매장 등): 침범 없음
 
 ## 부가 제안 (유저 승인 필요)
-- vision.md §9 Open Questions 에 추가 제안:
+- ruler/vision.md §9 Open Questions 에 추가 제안:
   1. "재고 name 중복 허용 정책"
   2. "매장 인증 범위 — 언제 누구를 인증할 것인가"
 - 위 두 항목은 다음 sub-goal 생성 전 유저 결정 필요.
 \`\`\`
 
-**[Reporter]** \`[Guardian] Sub-Goal #1 PASS · vision.md §9 추가 질문 2건 유저 확인 요청\`
+**[Reporter]** \`[Guardian] Sub-Goal #1 PASS · ruler/vision.md §9 추가 질문 2건 유저 확인 요청\`
 
 ---
 
 ## 10. 유저 → 다음 반복
 
-유저가 vision.md §9 갱신:
+유저가 ruler/vision.md §9 갱신:
 - "재고 name: 같은 매장 내 중복 불가"
 - "모든 /api/items/* 는 세션 인증 필수"
 
-갱신된 vision.md를 기반으로 Planner가 Sub-Goal #2, #3 생성 → 사이클 반복.
+갱신된 ruler/vision.md를 기반으로 Planner가 Sub-Goal #2, #3 생성 → 사이클 반복.
 
 ---
 
@@ -287,7 +287,7 @@ Sub-Goal: #1 POST /api/items 구현
 | Reviewer와 Security가 다른 층을 봄 | 5, 7단계 |
 | Guardian이 모든 핸드오프에 개입 | 3, 7, 9단계 |
 | Reporter 1줄 원칙 | 각 단계 말미 |
-| vision.md가 질문의 답 + 새 질문의 원천 | 9~10단계 |
+| ruler/vision.md가 질문의 답 + 새 질문의 원천 | 9~10단계 |
 
 ---
 
@@ -297,5 +297,5 @@ Sub-Goal: #1 POST /api/items 구현
 이 문서는 규칙 적용 여부를 **검증할 수 있도록** 모든 단계를 풀어 쓴 교육용.
 
 실전에서는 Reporter가 1줄만 남기고, 중간 출력은 에이전트 내부에 머문다.
-유저에게 보이는 건 10줄 내외의 Reporter 로그 + 최종 diff + 갱신된 vision.md.
+유저에게 보이는 건 10줄 내외의 Reporter 로그 + 최종 diff + 갱신된 ruler/vision.md.
 `;

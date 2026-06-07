@@ -1,5 +1,5 @@
 import type { RulerFile } from '../../types';
-import type { AiTool, Stack } from '@/shared/types';
+import type { AiTool, BackendFramework, FrontendFramework, Stack } from '@/shared/types';
 
 import { harnessReadme } from './readme';
 import { harnessWorkflow } from './workflow';
@@ -17,40 +17,44 @@ import { bootstrapClaudeCode } from './bootstrap/claude-code';
 import { bootstrapCursor } from './bootstrap/cursor';
 import { bootstrapCopilot } from './bootstrap/copilot';
 import { bootstrapManual } from './bootstrap/manual';
+import { LITE_BOOTSTRAP_BY_TOOL } from './bootstrap/lite';
 
-interface BootstrapSpec {
+/**
+ * 각 AI 툴의 부트스트랩 파일 경로 — 툴 규약상 강제되는 위치(zip 루트 기준).
+ * 하네스 포함 여부와 무관하게 동일 경로를 쓰고 내용만 달라진다.
+ */
+export const BOOTSTRAP_PATH_BY_TOOL: Readonly<Record<AiTool, string>> = {
+  'claude-code': 'CLAUDE.md',
+  cursor: '.cursor/rules/ruler.mdc',
+  copilot: '.github/copilot-instructions.md',
+  manual: 'RULER-BOOTSTRAP.md',
+};
+
+const HARNESS_BOOTSTRAP_BY_TOOL: Readonly<Record<AiTool, string>> = {
+  'claude-code': bootstrapClaudeCode,
+  cursor: bootstrapCursor,
+  copilot: bootstrapCopilot,
+  manual: bootstrapManual,
+};
+
+export interface BootstrapEntry {
   readonly fileName: string;
-  readonly title: string;
-  readonly description: string;
   readonly content: string;
 }
 
-const BOOTSTRAP_BY_TOOL: Readonly<Record<AiTool, BootstrapSpec>> = {
-  'claude-code': {
-    fileName: 'CLAUDE.md',
-    title: 'Claude Code 자동 부트스트랩',
-    description: 'Claude Code가 세션 시작 시 자동 로드. 프로젝트 루트에 배치',
-    content: bootstrapClaudeCode,
-  },
-  cursor: {
-    fileName: '.cursor/rules/harness.mdc',
-    title: 'Cursor 자동 부트스트랩',
-    description: 'Cursor Rules로 자동 주입. `alwaysApply: true` 설정 포함',
-    content: bootstrapCursor,
-  },
-  copilot: {
-    fileName: '.github/copilot-instructions.md',
-    title: 'GitHub Copilot 자동 부트스트랩',
-    description: '레포 전체 지침으로 자동 적용',
-    content: bootstrapCopilot,
-  },
-  manual: {
-    fileName: 'HARNESS-BOOTSTRAP.md',
-    title: '수동 부트스트랩 안내',
-    description: '자동 로드 미지원 툴용 — 매 세션 복붙할 프롬프트 + 경로 안내',
-    content: bootstrapManual,
-  },
-};
+/**
+ * 선택한 AI 툴 + 하네스 여부에 맞는 부트스트랩 파일을 반환한다.
+ * 이 파일은 zip 루트(툴 규약 경로)에 배치되며, `ruler/` 의 룰을 자동 로드하도록 연결한다.
+ */
+export const getBootstrapEntry = (
+  aiTool: AiTool,
+  includeHarness: boolean,
+): BootstrapEntry => ({
+  fileName: BOOTSTRAP_PATH_BY_TOOL[aiTool],
+  content: includeHarness
+    ? HARNESS_BOOTSTRAP_BY_TOOL[aiTool]
+    : LITE_BOOTSTRAP_BY_TOOL[aiTool],
+});
 
 interface HarnessEntry {
   readonly fileName: string;
@@ -59,6 +63,13 @@ interface HarnessEntry {
   readonly content: string;
 }
 
+/**
+ * 하네스 협업 본문(vision + harness/*). 부트스트랩과 분리되어 있으며,
+ * 하네스 옵션을 켰을 때만 다운로드에 포함된다. fileName은 논리 경로이고
+ * 실제 zip 배치는 `ruler/` 하위로 prefix 된다.
+ * 에이전트 파일 번호는 실제 핸드오프 순서와 일치한다:
+ * Planner→Researcher→Implementer→Reviewer→Security Auditor→QA→Guardian→Reporter.
+ */
 const HARNESS_ENTRIES: readonly HarnessEntry[] = [
   {
     fileName: 'vision.md',
@@ -109,16 +120,16 @@ const HARNESS_ENTRIES: readonly HarnessEntry[] = [
     content: harnessReviewer,
   },
   {
-    fileName: 'harness/agents/05-qa.md',
-    title: 'QA',
-    description: '기능·엣지·회귀 블랙박스 검증',
-    content: harnessQa,
-  },
-  {
-    fileName: 'harness/agents/06-security-auditor.md',
+    fileName: 'harness/agents/05-security-auditor.md',
     title: 'Security Auditor (보안 검토자)',
     description: 'OWASP·시크릿·인증/권한 전용 검토',
     content: harnessSecurityAuditor,
+  },
+  {
+    fileName: 'harness/agents/06-qa.md',
+    title: 'QA',
+    description: '기능·엣지·회귀 블랙박스 검증',
+    content: harnessQa,
   },
   {
     fileName: 'harness/agents/07-guardian.md',
@@ -134,22 +145,11 @@ const HARNESS_ENTRIES: readonly HarnessEntry[] = [
   },
 ];
 
-export const getHarnessFiles = (
-  stack: Stack,
-  aiTool: AiTool = 'claude-code',
-): readonly RulerFile[] => {
-  const bootstrap = BOOTSTRAP_BY_TOOL[aiTool];
-  const bootstrapFile: RulerFile = {
-    fileName: bootstrap.fileName,
-    title: bootstrap.title,
-    category: '하네스',
-    description: bootstrap.description,
-    stack,
-    defaultSelected: true,
-    content: bootstrap.content,
-    isHarness: true,
-  };
-  const baseFiles: readonly RulerFile[] = HARNESS_ENTRIES.map((entry) => ({
+/**
+ * 하네스 협업 본문 파일들을 RulerFile로 반환한다(부트스트랩 제외).
+ */
+export const getHarnessRuleFiles = (stack: Stack): readonly RulerFile[] =>
+  HARNESS_ENTRIES.map((entry) => ({
     fileName: entry.fileName,
     title: entry.title,
     category: '하네스',
@@ -159,5 +159,108 @@ export const getHarnessFiles = (
     content: entry.content,
     isHarness: true,
   }));
-  return [bootstrapFile, ...baseFiles];
+
+const FRAMEWORK_EXAMPLE: Readonly<Record<string, string>> = {
+  react: 'frontend.md',
+  next: 'next.md',
+  vue: 'vue.md',
+  nuxt: 'nuxt.md',
+  svelte: 'svelte.md',
+  sveltekit: 'sveltekit.md',
+  solid: 'solid.md',
+  vanilla: 'vanilla.md',
+  'node-express': 'node-express.md',
+  'node-nestjs': 'nestjs.md',
+  'node-fastify': 'fastify.md',
+  'spring-boot': 'spring-boot.md',
+  django: 'django.md',
+  rails: 'rails.md',
+  'go-gin': 'go-gin.md',
+};
+
+const AI_TOOL_NAME: Readonly<Record<AiTool, string>> = {
+  'claude-code': 'Claude Code',
+  cursor: 'Cursor',
+  copilot: 'GitHub Copilot',
+  manual: '직접 설정 / 기타 도구',
+};
+
+/**
+ * zip 루트에 동봉되는 설치 안내 파일(START-HERE.md). 압축을 푼 유저가
+ * "이 폴더로 뭘 해야 하지?"에서 막히지 않도록 최소 액션을 명시한다.
+ */
+export const getStartHereEntry = (
+  aiTool: AiTool,
+  includeHarness: boolean,
+  framework?: FrontendFramework | BackendFramework,
+  ruleFileNames: readonly string[] = [],
+): BootstrapEntry => {
+  const bootstrapPath = BOOTSTRAP_PATH_BY_TOOL[aiTool];
+  const exampleRule = (framework && FRAMEWORK_EXAMPLE[framework]) ?? 'base.md';
+  const toolName = AI_TOOL_NAME[aiTool];
+  const ruleCount = ruleFileNames.length;
+  // ruler/ 자체는 보이는 폴더다. 부트스트랩이 .cursor/ · .github/ 같은
+  // 툴 전용(숨김) 디렉토리에 들어가는 경우에만 숨김 주의가 필요하다.
+  const bootstrapHidden = bootstrapPath.startsWith('.');
+  const manifest =
+    ruleCount > 0
+      ? ruleFileNames.map((name) => `    ├── ${name}`).join('\n')
+      : `    ├── base.md\n    ├── ${exampleRule}\n    └── ...`;
+  const harnessLine = includeHarness
+    ? '\n이 룰셋에는 **하네스 엔지니어링(8역할 협업 모델)** 이 포함되어 있다 — `ruler/vision.md` 를 먼저 채운 뒤 시작한다.\n'
+    : '';
+  const hiddenNote = bootstrapHidden
+    ? `\n> ⚠️ \`${bootstrapPath}\` 는 \`.\` 로 시작하는 폴더라 macOS Finder가 **숨깁니다**(${toolName} 규약상 위치). 아래 터미널 방법을 쓰거나, Finder에서 \`Cmd + Shift + .\` 로 숨김 항목을 표시한 뒤 복사하세요.\n`
+    : '';
+  const finderStep = bootstrapHidden
+    ? `\`ruler/\` 와 \`${bootstrapPath}\`(숨김 — \`Cmd + Shift + .\` 로 표시) 를 프로젝트 루트로 복사.`
+    : `\`ruler/\` 와 \`${bootstrapPath}\` 를 프로젝트 루트로 드래그.`;
+  const content = `# 시작하기 — 이 폴더를 프로젝트에 적용하기
+
+압축을 풀어 나온 내용을 **프로젝트 루트에 그대로 복사**하면 끝입니다.
+별도로 폴더를 만들거나 설정 파일을 직접 작성할 필요가 없습니다 — 모두 포함되어 있습니다.
+${harnessLine}
+## 이 ZIP에 들어있는 것
+
+\`\`\`
+(압축 푼 폴더)/
+├── ${bootstrapPath}          ← ${toolName} 가 자동 로드하는 진입점
+├── START-HERE.md          ← 이 안내
+└── ruler/                 ← 규칙 본문 ${ruleCount > 0 ? `${ruleCount}개 ` : ''}(AI가 읽는 실제 룰)
+${manifest}
+\`\`\`
+${hiddenNote}
+## 프로젝트에 넣기
+
+폴더 내용 전체를 프로젝트 루트로 복사합니다.
+
+### 방법 A. 터미널 (가장 확실)
+
+압축 푼 폴더 안에서 실행 (끝의 \`/.\` 가 숨김 항목까지 빠짐없이 복사):
+
+\`\`\`bash
+cp -R . /내/프로젝트/경로/
+\`\`\`
+
+### 방법 B. Finder / 탐색기
+
+${finderStep}
+
+## 적용 확인 — 끝내지 말고 검증
+
+AI 도구에 아래를 그대로 물어본다:
+
+\`\`\`
+ruler/ 디렉토리의 어떤 파일을 자동으로 읽었는지 알려줘. 읽지 않은 파일이 있다면 이유는?
+\`\`\`
+
+AI가 실제 파일 목록을 답하면 연동 성공. 일반론으로 답하면 \`${bootstrapPath}\` 가
+프로젝트 루트에 있는지, 도구가 그 파일을 자동 로드하도록 설정됐는지 재확인한다.
+
+## Git 공유
+
+\`ruler/\` 와 \`${bootstrapPath}\` 는 팀이 공유하도록 커밋한다.
+규칙은 한 곳(\`ruler/\`)에만 두고, 루트 부트스트랩 파일이 그걸 가리키므로 중복이 없다.
+`;
+  return { fileName: 'START-HERE.md', content };
 };
