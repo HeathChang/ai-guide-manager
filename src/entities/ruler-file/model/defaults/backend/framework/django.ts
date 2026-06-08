@@ -86,7 +86,7 @@ project/
 ## Django Ninja (DRF 대안)
 
 - FastAPI 스타일 — type hint 기반 자동 검증·OpenAPI.
-- 신규 프로젝트라면 강력한 대안. 작은 API에는 보일러플레이트가 DRF 절반.
+- 신규 프로젝트라면 강력한 대안 — type hint 기반이라 Serializer 클래스 정의 없이 함수 시그니처로 검증/직렬화가 끝나 보일러플레이트가 적다.
 
 ## URL
 

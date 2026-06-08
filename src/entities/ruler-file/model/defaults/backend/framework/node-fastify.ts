@@ -122,6 +122,7 @@ src/
 ### 스키마 우선 라우트
 
 \`\`\`ts
+import { Type } from '@sinclair/typebox';
 import { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 
 const users: FastifyPluginAsyncTypebox = async (fastify) => {

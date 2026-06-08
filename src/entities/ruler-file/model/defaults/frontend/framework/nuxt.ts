@@ -63,7 +63,7 @@ extends: [base.md, vue.md]
 
 ## SSR vs CSR vs Static
 
-- \`nuxt.config.ts\` 의 \`ssr: true\` (기본) 또는 페이지 단위 \`definePageMeta({ ssr: false })\`.
+- \`nuxt.config.ts\` 의 \`ssr: true\` (기본). 페이지/라우트 단위로 SSR을 끄려면 아래 \`routeRules\` 의 \`{ ssr: false }\` 또는 클라이언트 전용 부분만 \`<ClientOnly>\` 로 감싼다.
 - 정적 사이트는 \`npx nuxt generate\` — \`useFetch\` 결과가 빌드 타임에 fetch되어 정적 JSON으로 떨어짐.
 - 페이지별 라우트 규칙: \`routeRules\` in \`nuxt.config.ts\`:
   \`\`\`ts
@@ -120,7 +120,7 @@ extends: [base.md, vue.md]
 
 ### 데이터 페칭
 
-\`\`\`ts
+\`\`\`vue
 // DON'T — SSR/CSR 깜빡임 + 중복 요청
 <script setup>
 const data = ref(null);

@@ -87,21 +87,26 @@ func (h *UserHandler) Create(c *gin.Context) {
   \`\`\`go
   var ErrUserNotFound = errors.New("user not found")
   type ValidationError struct { Field string; Msg string }
+  // 포인터 리시버로 error 구현 → errors.As 대상은 *ValidationError 이다.
+  func (e *ValidationError) Error() string { return e.Msg }
   \`\`\`
 - 핸들러 helper에서 도메인 에러 → HTTP status 매핑:
   \`\`\`go
   func (h *UserHandler) handleError(c *gin.Context, err error) {
+      var ve *service.ValidationError
       switch {
       case errors.Is(err, service.ErrUserNotFound):
           c.JSON(404, ErrorResponse{Code: "USER_NOT_FOUND"})
-      case errors.As(err, &service.ValidationError{}):
-          c.JSON(400, ErrorResponse{Code: "VALIDATION"})
+      case errors.As(err, &ve):
+          c.JSON(400, ErrorResponse{Code: "VALIDATION", Message: ve.Msg})
       default:
           slog.ErrorContext(c, "unhandled", "err", err)
           c.JSON(500, ErrorResponse{Code: "INTERNAL"})
       }
   }
   \`\`\`
+- \`errors.As\` 의 두 번째 인자는 대상 변수의 포인터여야 한다. \`&service.ValidationError{}\` 처럼 익명 값의 주소를 넘기면 매칭된 에러를 담을 변수가 없어 필드 접근이 불가능하다 — \`var ve *service.ValidationError\` 선언 후 \`&ve\` 를 넘긴다.
+  - 근거: \`errors.As(err, target)\` 는 \`target\` 이 가리키는 위치에 일치한 에러를 대입하는데, 그 위치가 \`error\` 를 구현하는 타입(여기선 \`*ValidationError\`)의 포인터(\`**ValidationError\`)가 아니면 런타임 panic("errors: *target must be interface or implement error")이 발생한다.
 - panic은 라이브러리 버그 또는 복구 불가능 상황에만 — recover 미들웨어로 500 응답.
 
 ## Context

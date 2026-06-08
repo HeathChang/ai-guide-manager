@@ -45,7 +45,7 @@ category: 하네스
 - [ ] CSP 헤더 설정 (또는 플랫폼 레벨 기본값)
 
 ### D. 인증 (AuthN)
-- [ ] 비밀번호 해시 — bcrypt/argon2, 평문 저장 금지
+- [ ] 비밀번호 해시 — vision.md §6이 지정한 알고리즘 사용(미지정 시 argon2/bcrypt 등 최신 권장), 평문 저장 금지
 - [ ] 토큰 만료 설정 (Access 짧게, Refresh 보호)
 - [ ] 세션 고정(session fixation) 방지
 - [ ] 민감 경로의 CSRF 보호

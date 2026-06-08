@@ -22,8 +22,8 @@ extends: [base.md, frontend.md]
 | 단계 | 역할 | 예시 |
 |------|------|------|
 | atoms | 분해 불가 최소 단위 | \`Button\`, \`Input\`, \`Icon\` |
-| molecules | atoms 2~3개 조합 | \`SearchField\`, \`FormField\` |
-| organisms | molecules/atoms 조합 | \`Header\`, \`ProductCard\` |
+| molecules | atoms 소수 조합 | \`SearchField\`, \`FormField\` |
+| organisms | 여러 molecule/atom 조합 | \`Header\`, \`ProductCard\` |
 | templates | 레이아웃 골격 (데이터 없음) | \`DashboardLayout\` |
 | pages | 실제 데이터 주입된 완성 화면 | \`DashboardPage\` |
 
@@ -52,6 +52,7 @@ src/
 - 새 컴포넌트 생성 시 **단계를 먼저 명시**한다 — 코드를 먼저 짜고 나중에 단계를 정하지 마라.
 - atom은 **도메인 지식 없는 순수 UI**여야 한다 — atom에서 \`User\`, \`Post\` 같은 도메인 타입 import 발견 시 즉시 상위로 옮긴다.
 - molecule이 atom 4개 이상을 조합하면 organism으로 즉시 승격.
+  - 근거: molecule/organism 경계의 개수 임계값을 이 한 줄에만 둬 단일 출처를 유지함. 단계 정의 표는 정성 기준만 두어 두 곳에 흩어진 수치가 어긋나는 것을 막음.
 - 라우팅(\`useNavigate\`, \`<Link>\`) 은 **page 외에서 사용 금지** — 발견 시 page로 옮긴다.
 
 ## 패턴 (DO / DON'T)

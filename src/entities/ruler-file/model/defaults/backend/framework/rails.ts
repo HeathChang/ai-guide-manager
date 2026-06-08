@@ -97,7 +97,7 @@ app/
 
 ## 인증 / 인가
 
-- Devise (전통) 또는 Rails 7.1+ 기본 \`authenticate_by\` (간단한 경우).
+- Devise(전통) 또는 Rails 7.1+ 의 ActiveRecord \`authenticate_by\`(has_secure_password 모델에서 타이밍-세이프 인증, 간단한 경우). Rails 8은 \`bin/rails generate authentication\` 으로 세션 기반 인증 스캐폴드를 별도 제공.
 - 인가: Pundit (policy 객체) 권장 — controller에 if/else 분기 금지.
 
 ## 비동기

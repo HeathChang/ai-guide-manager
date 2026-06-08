@@ -29,7 +29,6 @@ extends: [base.md, frontend.md]
     computedRequiresReaction: true,   // computed는 observer 안에서만 호출
     reactionRequiresObservable: true,
     observableRequiresReaction: true,
-    disableErrorBoundaries: false,
   });
   \`\`\`
 - 근거: 엄격 모드 없이는 "action 밖 mutation"이 silent 동작 → 디버깅 지옥.

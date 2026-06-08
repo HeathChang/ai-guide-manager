@@ -7,7 +7,7 @@ extends: [base.md, backend.md]
 
 # Node.js + Express
 
-> \`backend.md\` 를 상속. Node 20+ LTS, Express 4.18+ 전제.
+> \`backend.md\` 를 상속. Node 20+ LTS, Express 4.18+ 또는 5.x 전제.
 > Express는 미니멀하므로 표준 규약을 팀에서 명시적으로 잡아야 한다.
 
 ## 프로젝트 구조
@@ -59,6 +59,7 @@ src/
   const validate = <T>(schema: ZodSchema<T>) =>
     (req: Request, _res: Response, next: NextFunction) => {
       const result = schema.safeParse(req.body);
+      // query/params는 동일 패턴으로 schema.safeParse(req.query / req.params)
       if (!result.success) return next(new ValidationError(result.error));
       req.body = result.data;
       next();
@@ -73,7 +74,7 @@ src/
   const asyncHandler = (fn: AsyncHandler) =>
     (req: Request, res: Response, next: NextFunction) => fn(req, res, next).catch(next);
   \`\`\`
-  - 근거: Express 4의 라우트 핸들러는 Promise rejection을 자동으로 catch하지 않는다. 에러 핸들러에 도달 못 하고 요청이 hang → 결국 timeout 또는 \`unhandledRejection\`. Express 5는 자동 catch 지원하지만 4가 여전히 표준.
+  - 근거: Express 4의 라우트 핸들러는 Promise rejection을 자동으로 catch하지 않는다. 에러 핸들러에 도달 못 하고 요청이 hang → 결국 timeout 또는 \`unhandledRejection\`. Express 5(5.0 stable)는 async 핸들러 rejection을 error 미들웨어로 자동 전달한다. 다만 기존 코드베이스 다수가 여전히 4.x이고 asyncHandler 패턴은 4/5 양쪽에서 안전하므로 명시 권장.
 - 커스텀 에러 클래스 (\`AppError\` extends Error) — status / code / message.
 - 4-arg 에러 핸들러에서 분기:
   \`\`\`ts
@@ -107,7 +108,7 @@ src/
 
 ## 보안
 
-- \`helmet\` 디폴트 + 필요시 CSP 명시.
+- \`helmet\` 디폴트 + 인라인 스크립트·외부 리소스 도메인을 \`Content-Security-Policy\`로 명시.
 - 인증 토큰은 httpOnly cookie 또는 Authorization header.
 - Rate limit: \`express-rate-limit\` (또는 reverse-proxy 단에서).
 - CORS origin은 환경변수로 명시. \`*\` 와 \`credentials: true\` 동시 사용 금지(스펙 위반).

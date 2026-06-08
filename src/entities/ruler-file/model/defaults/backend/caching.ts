@@ -51,11 +51,13 @@ extends: [base.md, backend.md]
 ## AI 행동 규칙
 
 - 캐시 추가 전 — (조회 빈도 × 계산 비용)이 충분한지 확인. *측정 없이 캐시 추가 금지* — 캐시 자체가 복잡도를 늘리는데 효과가 없으면 *마이너스* 변경.
-- \`redis.set(key, value)\` 처럼 TTL 누락한 패턴 발견 시 즉시 \`EX\` 옵션 추가.
+- \`redis.set(key, value)\` 처럼 TTL 누락 패턴 발견 시 즉시 만료 옵션 추가 (node-redis v4+: \`{ EX: <초> }\`, ioredis / node-redis v3: \`'EX', <초>\`).
 - DB 갱신 코드 직후 캐시 invalidate 누락 발견 시 즉시 \`redis.del(...)\` 추가.
 - 사용자 PII (\`user.email\`, \`user.phone\`)를 평문으로 Redis에 \`set\` 시도 시 — 암호화 또는 캐싱 제외 권고.
 
 ## 패턴 (DO / DON'T)
+
+> 아래 예시는 node-redis v4+ 기준(\`{ EX: <초> }\`)으로 작성한다. ioredis / node-redis v3은 variadic \`'EX', <초>\` 형태를 쓴다.
 
 ### TTL
 
@@ -64,6 +66,9 @@ extends: [base.md, backend.md]
 await redis.set(key, value);
 
 // DO — TTL 명시 + 버전화 키
+// node-redis v4+
+await redis.set(\`user:v1:\${id}\`, value, { EX: 300 });
+// ioredis / node-redis v3
 await redis.set(\`user:v1:\${id}\`, value, 'EX', 300);
 \`\`\`
 
@@ -82,11 +87,11 @@ await redis.del(\`user:v1:\${id}\`);
 
 \`\`\`ts
 // DON'T — 고정 TTL로 다수 키 동시 만료 → 스파이크
-await redis.set(key, value, 'EX', 300);
+await redis.set(key, value, { EX: 300 });
 
 // DO — Jitter 추가
 const ttl = 300 + Math.floor(Math.random() * 60);
-await redis.set(key, value, 'EX', ttl);
+await redis.set(key, value, { EX: ttl });
 \`\`\`
 
 ### 기타 금지/권장

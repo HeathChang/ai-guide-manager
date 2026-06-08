@@ -18,7 +18,7 @@ category: 하네스
 
 - Implementer의 diff
 - 관련 sub-goal (목적·완료 기준)
-- 필요 시 영향 받는 기존 파일
+- diff가 수정한 기존 파일(변경 영향 범위 확인용)
 
 ## 출력
 

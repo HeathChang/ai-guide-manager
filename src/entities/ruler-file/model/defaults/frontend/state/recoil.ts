@@ -90,7 +90,7 @@ extends: [base.md, frontend.md]
 | \`useRecoilCallback({ snapshot })\` | \`useAtomCallback\` 또는 store 직접 접근 |
 
 근거: Jotai는 key 없이 reference equality로 atom을 식별 → 보일러플레이트 감소.
-번들 사이즈도 더 작음(~4KB vs ~14KB).
+번들 사이즈도 Jotai가 더 작다(jotai 코어 ~4KB min+gzip vs recoil ~20KB+ min+gzip, bundlephobia 기준).
 
 ## AI 행동 규칙
 

@@ -30,7 +30,7 @@ extends: [base.md, frontend.md]
 - \`React.memo\`는 **props 자주 안 바뀌는 리스트 아이템**, **큰 하위 트리**에만 적용.
 - \`useMemo\`는 **비용 큰 계산**에만.
 - \`useCallback\`은 **자식에 전달되어 리렌더 유발**하는 핸들러에만.
-- 대량 리스트는 **가상화**(react-virtual, TanStack Virtual) 검토.
+- 대량 리스트는 **가상화**(@tanstack/react-virtual, react-window) 검토.
 
 ## 측정 기반
 

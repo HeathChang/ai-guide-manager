@@ -17,7 +17,7 @@ extends: []
 
 ## 언어 공통
 
-- 정적 타입 언어는 **엄격한 컴파일러 옵션** 사용 (TS strict, Kotlin explicit API, Go vet).
+- 정적 타입 언어는 **엄격한 컴파일러/린트 옵션** 사용 (TS strict, Kotlin explicit API, Go는 vet + staticcheck).
   - 근거: 엄격 옵션 없이 작성된 코드는 *컴파일 통과 = 안전* 이라는 잘못된 자신감을 준다. nullable 누락, 사용 안 한 변수, 누락된 return — 모두 런타임 버그로 이어진다.
 - null 처리 정책을 명시 (Optional / nullable / sentinel 중 하나로 통일).
   - 근거: 한 코드베이스에 \`null\`, \`undefined\`, \`Optional.empty()\`, \`""\` 가 섞이면 *무엇이 비어있음인지* 매번 결정해야 한다. 통일하면 검사 코드 패턴이 하나로 수렴.
@@ -52,7 +52,7 @@ extends: []
 
 ## AI 행동 규칙
 
-- 새 파일/엔드포인트 생성 직전: 작업 디렉토리의 \`.ruler/*.md\` 중 *관련 카테고리* 룰을 먼저 Read.
+- 새 파일/엔드포인트 생성 직전: 작업 디렉토리의 \`ruler/*.md\` 중 *관련 카테고리* 룰을 먼저 Read.
 - 타입/스키마(zod, JSON Schema, Pydantic, JPA Entity 등)를 **구현보다 먼저 정의**.
 - 주석은 **왜(why)**만 — \`// 입력 검증\` 같은 무엇 주석 금지. \`// reason: <뭐가 왜 필요한지>\` 로.
 - catch 블록 발견 시 — 로깅이 있는지 확인. 없으면 logger 호출 추가.

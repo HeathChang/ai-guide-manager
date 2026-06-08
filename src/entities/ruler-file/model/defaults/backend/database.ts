@@ -51,7 +51,7 @@ extends: [base.md, backend.md]
 ## AI 행동 규칙
 
 - 새 쿼리 작성 시 EXPLAIN 결과를 PR 설명에 첨부 권고 — 특히 큰 테이블 대상.
-- 인덱스 추가 전 (a) 카디널리티 (b) 실제 조회 패턴 (c) 쓰기 빈도 확인. 인덱스는 쓰기 비용을 늘리니까 필요 시에만.
+- 인덱스 추가 전 (a) 카디널리티 (b) 실제 조회 패턴 (c) 쓰기 빈도 확인. 인덱스는 쓰기 비용을 늘리니까 해당 컬럼이 WHERE/JOIN/ORDER BY에 실제로 쓰일 때만 추가한다.
 - ORM \`include\` / eager loading 사용 시 — 실제 생성되는 쿼리를 로그로 확인. 의도와 다른 JOIN 발견 시 즉시 수정.
 - 마이그레이션 작성 시 **롤백 가능성**을 의식적으로 검토 — 데이터 손실 가능한 변경(DROP, RENAME)은 2단계로 분리 권고.
 
@@ -101,5 +101,5 @@ ALTER TABLE users RENAME COLUMN name TO display_name;
 | 애플리케이션 레벨 JOIN | DB JOIN 또는 eager loading |
 | WHERE 없는 큰 테이블 스캔 | 인덱스 + 조건 + 페이지네이션 |
 | 프로덕션 \`TRUNCATE\` / \`DROP\` | 마이그레이션 + 리뷰 + 백업 |
-| 외부 API 호출을 트랜잭션 내부에서 | 트랜잭션 밖, 필요 시 Outbox |
+| 외부 API 호출을 트랜잭션 내부에서 | 트랜잭션 밖, DB 변경과 외부 호출을 원자적으로 묶어야 하면 Outbox |
 `;

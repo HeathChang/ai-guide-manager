@@ -53,7 +53,7 @@ extends: [base.md, backend.md]
 ## 버저닝
 
 - URL 버전(\`/v1/users\`) 또는 헤더(\`Accept: application/vnd.company.v1+json\`).
-- Breaking change는 **새 버전**으로 — 기존 버전은 최소 N개월 유지.
+- Breaking change는 **새 버전**으로 — 기존 버전은 **명시된 deprecation 기한까지 유지**(권장 최소 3~6개월). 기한과 종료일을 CHANGELOG·응답 헤더(Deprecation, Sunset)에 명시.
 
 ## 에러 응답 포맷
 

@@ -7,7 +7,7 @@ extends: [base.md, frontend.md]
 
 # Next.js (App Router)
 
-> \`frontend.md\` (React 베이스)를 상속한다. Next.js 14+ App Router 전제.
+> \`frontend.md\` (React 베이스)를 상속한다. Next.js 14/15 App Router 전제 — fetch 캐시 기본값이 버전 간 다르다(14: force-cache, 15: no-store). 캐시 옵션 명시를 원칙으로.
 > Pages Router는 신규 코드에서 사용하지 않는다 — 새 라우트는 항상 App Router로 작성.
 
 ## Server Components vs Client Components
@@ -41,10 +41,10 @@ extends: [base.md, frontend.md]
   }
   \`\`\`
 - 캐시 옵션 명시 필수:
-  - \`{ cache: 'force-cache' }\` (기본, build-time) — 정적 데이터
+  - \`{ cache: 'force-cache' }\` — 명시적 정적 캐시 (Next 14는 이게 기본이었으나 Next 15부터 기본이 비캐시(no-store 유사)로 바뀌어 정적 캐시를 원하면 명시 필요)
   - \`{ next: { revalidate: N } }\` — N초마다 재검증
   - \`{ cache: 'no-store' }\` — 매번 새로 (개인화 데이터)
-- 근거: Next 14에서 fetch 캐시 기본 동작이 변경되었고 (Next 15+는 더더욱), 명시하지 않으면 의도와 다르게 캐싱될 수 있다.
+- 근거: fetch 캐시 기본 동작이 Next 14→15에서 force-cache → no-store로 역전됐다. 명시하지 않으면 버전·환경에 따라 의도와 정반대로 캐싱/비캐싱된다.
 - Client Component에서 데이터 페칭이 필요하면 **TanStack Query** 또는 \`useSWR\`. 직접 \`fetch + useEffect\` 금지.
 
 ## Server Actions
@@ -102,7 +102,7 @@ extends: [base.md, frontend.md]
 
 - \`next-env.d.ts\` 자동 생성 — 수정 금지.
 - 페이지/레이아웃 props 타입: \`{ params, searchParams }\` 명시.
-- App Router는 \`tsconfig.json\` 에 \`"plugins": [{ "name": "next" }]\` 자동 추가.
+- App Router용 TS 플러그인 \`"plugins": [{ "name": "next" }]\` 은 create-next-app 템플릿의 \`tsconfig.json\` 에 포함된다(세그먼트 config 검증, \`'use client'\`·클라이언트 훅 오용 경고 등 IDE 지원). 기존 프로젝트 마이그레이션 시에는 직접 추가해야 할 수 있다 — 없으면 추가하고, 임의로 제거하지 마라.
 
 ## 미들웨어 / Edge
 

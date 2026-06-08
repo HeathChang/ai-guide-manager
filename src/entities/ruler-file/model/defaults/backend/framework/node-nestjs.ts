@@ -71,7 +71,7 @@ src/
 | Interceptor | 응답 변환, 로깅, 캐싱, timeout |
 | ExceptionFilter | 에러 → HTTP 응답 매핑 |
 
-- 글로벌 적용은 \`app.useGlobalGuards(...)\` 또는 \`APP_GUARD\` provider — 각각 다른 시멘틱.
+- 글로벌 적용은 \`app.useGlobalGuards(...)\` 또는 \`APP_GUARD\` provider — 각각 다른 시멘틱. \`APP_GUARD\` provider는 DI가 동작해 다른 서비스를 주입할 수 있고, \`app.useGlobalGuards(new X())\` 는 인스턴스를 직접 생성하므로 의존성 주입이 안 된다 — 주입이 필요하면 \`APP_GUARD\` 사용.
 - 컨트롤러 단위 적용은 데코레이터 (\`@UseGuards(JwtAuthGuard)\`).
 
 ## 인증 — 표준 패턴
@@ -96,8 +96,10 @@ src/
 
 - \`@nestjs/config\` + zod 검증:
   \`\`\`ts
+  // 전제: const envSchema = z.object({ ... }) 로 환경 변수 스키마를 미리 정의
   ConfigModule.forRoot({
     isGlobal: true,
+    // validate의 반환값이 ConfigService의 소스가 된다 — 반드시 파싱된 객체를 return
     validate: (raw) => envSchema.parse(raw),
   });
   \`\`\`
