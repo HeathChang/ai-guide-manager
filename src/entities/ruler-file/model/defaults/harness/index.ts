@@ -19,6 +19,9 @@ import { bootstrapCopilot } from './bootstrap/copilot';
 import { bootstrapManual } from './bootstrap/manual';
 import { LITE_BOOTSTRAP_BY_TOOL } from './bootstrap/lite';
 
+/** 자체 설정 파일을 내보내는 툴(agents-md 제외 — 그건 AGENTS.md 자체가 진입점). */
+type ConfigTool = Exclude<AiTool, 'agents-md'>;
+
 /**
  * 각 AI 툴의 부트스트랩 파일 경로 — 툴 규약상 강제되는 위치(zip 루트 기준).
  * 하네스 포함 여부와 무관하게 동일 경로를 쓰고 내용만 달라진다.
@@ -27,10 +30,11 @@ export const BOOTSTRAP_PATH_BY_TOOL: Readonly<Record<AiTool, string>> = {
   'claude-code': 'CLAUDE.md',
   cursor: '.cursor/rules/ruler.mdc',
   copilot: '.github/copilot-instructions.md',
+  'agents-md': 'AGENTS.md',
   manual: 'RULER-BOOTSTRAP.md',
 };
 
-const HARNESS_BOOTSTRAP_BY_TOOL: Readonly<Record<AiTool, string>> = {
+const HARNESS_BOOTSTRAP_BY_TOOL: Readonly<Record<ConfigTool, string>> = {
   'claude-code': bootstrapClaudeCode,
   cursor: bootstrapCursor,
   copilot: bootstrapCopilot,
@@ -42,12 +46,21 @@ export interface BootstrapEntry {
   readonly content: string;
 }
 
+/** AGENTS.md/스코핑 출력에 필요한, 선택된 룰의 최소 정보. */
+export interface ScopedRule {
+  readonly fileName: string;
+  readonly title: string;
+  readonly globs?: readonly string[];
+  readonly isHarness?: boolean;
+}
+
 /**
  * 선택한 AI 툴 + 하네스 여부에 맞는 부트스트랩 파일을 반환한다.
  * 이 파일은 zip 루트(툴 규약 경로)에 배치되며, `ruler/` 의 룰을 자동 로드하도록 연결한다.
+ * (agents-md 는 AGENTS.md 자체가 진입점이라 여기서 다루지 않는다 — getRootEntries 참조.)
  */
 export const getBootstrapEntry = (
-  aiTool: AiTool,
+  aiTool: ConfigTool,
   includeHarness: boolean,
 ): BootstrapEntry => ({
   fileName: BOOTSTRAP_PATH_BY_TOOL[aiTool],
@@ -55,6 +68,135 @@ export const getBootstrapEntry = (
     ? HARNESS_BOOTSTRAP_BY_TOOL[aiTool]
     : LITE_BOOTSTRAP_BY_TOOL[aiTool],
 });
+
+// 디렉토리 구분자를 '-' 로 치환한 충돌 없는 슬러그(예: 'state/zustand.md' → 'state-zustand').
+// 단순 베이스명만 쓰면 다른 디렉토리의 동명 룰이 같은 출력 파일을 덮어쓸 수 있다.
+const ruleSlug = (fileName: string): string =>
+  fileName.replace(/\.md$/, '').replace(/\//g, '-');
+
+const scopeNote = (globs: readonly string[] | undefined): string =>
+  globs && globs.length > 0 ? globs.join(', ') : '항상';
+
+/**
+ * AGENTS.md — 2026 범용 에이전트 지침 표준(Codex/Cursor/Copilot/Gemini CLI/Aider/Windsurf/Zed 등이
+ * 네이티브로 읽음). 선택한 AI 툴과 무관하게 항상 동봉되어 단일 진입점을 보장한다.
+ */
+const buildAgentsMd = (
+  includeHarness: boolean,
+  rules: readonly ScopedRule[],
+): BootstrapEntry => {
+  const ruleRows = rules
+    // 하네스 협업 본문(vision/harness/*)만 표에서 제외 — 동명 커스텀 파일은 그대로 표기.
+    .filter((r) => !(r.isHarness === true && (r.fileName.startsWith('harness/') || r.fileName === 'vision.md')))
+    .map((r) => `| \`ruler/${r.fileName}\` | ${r.title} | ${scopeNote(r.globs)} |`)
+    .join('\n');
+  const harnessSection = includeHarness
+    ? `\n## 협업 모델 (하네스 엔지니어링)
+
+이 룰셋은 8역할 협업 모델을 포함한다. \`ruler/vision.md\` 를 먼저 채운 뒤,
+\`ruler/harness/README.md\` · \`ruler/harness/workflow.md\` 의 규약대로 작동한다:
+Planner → Researcher → Implementer → Reviewer → Security Auditor → QA → Guardian → Reporter.
+역할 전환 시 해당 \`ruler/harness/agents/*.md\` 를 다시 읽는다.
+`
+    : '';
+  const content = `# AGENTS.md
+
+> 이 프로젝트의 코딩 에이전트 지침이다. AGENTS.md 를 지원하는 모든 도구
+> (Codex · Cursor · Copilot · Gemini CLI · Aider · Windsurf · Zed 등)가 자동으로 읽는다.
+
+## 규칙
+
+코드를 작성·수정·리뷰하기 전에 \`ruler/\` 의 규칙을 읽고 준수한다.
+규칙 간 충돌 시 더 구체적인 파일(framework/state 전용)이 \`ruler/base.md\` 보다 우선한다.
+규칙 위반이 불가피하면 \`// reason: ...\` 주석으로 사유를 남긴다.
+
+## 규칙 파일 (적용 범위)
+
+| 파일 | 내용 | 적용 경로 |
+|------|------|-----------|
+${ruleRows || '| `ruler/*.md` | (선택된 규칙) | 항상 |'}
+
+> "적용 경로"가 \`항상\` 이 아닌 규칙은 해당 glob 파일을 작업할 때만 적용한다.
+${harnessSection}
+## 빌드 · 테스트 (프로젝트에 맞게 채우기)
+
+\`\`\`bash
+# 예) 설치 / 빌드 / 테스트 / 린트 명령을 여기에 적는다
+\`\`\`
+
+## 완료 기준
+
+- 변경 후 타입체크·린트·테스트가 통과해야 한다(가정하지 말고 실제 실행해 확인).
+- \`ruler/\` 규칙을 위반하지 않는다.
+`;
+  return { fileName: 'AGENTS.md', content };
+};
+
+/**
+ * Cursor: 경로 스코핑된 규칙마다 `.cursor/rules/<name>.mdc` 를 생성(globs + alwaysApply:false).
+ * 항상 적용 규칙은 베이스 `.cursor/rules/ruler.mdc`(getBootstrapEntry)가 담당한다.
+ */
+const getCursorScopedEntries = (rules: readonly ScopedRule[]): BootstrapEntry[] =>
+  rules
+    .filter((r) => r.globs && r.globs.length > 0)
+    .map((r) => {
+      const name = ruleSlug(r.fileName);
+      const globsYaml = `[${(r.globs ?? []).map((g) => `"${g}"`).join(', ')}]`;
+      const content = `---
+description: ${r.title} (ruler/${r.fileName})
+globs: ${globsYaml}
+alwaysApply: false
+---
+
+이 파일 유형을 편집할 때는 \`ruler/${r.fileName}\` 의 규칙을 따른다.
+`;
+      return { fileName: `.cursor/rules/${name}.mdc`, content };
+    });
+
+/**
+ * Copilot: 경로 스코핑된 규칙마다 `.github/instructions/<name>.instructions.md` 를 생성(applyTo).
+ * 전역 규칙은 `.github/copilot-instructions.md`(getBootstrapEntry)가 담당한다.
+ */
+const getCopilotScopedEntries = (rules: readonly ScopedRule[]): BootstrapEntry[] =>
+  rules
+    .filter((r) => r.globs && r.globs.length > 0)
+    .map((r) => {
+      const name = ruleSlug(r.fileName);
+      const applyTo = (r.globs ?? []).join(',');
+      const content = `---
+applyTo: "${applyTo}"
+---
+
+이 파일 유형에서는 \`ruler/${r.fileName}\` 의 규칙을 따른다.
+`;
+      return { fileName: `.github/instructions/${name}.instructions.md`, content };
+    });
+
+export interface RootEntriesParams {
+  readonly aiTool: AiTool;
+  readonly includeHarness: boolean;
+  readonly rules: readonly ScopedRule[];
+}
+
+/**
+ * zip 루트에 배치되는 모든 부트스트랩/설정 엔트리를 반환한다.
+ * - AGENTS.md: 선택 툴과 무관하게 항상 동봉(범용 표준 단일 진입점)
+ * - 선택 툴의 설정 파일(CLAUDE.md / .cursor/rules/ruler.mdc / .github/copilot-instructions.md / RULER-BOOTSTRAP.md)
+ * - Cursor/Copilot: 경로 스코핑 규칙별 추가 파일(.mdc / .instructions.md)
+ */
+export const getRootEntries = ({
+  aiTool,
+  includeHarness,
+  rules,
+}: RootEntriesParams): BootstrapEntry[] => {
+  const entries: BootstrapEntry[] = [buildAgentsMd(includeHarness, rules)];
+  if (aiTool !== 'agents-md') {
+    entries.push(getBootstrapEntry(aiTool, includeHarness));
+  }
+  if (aiTool === 'cursor') entries.push(...getCursorScopedEntries(rules));
+  if (aiTool === 'copilot') entries.push(...getCopilotScopedEntries(rules));
+  return entries;
+};
 
 interface HarnessEntry {
   readonly fileName: string;
@@ -182,6 +324,7 @@ const AI_TOOL_NAME: Readonly<Record<AiTool, string>> = {
   'claude-code': 'Claude Code',
   cursor: 'Cursor',
   copilot: 'GitHub Copilot',
+  'agents-md': 'AGENTS.md (범용 표준)',
   manual: '직접 설정 / 기타 도구',
 };
 
@@ -212,9 +355,12 @@ export const getStartHereEntry = (
   const hiddenNote = bootstrapHidden
     ? `\n> ⚠️ \`${bootstrapPath}\` 는 \`.\` 로 시작하는 폴더라 macOS Finder가 **숨깁니다**(${toolName} 규약상 위치). 아래 터미널 방법을 쓰거나, Finder에서 \`Cmd + Shift + .\` 로 숨김 항목을 표시한 뒤 복사하세요.\n`
     : '';
+  // AGENTS.md 는 선택 툴과 무관하게 항상 동봉되는 범용 진입점.
+  const bootstrapTreeLine =
+    aiTool === 'agents-md' ? '' : `\n├── ${bootstrapPath}          ← ${toolName} 전용 진입점`;
   const finderStep = bootstrapHidden
-    ? `\`ruler/\` 와 \`${bootstrapPath}\`(숨김 — \`Cmd + Shift + .\` 로 표시) 를 프로젝트 루트로 복사.`
-    : `\`ruler/\` 와 \`${bootstrapPath}\` 를 프로젝트 루트로 드래그.`;
+    ? `보이는 항목(\`AGENTS.md\`, \`ruler/\`, \`START-HERE.md\`)과 숨김 부트스트랩 \`${bootstrapPath}\`(\`Cmd + Shift + .\` 로 표시)를 프로젝트 루트로 복사.`
+    : `보이는 항목(\`AGENTS.md\`, \`ruler/\`, \`${bootstrapPath}\` 등)을 프로젝트 루트로 드래그.`;
   const content = `# 시작하기 — 이 폴더를 프로젝트에 적용하기
 
 압축을 풀어 나온 내용을 **프로젝트 루트에 그대로 복사**하면 끝입니다.
@@ -224,7 +370,7 @@ ${harnessLine}
 
 \`\`\`
 (압축 푼 폴더)/
-├── ${bootstrapPath}          ← ${toolName} 가 자동 로드하는 진입점
+├── AGENTS.md              ← 범용 표준 진입점 (AGENTS.md 지원 도구 전부)${bootstrapTreeLine}
 ├── START-HERE.md          ← 이 안내
 └── ruler/                 ← 규칙 본문 ${ruleCount > 0 ? `${ruleCount}개 ` : ''}(AI가 읽는 실제 룰)
 ${manifest}

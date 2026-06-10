@@ -14,9 +14,10 @@ interface BootstrapTarget {
 }
 
 const BOOTSTRAP_TARGETS: readonly BootstrapTarget[] = [
+  { tool: '(항상 동봉)', fileName: 'AGENTS.md', description: '범용 표준 — AGENTS.md 지원 도구 전부가 자동으로 읽음' },
   { tool: 'Claude Code', fileName: 'CLAUDE.md', description: '세션 시작 시 자동 로드' },
-  { tool: 'Cursor', fileName: '.cursor/rules/ruler.mdc', description: 'alwaysApply 규칙으로 자동 주입' },
-  { tool: 'GitHub Copilot', fileName: '.github/copilot-instructions.md', description: '레포 전체 지침으로 자동 적용' },
+  { tool: 'Cursor', fileName: '.cursor/rules/*.mdc', description: '전역 + 경로 스코핑(globs) 규칙 자동 첨부' },
+  { tool: 'GitHub Copilot', fileName: '.github/instructions/*.instructions.md', description: '전역 + 경로 스코핑(applyTo)' },
   { tool: '직접 설정 / 기타', fileName: 'RULER-BOOTSTRAP.md', description: '매 세션 복붙용 프롬프트 + 경로 안내' },
 ];
 

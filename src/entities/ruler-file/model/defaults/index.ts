@@ -114,6 +114,7 @@ const COMMON_FRONTEND_FILES: readonly RulerFile[] = [
     stack: 'frontend',
     defaultSelected: false,
     content: frontendTesting,
+    globs: ['**/*.test.*', '**/*.spec.*', '**/__tests__/**'],
   },
   {
     fileName: 'a11y.md',
@@ -123,6 +124,7 @@ const COMMON_FRONTEND_FILES: readonly RulerFile[] = [
     stack: 'frontend',
     defaultSelected: false,
     content: frontendA11y,
+    globs: ['**/*.tsx', '**/*.jsx', '**/*.vue', '**/*.svelte'],
   },
   {
     fileName: 'styling.md',
@@ -132,6 +134,7 @@ const COMMON_FRONTEND_FILES: readonly RulerFile[] = [
     stack: 'frontend',
     defaultSelected: false,
     content: frontendStyling,
+    globs: ['**/*.tsx', '**/*.jsx', '**/*.vue', '**/*.svelte', '**/*.css', '**/*.scss'],
   },
 ];
 
@@ -411,6 +414,7 @@ const COMMON_BACKEND_FILES: readonly RulerFile[] = [
     stack: 'backend',
     defaultSelected: false,
     content: backendTesting,
+    globs: ['**/*.test.*', '**/*.spec.*', '**/*_test.go', '**/test_*.py', '**/*Test.java', '**/*_spec.rb'],
   },
   {
     fileName: 'logging.md',

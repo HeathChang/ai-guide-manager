@@ -11,6 +11,7 @@ export {
   getHarnessRuleFiles,
   getBootstrapEntry,
   getStartHereEntry,
+  getRootEntries,
   BOOTSTRAP_PATH_BY_TOOL,
 } from './model/defaults/harness';
-export type { BootstrapEntry } from './model/defaults/harness';
+export type { BootstrapEntry, ScopedRule, RootEntriesParams } from './model/defaults/harness';

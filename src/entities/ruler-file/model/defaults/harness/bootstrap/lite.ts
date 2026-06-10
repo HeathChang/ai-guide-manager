@@ -82,7 +82,8 @@ const liteManual = `# 코딩 규칙 적용 안내 (수동)
 새 세션에서 "\`ruler/\` 의 어떤 파일을 읽었어?"라고 물어 실제 파일 목록을 답하면 성공.
 `;
 
-export const LITE_BOOTSTRAP_BY_TOOL: Readonly<Record<AiTool, string>> = {
+// agents-md 는 별도 파일(AGENTS.md)을 항상 동봉하므로 경량 부트스트랩 맵에서는 제외한다.
+export const LITE_BOOTSTRAP_BY_TOOL: Readonly<Record<Exclude<AiTool, 'agents-md'>, string>> = {
   'claude-code': liteClaudeCode,
   cursor: liteCursor,
   copilot: liteCopilot,

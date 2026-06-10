@@ -17,7 +17,8 @@ import { BuilderHeader } from '@/widgets/builder-header';
 import type { BuilderNotice } from '@/widgets/builder-header';
 import { FileListPanel } from '@/widgets/file-list';
 import { EditorPanel } from '@/widgets/file-editor';
-import { getBootstrapEntry, getStartHereEntry } from '@/entities/ruler-file';
+import { getRootEntries, getStartHereEntry } from '@/entities/ruler-file';
+import type { ScopedRule } from '@/entities/ruler-file';
 import { useRulerWorkspace } from '@/features/ruler-workspace';
 import { buildAndSaveZip } from '@/features/download-zip';
 import type { ZipEntry } from '@/features/download-zip';
@@ -156,7 +157,21 @@ const BuilderPage = () => {
       showNotice({ variant: 'danger', message: '다운로드할 규칙을 1개 이상 선택하세요' });
       return;
     }
-    const bootstrap = getBootstrapEntry(resolvedAiTool, includeHarness);
+    // 선택된 룰의 스코핑 정보(globs)를 모아 AGENTS.md 스코프표 + Cursor/Copilot 경로 스코핑 출력에 사용.
+    const selectedRules: ScopedRule[] = workspace.files
+      .filter((file) => workspace.selectedFileNames.has(file.fileName))
+      .map((file) => ({
+        fileName: file.fileName,
+        title: file.title,
+        globs: file.globs,
+        isHarness: file.isHarness,
+      }));
+    // AGENTS.md(항상) + 선택 툴 설정 + 경로 스코핑 파일(Cursor .mdc / Copilot .instructions.md)
+    const rootEntries = getRootEntries({
+      aiTool: resolvedAiTool,
+      includeHarness,
+      rules: selectedRules,
+    });
     const startHere = getStartHereEntry(
       resolvedAiTool,
       includeHarness,
@@ -165,7 +180,7 @@ const BuilderPage = () => {
     );
     const entries: ZipEntry[] = [
       ...ruleEntries,
-      { ...bootstrap, atRoot: true },
+      ...rootEntries.map((entry) => ({ ...entry, atRoot: true })),
       { ...startHere, atRoot: true },
     ];
     setIsDownloading(true);

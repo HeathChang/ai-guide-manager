@@ -12,7 +12,8 @@
 - **상태 관리 8종 (단일 선택)** — Redux Toolkit / Zustand / Jotai / Recoil / MobX / Pinia / Vuex / Svelte Stores. 프레임워크별 호환 매트릭스로 가능한 옵션만 노출(프레임워크에 따라 0~5개). 동시 선택 불가(자동 배타 처리). SolidJS·Vanilla는 전용 상태 관리 룰을 제공하지 않는다(내장 시그널/모듈 사용 권장).
 - **공통 룰셋 내장** — Frontend 공통: base / security / testing / a11y / styling / git + 아키텍처(fsd ↔ atomic 택1). Backend 공통: base / backend / api-design / security / git + database·auth·logging·error-handling·caching(선택). 여기에 선택 프레임워크 전용 룰이 더해진다 (React 계열은 frontend.md·performance.md, 그 외 vue.md / next.md / svelte.md 등 — 예: Next.js App Router, Nuxt useFetch, Pinia setup 문법).
 - **3단계 프리셋** — Minimal / Moderate / Strict.
-- **AI 툴 부트스트랩 자동 동봉** — 선택한 AI 툴(Claude Code / Cursor / Copilot / 수동)에 맞춰 `ruler/` 를 자동 로드하는 부트스트랩 파일(`CLAUDE.md` · `.cursor/rules/ruler.mdc` 등)이 ZIP에 항상 포함된다. 받아서 루트에 풀면 추가 설정 없이 바로 동작.
+- **`AGENTS.md` 범용 표준 + 툴 부트스트랩 자동 동봉** — 2026 사실상 표준인 `AGENTS.md`(Codex·Cursor·Copilot·Gemini CLI·Aider·Windsurf·Zed 등이 네이티브로 읽음)를 **항상** 동봉하고, 선택한 AI 툴(Claude Code / Cursor / Copilot / AGENTS.md / 수동)에 맞춘 부트스트랩 파일(`CLAUDE.md` · `.cursor/rules/ruler.mdc` 등)을 함께 생성한다. 받아서 루트에 풀면 추가 설정 없이 바로 동작.
+- **경로 스코핑 출력** — 룰별 `globs`(예: a11y → `**/*.tsx`, testing → `**/*.test.*`)에 따라 Cursor는 `.cursor/rules/*.mdc`(globs), Copilot은 `.github/instructions/*.instructions.md`(applyTo)로 **해당 파일 유형에서만** 켜지도록 분할 출력. base/security 등은 항상 적용.
 - **하네스 엔지니어링 옵션** — Planner→Researcher→Implementer→Reviewer→Security Auditor→QA→Guardian→Reporter 8역할 협업 모델. 켜면 부트스트랩에 협업 규약이 더해지고 `ruler/harness/` 본문이 함께 동봉된다.
 - **Markdown 미리보기 + 인라인 편집** — `react-markdown` + `@monaco-editor/react`.
 - **사용자 정의 파일 추가** — 팀/프로젝트에 특화된 규칙을 직접 작성.
@@ -62,12 +63,14 @@
 
 | AI 툴 | 자동 생성 파일 | 설명 |
 |-------|---------------|------|
+| (항상) | `AGENTS.md` | 범용 표준 진입점 — AGENTS.md 지원 도구 전부가 자동으로 읽음 |
 | Claude Code | `CLAUDE.md` | 세션 시작 시 자동 로드 |
-| Cursor | `.cursor/rules/ruler.mdc` | `alwaysApply` 규칙으로 자동 주입 |
-| GitHub Copilot | `.github/copilot-instructions.md` | 레포 전체 지침으로 자동 적용 |
+| Cursor | `.cursor/rules/ruler.mdc` + `.cursor/rules/*.mdc` | 전역 규칙 + 경로 스코핑(globs) 규칙 자동 첨부 |
+| GitHub Copilot | `.github/copilot-instructions.md` + `.github/instructions/*.instructions.md` | 전역 지침 + 경로 스코핑(applyTo) |
+| AGENTS.md | `AGENTS.md` | 범용 표준만 — 별도 툴 설정 없이 |
 | 직접 설정 / 기타 | `RULER-BOOTSTRAP.md` | 매 세션 복붙용 프롬프트 + 경로 안내 |
 
-Windsurf(`.windsurf/rules.md`) · Cline 등 다른 도구는 `RULER-BOOTSTRAP.md` 의 경로 표를 참고해 각 도구의 설정 파일이 `ruler/` 를 읽도록 연결하면 된다.
+`AGENTS.md` 는 선택과 무관하게 항상 포함되므로, Windsurf · Aider · Zed 등 AGENTS.md 를 읽는 도구는 추가 설정 없이 동작한다.
 
 ### 4. `.gitignore` 설정
 
