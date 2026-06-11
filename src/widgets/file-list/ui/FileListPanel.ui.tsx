@@ -15,6 +15,13 @@ interface FileListPanelProps {
   readonly onOpenAddCustom: () => void;
 }
 
+// 룰 본문/제목에 deprecated·마이그레이션 신호가 있으면 'legacy'로 표기(예: Vuex, Recoil).
+const LEGACY_SIGNALS = ['legacy', '레거시', '마이그레이션', 'archive', 'deprecated', 'maintenance'];
+const isLegacyRule = (file: RulerFile): boolean => {
+  const haystack = `${file.title} ${file.description}`.toLowerCase();
+  return LEGACY_SIGNALS.some((signal) => haystack.includes(signal));
+};
+
 const groupByCategory = (files: readonly RulerFile[]) => {
   const groups = new Map<string, RulerFile[]>();
   files.forEach((file) => {
@@ -104,10 +111,27 @@ export const FileListPanel = ({
                       type="button"
                       onClick={() => onActivate(file.fileName)}
                       aria-current={isActive ? 'true' : undefined}
+                      title={file.description}
                       className="min-w-0 flex-1 text-left bg-transparent border-0 p-0 cursor-pointer"
                     >
                       <div className="flex items-center gap-1.5">
                         <span className="font-mono text-sm truncate">{file.fileName}</span>
+                        {file.defaultSelected && (
+                          <span
+                            className="shrink-0 rounded bg-bg-muted px-1 py-0.5 text-[10px] font-medium text-brand"
+                            title="권장 — 기본 선택 룰"
+                          >
+                            권장
+                          </span>
+                        )}
+                        {isLegacyRule(file) && (
+                          <span
+                            className="shrink-0 rounded bg-bg-muted px-1 py-0.5 text-[10px] font-medium text-text-muted"
+                            title="레거시 / 마이그레이션 권고"
+                          >
+                            legacy
+                          </span>
+                        )}
                         {isEdited && (
                           <span
                             className="text-brand text-xs"
