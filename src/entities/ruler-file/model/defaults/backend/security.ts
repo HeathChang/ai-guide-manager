@@ -35,7 +35,7 @@ extends: [base.md, backend.md]
 
 - 명시적 origin 허용 목록 — 와일드카드(\`*\`) + 자격증명 동시 사용 금지.
   - 근거: CORS 스펙이 \`Access-Control-Allow-Origin: *\` 와 \`Allow-Credentials: true\` 동시 사용을 금지(브라우저가 거부). 또 \`*\` 는 어느 사이트든 cross-origin 요청 허용 — 자격증명 동반 공격에 노출.
-- Preflight 캐시 시간을 적절히 설정.
+- Preflight 캐시 시간(\`Access-Control-Max-Age\`)을 600초~86400초 범위로 설정.
 
 ## 시크릿 관리
 

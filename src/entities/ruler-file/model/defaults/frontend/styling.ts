@@ -23,18 +23,27 @@ extends: [base.md, frontend.md]
 /* globals.css */
 :root {
   --color-text-main: 15 23 42;
+  --color-text-inverted: 248 250 252;
+  --color-text-muted: 100 116 139;
   --color-bg-base: 248 250 252;
+  --color-brand-primary: 14 165 233;
 }
 \`\`\`
 
 \`\`\`js
 // tailwind.config.js
 colors: {
-  text: { main: 'rgb(var(--color-text-main) / <alpha-value>)' }
+  text: {
+    main: 'rgb(var(--color-text-main) / <alpha-value>)',
+    inverted: 'rgb(var(--color-text-inverted) / <alpha-value>)',
+    muted: 'rgb(var(--color-text-muted) / <alpha-value>)'
+  },
+  bg: { base: 'rgb(var(--color-bg-base) / <alpha-value>)' },
+  brand: { primary: 'rgb(var(--color-brand-primary) / <alpha-value>)' }
 }
 \`\`\`
 
-사용: \`text-text-main\`, \`bg-bg-base\`.
+사용: \`text-text-main\`, \`text-text-inverted\`, \`text-text-muted\`, \`bg-bg-base\`, \`bg-brand-primary\`, \`text-brand-primary\`.
 
 ## 반응형 브레이크포인트
 
@@ -60,7 +69,7 @@ colors: {
 ## AI 행동 규칙
 
 - 새 색·간격 값이 필요하면 **코드 작성 전에** \`tailwind.config.js\` 의 토큰 추가 PR 먼저.
-- \`text-[\` / \`bg-[\` / \`w-[\d+px\]\` 같은 임의 값 발견 시 즉시 토큰으로 교체. 정말 일회성이면 \`// reason: ...\` 주석으로 사유 명시.
+- \`text-[#...]\` / \`bg-[#...]\` / \`w-[137px]\` 같은 임의 값 발견 시 즉시 토큰으로 교체. 정말 일회성이면 \`// reason: ...\` 주석으로 사유 명시.
 - \`style={{...}}\` inline 스타일 발견 시 className 으로 이전. 동적 값이면 CSS 변수 + 클래스 조합.
 - \`!important\` 사용 시도 발견 시 — 특이도 문제는 별도 — 사용자에게 *왜 필요한지* 확인 후에만 사용.
 

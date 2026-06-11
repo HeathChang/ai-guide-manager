@@ -55,7 +55,8 @@ extends: [base.md, backend.md]
 - 새 로그 추가 시 **레벨 선택 근거** 의식: 사용자 대응이 필요한가? → ERROR. 정상이지만 주의? → WARN. 비즈니스 이벤트? → INFO. ERROR 남용은 알림 피로 → 진짜 ERROR 무시.
 - \`password\`, \`token\`, \`apiKey\`, \`secret\`, \`ssn\`, \`email\`, \`phone\` 같은 키가 로그 인자에 포함된 패턴 발견 시 즉시 마스킹 또는 제거.
 - \`catch (e)\` 블록의 로그에 \`err: e\` 또는 stack 포함 — 누락 시 추가.
-- \`console.log\` / \`System.out.println\` / \`fmt.Println\` 발견 시 구조화 logger로 즉시 교체.
+- 비구조화 출력 → 구조화 logger 교체(base.md 규칙)를 로깅 컨텍스트에서도 강제: logger 호출에 레벨을 명시하고 \`traceId\`를 인자로 전파한다.
+  - 근거: base.md는 교체 자체를 규정하나 *레벨 선택·\`traceId\` 전파*는 로깅 고유 책임. 이 둘이 빠지면 교체해도 집계·추적이 불가.
 
 ## 패턴 (DO / DON'T)
 
@@ -86,7 +87,7 @@ catch (e) {
 
 | DON'T | DO |
 |-------|-----|
-| \`System.out.println\` / \`fmt.Println\` / \`console.log\` | 구조화 logger (pino, zap, Logback) |
+| 레벨 없는 logger 호출 (전부 INFO) | 레벨 구분 (ERROR/WARN/INFO/DEBUG) |
 | 평문 비밀번호/토큰 로깅 | 필터·스키마 기반 마스킹 |
 | 중첩된 복잡 JSON 로그 | 평탄한 key-value |
 | traceId 전파 누락 | 미들웨어/인터셉터에서 자동 전파 |

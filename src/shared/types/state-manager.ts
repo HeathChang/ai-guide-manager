@@ -23,17 +23,6 @@ export const STATE_MANAGER_LABELS: Readonly<Record<StateManager, string>> = {
   'svelte-stores': 'Svelte Stores',
 };
 
-export const STATE_MANAGER_FILES: Readonly<Record<StateManager, string>> = {
-  'redux-toolkit': 'state/redux-toolkit.md',
-  zustand: 'state/zustand.md',
-  jotai: 'state/jotai.md',
-  recoil: 'state/recoil.md',
-  mobx: 'state/mobx.md',
-  pinia: 'state/pinia.md',
-  vuex: 'state/vuex.md',
-  'svelte-stores': 'state/svelte-stores.md',
-};
-
 export const STATE_MANAGERS_BY_FRAMEWORK: Readonly<Record<FrontendFramework, readonly StateManager[]>> = {
   react: ['redux-toolkit', 'zustand', 'jotai', 'recoil', 'mobx'],
   next: ['redux-toolkit', 'zustand', 'jotai', 'recoil'],

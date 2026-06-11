@@ -97,7 +97,7 @@ public class GlobalExceptionHandler {
   @Bean
   public SecurityFilterChain filter(HttpSecurity http) throws Exception {
     return http
-      .csrf(csrf -> csrf.disable())             // stateless API면 OK, 명시적
+      .csrf(csrf -> csrf.disable())             // 쿠키 세션 미사용(토큰/Bearer 인증)일 때만 disable. 쿠키 세션이면 CSRF 유지
       .authorizeHttpRequests(a -> a.anyRequest().authenticated())
       .oauth2ResourceServer(o -> o.jwt(Customizer.withDefaults()))
       .build();

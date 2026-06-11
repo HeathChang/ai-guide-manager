@@ -34,7 +34,7 @@ button { color: var(--color-brand); }
 
 - \`<script setup lang="ts">\` 항상.
 - \`<style scoped>\` 컴포넌트 단위 격리 권장.
-- 한 파일이 200줄 넘으면 분리 검토 (composable 추출).
+- 한 파일이 200줄을 넘으면 재사용 로직을 \`composables/useXxx.ts\` 로 추출해 분리한다.
 
 ## ref vs reactive
 

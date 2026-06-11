@@ -15,10 +15,10 @@ AI 에이전트에게 새 세션 시작 시 이 프롬프트를 전달한다:
 이 프로젝트는 하네스 엔지니어링 룰셋을 사용해.
 다음 순서로 작동해줘:
 
-1. /vision.md 와 /harness/README.md 를 먼저 읽어.
-2. /harness/workflow.md 의 핸드오프 규약을 따라.
+1. ruler/vision.md 와 ruler/harness/README.md 를 먼저 읽어.
+2. ruler/harness/workflow.md 의 핸드오프 규약을 따라.
 3. Planner 역할로 시작해서 sub-goal 목록을 만들어.
-4. 역할 전환 시 해당 /harness/agents/*.md 파일을 다시 읽어.
+4. 역할 전환 시 해당 ruler/harness/agents/*.md 파일을 다시 읽어.
 5. 모든 핸드오프마다 Guardian 판정 1턴, Reporter는 1줄 보고.
 \`\`\`
 
@@ -27,7 +27,7 @@ AI 에이전트에게 새 세션 시작 시 이 프롬프트를 전달한다:
 | AI 툴 | 파일 경로 | 설명 |
 |-------|-----------|------|
 | Claude Code | \`CLAUDE.md\` (프로젝트 루트) | 세션 시작 시 자동 로드 |
-| Cursor | \`.cursor/rules/harness.mdc\` | Rules 기능으로 자동 주입 |
+| Cursor | \`.cursor/rules/ruler.mdc\` | Rules 기능으로 자동 주입 |
 | GitHub Copilot | \`.github/copilot-instructions.md\` | 레포 전체 지침으로 자동 적용 |
 | Windsurf | \`.windsurf/rules.md\` | 자동 로드 |
 | Aider | \`.aider.conf.yml\`의 \`read:\` | 수동 지정 필요 |
@@ -35,10 +35,11 @@ AI 에이전트에게 새 세션 시작 시 이 프롬프트를 전달한다:
 
 위 경로에 1번의 프롬프트 내용을 저장해두면 매 세션 복붙이 필요 없다.
 
-## 3. 경로 주의
+## 3. 경로 규약
 
-이 파일의 프롬프트는 ZIP을 **프로젝트 루트에 풀었다는 전제**로 작성되어 있다.
-만약 \`.ruler/\` 하위로 옮긴다면 경로를 \`/.ruler/harness/...\` 로 수정한다.
+이 ZIP은 모든 규칙을 \`ruler/\` 한 곳에 모아두고, 위 부트스트랩 파일은 프로젝트 루트에 둔다.
+ZIP 내용을 **프로젝트 루트에 그대로 복사**하면 경로가 맞춰지므로 따로 수정할 필요가 없다.
+(vision/harness 본문도 모두 \`ruler/vision.md\`, \`ruler/harness/...\` 에 위치한다.)
 
 ## 4. 검증 — 자동 로드가 잘 되었는지 확인
 

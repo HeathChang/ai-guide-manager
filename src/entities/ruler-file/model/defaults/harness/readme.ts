@@ -53,12 +53,13 @@ AI 툴들은 **프로젝트 루트의 특정 파일**을 자동으로 읽는 규
 
 \`\`\`
 my-cafe-app/
-├── CLAUDE.md              ← ★ 이게 핵심. Claude Code가 자동으로 읽음
-├── vision.md              ← 당신이 채울 파일
-├── base.md, backend.md … ← 기본 코딩 규칙
-├── harness/
-│   ├── README.md, workflow.md, walkthrough.md
-│   └── agents/01-planner.md ~ 08-reporter.md
+├── CLAUDE.md                  ← ★ 이게 핵심. Claude Code가 자동으로 읽음
+├── ruler/
+│   ├── vision.md              ← 당신이 채울 파일
+│   ├── base.md, backend.md … ← 기본 코딩 규칙
+│   └── harness/
+│       ├── README.md, workflow.md, walkthrough.md
+│       └── agents/01-planner.md ~ 08-reporter.md
 ├── src/
 └── package.json
 \`\`\`
@@ -92,19 +93,20 @@ my-cafe-app/
 
 **1. ZIP 풀기** (위와 동일)
 
-ZIP엔 \`.cursor/rules/harness.mdc\` 가 들어있음. Cursor가 자동 인식.
+ZIP엔 \`.cursor/rules/ruler.mdc\` 가 들어있음. Cursor가 자동 인식.
 
 **2. Cursor 열기**
 
 \`\`\`
 my-cafe-app/
-├── .cursor/rules/harness.mdc  ← ★ Cursor가 자동 로드
-├── vision.md
-├── harness/ …
+├── .cursor/rules/ruler.mdc  ← ★ Cursor가 자동 로드
+├── ruler/
+│   ├── vision.md
+│   └── harness/ …
 └── src/
 \`\`\`
 
-Cursor Settings → **Rules**에서 \`harness.mdc\` 가 \`alwaysApply\` 로 표시되는지 확인.
+Cursor Settings → **Rules**에서 \`ruler.mdc\` 가 \`alwaysApply\` 로 표시되는지 확인.
 
 **3. 평범하게 질문**
 
@@ -120,7 +122,7 @@ ZIP엔 \`.github/copilot-instructions.md\` 포함. Copilot 최신 버전이 자�
 
 #### 예시 — 기타 툴 / 직접 설정
 
-ZIP엔 \`HARNESS-BOOTSTRAP.md\` 포함. 그 파일 안에 **복붙용 프롬프트 + 툴별 경로 안내**가 다 들어있음.
+ZIP엔 \`RULER-BOOTSTRAP.md\` 포함. 그 파일 안에 **복붙용 프롬프트 + 툴별 경로 안내**가 다 들어있음.
 
 #### 진짜 자동 로드 됐는지 확인하는 방법
 
@@ -136,9 +138,9 @@ ZIP엔 \`HARNESS-BOOTSTRAP.md\` 포함. 그 파일 안에 **복붙용 프롬프�
 #### 자동 로드 실패했을 때 (당황하지 말고)
 
 1. ZIP을 **프로젝트 루트**에 풀었는지 확인 (하위 폴더 안 됨)
-2. 해당 파일이 존재하는지 확인 (\`CLAUDE.md\`, \`.cursor/rules/harness.mdc\` 등)
+2. 해당 파일이 존재하는지 확인 (\`CLAUDE.md\`, \`.cursor/rules/ruler.mdc\` 등)
 3. AI 툴을 완전히 재시작
-4. 그래도 안 되면 \`HARNESS-BOOTSTRAP.md\` 열어서 거기 있는 프롬프트를 한 번 복붙 → 이번 세션만 수동으로
+4. 그래도 안 되면 \`RULER-BOOTSTRAP.md\` 열어서 거기 있는 프롬프트를 한 번 복붙 → 이번 세션만 수동으로
 
 ---
 
@@ -146,7 +148,7 @@ ZIP엔 \`HARNESS-BOOTSTRAP.md\` 포함. 그 파일 안에 **복붙용 프롬프�
 
 **1단계 — vision.md 열기 (2분)**
 
-프로젝트 루트의 \`vision.md\` 를 열어서 다음 4개 섹션만 먼저 채우세요:
+프로젝트 루트의 \`ruler/vision.md\` 를 열어서 다음 4개 섹션만 먼저 채우세요:
 
 - **§1 한 줄 목표** — "뭘 만들려는지" 기술 용어 없이 한 문장
 - **§3 성공 기준** — 숫자로 측정 가능한 기준 2~4개
@@ -167,9 +169,9 @@ ZIP을 프로젝트 루트에 풀면 해당 툴이 다음 파일을 알아서 �
 | AI 툴 | 자동 로드 파일 | 확인 방법 |
 |-------|---------------|----------|
 | Claude Code | \`CLAUDE.md\` (루트) | 새 세션 시작 시 자동 |
-| Cursor | \`.cursor/rules/harness.mdc\` | Settings → Rules에서 활성 확인 |
+| Cursor | \`.cursor/rules/ruler.mdc\` | Settings → Rules에서 활성 확인 |
 | GitHub Copilot | \`.github/copilot-instructions.md\` | 자동 (Copilot 최신 버전) |
-| 직접 설정 / 기타 | \`HARNESS-BOOTSTRAP.md\` | 매 세션 프롬프트 복붙 |
+| 직접 설정 / 기타 | \`RULER-BOOTSTRAP.md\` | 매 세션 프롬프트 복붙 |
 
 **3-1단계 (대안) — 자동 로드 미지원 시 이 프롬프트 복붙 (20초)**
 
@@ -177,10 +179,10 @@ ZIP을 프로젝트 루트에 풀면 해당 툴이 다음 파일을 알아서 �
 이 프로젝트는 하네스 엔지니어링 룰셋을 사용해.
 다음 순서로 작동해줘:
 
-1. /vision.md 와 /harness/README.md 를 읽어.
-2. /harness/workflow.md 의 핸드오프 규약을 따라.
+1. ruler/vision.md 와 ruler/harness/README.md 를 읽어.
+2. ruler/harness/workflow.md 의 핸드오프 규약을 따라.
 3. Planner 역할로 시작해서 sub-goal 목록을 만들어.
-4. 역할 전환 시 해당 /harness/agents/*.md 파일을 다시 읽어.
+4. 역할 전환 시 해당 ruler/harness/agents/*.md 파일을 다시 읽어.
 5. 모든 핸드오프마다 Guardian 판정을 하고, Reporter는 1줄로 보고해.
 \`\`\`
 
@@ -222,7 +224,7 @@ AI가 이렇게 1줄 보고를 보냅니다:
 - 실험·프로토타입 (버려도 되는 코드)
 - "이 변수명만 바꿔줘" 수준의 마이크로 작업
 
-이런 건 기존 \`.ruler/*.md\` 만으로 충분. 하네스는 켰다 껐다 할 수 있으니 부담 없이.
+이런 건 기존 \`ruler/*.md\` 만으로 충분. 하네스는 켰다 껐다 할 수 있으니 부담 없이.
 
 ### 하네스가 **진짜 빛나는** 순간
 
@@ -291,6 +293,8 @@ AI가 이렇게 1줄 보고를 보냅니다:
  │   Guardian   │ ◄────────│   Reporter   │ → 유저
  │  (감시자)     │          │   (비서)      │
  └──────────────┘          └──────────────┘
+
+※ Guardian은 모든 단계 사이 핸드오프마다 호출됨(그림은 지면상 1회만 표시).
 \`\`\`
 
 ## 8개 역할
@@ -301,14 +305,14 @@ AI가 이렇게 1줄 보고를 보냅니다:
 | 2 | Researcher (리서처) | \`agents/02-researcher.md\` | 기존 코드·패턴 조사 |
 | 3 | Implementer (코드작성자) | \`agents/03-implementer.md\` | sub-goal 1개씩 구현 |
 | 4 | Reviewer (리뷰어) | \`agents/04-reviewer.md\` | 코드 품질 검토 |
-| 5 | QA | \`agents/05-qa.md\` | 기능·엣지·회귀 검증 |
-| 6 | Security Auditor (보안검토자) | \`agents/06-security-auditor.md\` | 보안 전용 검토 |
+| 5 | Security Auditor (보안검토자) | \`agents/05-security-auditor.md\` | 보안 전용 검토 |
+| 6 | QA | \`agents/06-qa.md\` | 기능·엣지·회귀 검증 |
 | 7 | Guardian (감시자) | \`agents/07-guardian.md\` | vision.md 정합성 감시 |
 | 8 | Reporter (비서) | \`agents/08-reporter.md\` | 유저 실시간 보고 |
 
 ## 빠른 시작
 
-1. \`/vision.md\` 를 열고 템플릿의 빈칸을 채운다 (한 줄 목표, 사용자, 성공 기준 등).
+1. \`ruler/vision.md\` 를 열고 템플릿의 빈칸을 채운다 (한 줄 목표, 사용자, 성공 기준 등).
 2. AI 에이전트에게 "vision.md를 읽고 Planner 역할로 시작하라"고 지시한다.
 3. Planner가 만든 sub-goal 목록을 유저가 확인·승인한다.
 4. 이후 핸드오프는 \`workflow.md\`의 규약을 따라 자동 진행된다.
@@ -333,10 +337,10 @@ AI가 이렇게 1줄 보고를 보냅니다:
 이 프로젝트는 하네스 엔지니어링 룰셋을 사용한다.
 반드시 다음 순서로 작동하라:
 
-1. /vision.md 를 읽는다.
-2. /harness/README.md, /harness/workflow.md 를 읽는다.
+1. ruler/vision.md 를 읽는다.
+2. ruler/harness/README.md, ruler/harness/workflow.md 를 읽는다.
 3. 현재 네 역할을 선택하거나 유저가 지정한 역할을 수행한다.
-4. 역할 수행 전 해당 /harness/agents/*.md 를 읽어 규칙을 로드한다.
+4. 역할 수행 전 해당 ruler/harness/agents/*.md 를 읽어 규칙을 로드한다.
 5. 역할 종료 시 핸드오프 대상과 전달물을 명시한다.
 6. 모든 핸드오프 직후 Guardian 판정 1턴을 수행한다.
 7. Reporter 출력은 항상 1줄.
@@ -355,23 +359,23 @@ AI가 이렇게 1줄 보고를 보냅니다:
 - 해결: 매 3~5턴마다 Reporter가 "현재 상태 요약" 출력 + 역할 파일 재로드
 - 또는: 각 sub-goal 완료 시 새 세션으로 전환, vision.md + 이전 완료 목록만 인계
 
-## 기존 룰셋(.ruler/*.md)과의 관계
+## 기존 룰셋(ruler/*.md)과의 관계
 
 하네스 규칙은 **기존 코딩 룰을 대체하지 않는다**. 다음과 같이 계층 구조로 겹친다:
 
 \`\`\`
-vision.md                           ← WHAT (무엇을 만드는가)
-  └─ harness/agents/*.md            ← WHO (누가 어느 역할로)
-       └─ .ruler/base.md + stack.md ← HOW (어떻게 코드를 쓰는가)
+ruler/vision.md                       ← WHAT (무엇을 만드는가)
+  └─ ruler/harness/agents/*.md        ← WHO (누가 어느 역할로)
+       └─ ruler/base.md + stack.md    ← HOW (어떻게 코드를 쓰는가)
 \`\`\`
 
-- **Planner**: vision.md 분해 시 \`.ruler/*.md\`의 제약을 sub-goal에 반영 (예: "base.md 네이밍 규칙을 따라야 함").
-- **Implementer**: 코드 작성 시 \`.ruler/base.md\`, \`.ruler/frontend.md\`/\`.ruler/backend.md\`를 절대 규칙으로 따른다.
-- **Reviewer**: \`.ruler/*.md\` 위반이 있으면 즉시 BLOCKER.
-- **Security Auditor**: \`.ruler/security.md\`를 최소 기준선으로 쓴다.
-- **QA**: \`.ruler/testing.md\`의 테스트 규칙을 따른다.
+- **Planner**: vision.md 분해 시 \`ruler/*.md\`의 제약을 sub-goal에 반영 (예: "base.md 네이밍 규칙을 따라야 함").
+- **Implementer**: 코드 작성 시 \`ruler/base.md\`, \`ruler/frontend.md\`/\`ruler/backend.md\`를 절대 규칙으로 따른다.
+- **Reviewer**: \`ruler/*.md\` 위반이 있으면 즉시 BLOCKER.
+- **Security Auditor**: \`ruler/security.md\`를 최소 기준선으로 쓴다.
+- **QA**: \`ruler/testing.md\`의 테스트 규칙을 따른다.
 
-하네스는 **협업 구조**, \`.ruler/\`는 **코드 규칙**. 둘을 겸비하라.
+하네스는 **협업 구조**, \`ruler/\`는 **코드 규칙**. 둘을 겸비하라.
 
 ## 토큰 비용 고지
 

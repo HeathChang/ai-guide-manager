@@ -41,6 +41,7 @@ const AMBIGUOUS_TERMS = [
   '되도록',
   '상황에 따라',
   '왠만하면',
+  '웬만하면',
   '적당히',
 ] as const;
 

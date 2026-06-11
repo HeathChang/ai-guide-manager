@@ -6,7 +6,7 @@ category: 하네스
 # Vision
 
 > 이 파일은 **유저가 작성하고 갱신한다**.
-> 모든 에이전트(Planner, Researcher, Implementer, Reviewer, QA, Security Auditor, Guardian, Reporter)는
+> 모든 에이전트(Planner, Researcher, Implementer, Reviewer, Security Auditor, QA, Guardian, Reporter)는
 > 이 문서를 **유일한 진실의 원천(Single Source of Truth)** 으로 삼는다.
 >
 > 빈칸을 채우고 필요하면 섹션을 확장하되, 구조는 유지한다.

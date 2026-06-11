@@ -40,14 +40,15 @@ extends: [base.md, frontend.md]
 - **selector 없이 \`useStore()\` 전체를 가져오면 모든 변경에 리렌더**.
 - selector 사용 규칙:
   - 단일 primitive 반환 → selector 1개, 비교 함수 불필요
-  - **여러 값을 객체/배열로 묶어 반환 → \`shallow\` 비교 함수 필수**
+  - **여러 값을 객체/배열로 묶어 반환 → \`useShallow\` 로 selector 를 감싸라 (필수)**
+    - 근거: v4의 두 번째 인자(equalityFn) 방식은 v5에서 제거됨. v5는 \`useShallow\` 로 selector 를 감싸는 방식만 지원한다.
   \`\`\`ts
   // 한 개 값
   const count = useStore((s) => s.count);
 
-  // 여러 값 → shallow 필수
-  import { shallow } from 'zustand/shallow';
-  const { a, b } = useStore((s) => ({ a: s.a, b: s.b }), shallow);
+  // 여러 값 → useShallow 필수 (v5)
+  import { useShallow } from 'zustand/shallow';
+  const { a, b } = useStore(useShallow((s) => ({ a: s.a, b: s.b })));
   \`\`\`
 - 근거: 기본 비교는 \`Object.is\`. selector가 새 객체를 반환하면 매 setState마다 리렌더 발생한다.
 
@@ -59,7 +60,7 @@ extends: [base.md, frontend.md]
 
 ## 미들웨어
 
-- \`devtools\` — 개발 모드 한정. \`devtools(fn, { enabled: import.meta.env.DEV })\`.
+- \`devtools\` — 개발 모드 한정. \`devtools(fn, { enabled: process.env.NODE_ENV !== 'production' })  // Vite는 import.meta.env.DEV\`.
 - \`persist\` — localStorage. 비직렬화 값(Date/Map/Set/class) 저장 금지. 필요하면 \`serialize/deserialize\` 커스텀.
 - \`immer\` — 중첩 객체 mutate-style. 단순 구조면 불필요.
 - \`subscribeWithSelector\` — selector 단위 구독이 필요한 경우.
@@ -124,15 +125,14 @@ const state = useCartStore();
 ### 다중 값 selector
 
 \`\`\`ts
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/shallow';
 
-// DO
+// DO — 여러 값은 useShallow 로 selector 를 감싼다 (v5)
 const { items, total } = useCartStore(
-  (s) => ({ items: s.items, total: s.items.length }),
-  shallow,
+  useShallow((s) => ({ items: s.items, total: s.items.length })),
 );
 
-// DON'T — 매 setState 마다 새 객체, shallow 없으면 매번 리렌더
+// DON'T — 매 setState 마다 새 객체, useShallow 없으면 매번 리렌더
 const obj = useCartStore((s) => ({ items: s.items }));
 \`\`\`
 
@@ -154,7 +154,7 @@ axios.interceptors.response.use(undefined, (err) => {
 |-------|-----|
 | 서버 응답 store에 저장 | TanStack Query / SWR |
 | 한 store에 모든 도메인 | 도메인별 store 또는 슬라이스 |
-| \`useStore()\` 전체 구독 | selector + shallow |
+| \`useStore()\` 전체 구독 | selector + useShallow(다중 값) |
 | \`devtools\` 프로덕션 활성 | \`enabled: DEV\` |
 | persist에 Date/class 저장 | primitive 또는 커스텀 serialize |
 `;

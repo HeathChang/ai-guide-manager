@@ -128,7 +128,7 @@ extends: [base.md]
 
 ## 빌드 / Vite
 
-- 신규는 Vite + \`svelte-vite-plugin\` 또는 SvelteKit (다음 파일 참고).
+- 신규는 Vite + \`@sveltejs/vite-plugin-svelte\` 또는 SvelteKit (다음 파일 참고).
 - vanilla Svelte 5 + Vite로 시작하는 SPA는 충분히 가능.
 
 ## AI 행동 규칙

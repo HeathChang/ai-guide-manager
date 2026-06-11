@@ -48,10 +48,9 @@ import { frameworkDjango } from './backend/framework/django';
 import { frameworkRails } from './backend/framework/rails';
 import { frameworkGoGin } from './backend/framework/go-gin';
 
-import { getHarnessFiles } from './harness';
+import { getHarnessRuleFiles } from './harness';
 
 import type {
-  AiTool,
   BackendFramework,
   FrontendFramework,
   Stack,
@@ -115,6 +114,7 @@ const COMMON_FRONTEND_FILES: readonly RulerFile[] = [
     stack: 'frontend',
     defaultSelected: false,
     content: frontendTesting,
+    globs: ['**/*.test.*', '**/*.spec.*', '**/__tests__/**'],
   },
   {
     fileName: 'a11y.md',
@@ -124,6 +124,7 @@ const COMMON_FRONTEND_FILES: readonly RulerFile[] = [
     stack: 'frontend',
     defaultSelected: false,
     content: frontendA11y,
+    globs: ['**/*.tsx', '**/*.jsx', '**/*.vue', '**/*.svelte'],
   },
   {
     fileName: 'styling.md',
@@ -133,6 +134,7 @@ const COMMON_FRONTEND_FILES: readonly RulerFile[] = [
     stack: 'frontend',
     defaultSelected: false,
     content: frontendStyling,
+    globs: ['**/*.tsx', '**/*.jsx', '**/*.vue', '**/*.svelte', '**/*.css', '**/*.scss'],
   },
 ];
 
@@ -412,6 +414,7 @@ const COMMON_BACKEND_FILES: readonly RulerFile[] = [
     stack: 'backend',
     defaultSelected: false,
     content: backendTesting,
+    globs: ['**/*.test.*', '**/*.spec.*', '**/*_test.go', '**/test_*.py', '**/*Test.java', '**/*_spec.rb'],
   },
   {
     fileName: 'logging.md',
@@ -540,7 +543,6 @@ export interface GetDefaultFilesOptions {
   readonly framework?: FrontendFramework | BackendFramework;
   readonly stateManager?: StateManager;
   readonly includeHarness?: boolean;
-  readonly aiTool?: AiTool;
 }
 
 export const getDefaultFiles = (
@@ -556,7 +558,7 @@ export const getDefaultFiles = (
       ...buildStateFiles(framework, options.stateManager),
     ];
     if (options.includeHarness === true) {
-      return [...files, ...getHarnessFiles(stack, options.aiTool)];
+      return [...files, ...getHarnessRuleFiles(stack)];
     }
     return files;
   }
@@ -568,7 +570,7 @@ export const getDefaultFiles = (
     ...BACKEND_FRAMEWORK_BUNDLES[framework],
   ];
   if (options.includeHarness === true) {
-    return [...files, ...getHarnessFiles(stack, options.aiTool)];
+    return [...files, ...getHarnessRuleFiles(stack)];
   }
   return files;
 };

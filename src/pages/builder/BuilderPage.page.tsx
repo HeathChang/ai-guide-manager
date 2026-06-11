@@ -15,10 +15,14 @@ import type {
 } from '@/shared/types';
 import { BuilderHeader } from '@/widgets/builder-header';
 import type { BuilderNotice } from '@/widgets/builder-header';
+import { BuilderIntro } from '@/widgets/builder-intro';
 import { FileListPanel } from '@/widgets/file-list';
 import { EditorPanel } from '@/widgets/file-editor';
+import { getRootEntries, getStartHereEntry } from '@/entities/ruler-file';
+import type { ScopedRule } from '@/entities/ruler-file';
 import { useRulerWorkspace } from '@/features/ruler-workspace';
 import { buildAndSaveZip } from '@/features/download-zip';
+import type { ZipEntry } from '@/features/download-zip';
 import {
   buildShareUrl,
   parseFrameworkFromQuery,
@@ -30,7 +34,7 @@ import { AddCustomFileDialog } from '@/features/custom-file';
 import { LintDialog, lintRules } from '@/features/rule-lint';
 import type { LintResult } from '@/features/rule-lint';
 import { VerifyPromptsDialog } from '@/widgets/verify-prompts';
-import { RECOMMENDED_TOKEN_LIMIT, copyToClipboard, estimateTokens } from '@/shared/lib';
+import { RECOMMENDED_TOKEN_LIMIT, copyToClipboard, createLocalStorage, estimateTokens } from '@/shared/lib';
 
 const isHarnessState = (state: unknown): boolean => {
   if (state === null || typeof state !== 'object') return false;
@@ -87,6 +91,9 @@ const BuilderPage = () => {
   const workspace = useRulerWorkspace({ stack, framework, initialSelection, includeHarness, aiTool });
   const presets = useMemo(() => getPresetList(), []);
 
+  const onboardStorage = useMemo(() => createLocalStorage<boolean>('ai-ruler:v1:onboarded'), []);
+  const [showIntro, setShowIntro] = useState(() => onboardStorage.read() !== true);
+
   const [isCustomDialogOpen, setCustomDialogOpen] = useState(false);
   const [notice, setNotice] = useState<BuilderNotice | undefined>();
   const [isDownloading, setIsDownloading] = useState(false);
@@ -118,6 +125,17 @@ const BuilderPage = () => {
     [workspace, stack, framework, showNotice],
   );
 
+  const dismissIntro = useCallback(() => {
+    setShowIntro(false);
+    onboardStorage.write(true);
+  }, [onboardStorage]);
+
+  const handleApplyModerate = useCallback(() => {
+    const moderate = presets.find((preset) => preset.id === 'moderate');
+    if (moderate !== undefined) handleApplyPreset(moderate);
+    dismissIntro();
+  }, [presets, handleApplyPreset, dismissIntro]);
+
   const handleShare = useCallback(async () => {
     const url = buildShareUrl({
       origin: window.location.origin,
@@ -125,13 +143,27 @@ const BuilderPage = () => {
       selected: Array.from(workspace.selectedFileNames),
       framework,
     });
+    // 공유 URL은 선택 목록 + framework만 담는다. 편집·커스텀 파일은 빠지므로,
+    // 그런 변경이 있으면 조용한 데이터 손실을 막기 위해 범위를 명시 경고한다.
+    const customCount = workspace.files.filter((file) => file.isCustom === true).length;
+    const editedCount = workspace.files.filter(
+      (file) => file.isCustom !== true && workspace.isEdited(file.fileName),
+    ).length;
+    const droppedCount = customCount + editedCount;
     try {
       await copyToClipboard(url);
-      showNotice({ variant: 'success', message: '공유 링크를 클립보드에 복사했습니다' });
+      if (droppedCount > 0) {
+        showNotice({
+          variant: 'warning',
+          message: `공유 링크 복사됨 — 단, 선택+프레임워크만 담깁니다. 편집·커스텀 ${droppedCount}건은 링크에 포함되지 않습니다(ZIP을 공유하세요).`,
+        });
+      } else {
+        showNotice({ variant: 'success', message: '공유 링크를 클립보드에 복사했습니다' });
+      }
     } catch {
       window.prompt('링크를 수동으로 복사하세요', url);
     }
-  }, [location.pathname, workspace.selectedFileNames, framework, showNotice]);
+  }, [location.pathname, workspace, framework, showNotice]);
 
   const handleLint = useCallback(() => {
     const result = lintRules({
@@ -143,16 +175,49 @@ const BuilderPage = () => {
   }, [workspace]);
 
   const handleDownload = useCallback(async () => {
-    const entries = Array.from(workspace.selectedFileNames).map((fileName) => ({
+    const resolvedAiTool: AiTool = aiTool ?? 'claude-code';
+    // 룰 파일은 모두 `ruler/` 하위로(atRoot 미지정), 툴 부트스트랩과 START-HERE는 루트로.
+    const ruleEntries: ZipEntry[] = Array.from(workspace.selectedFileNames).map((fileName) => ({
       fileName,
       content: workspace.getContent(fileName),
     }));
+    // 부트스트랩은 항상 동봉되지만, 빈 ruler/ 만 받는 건 의미가 없으므로 규칙 1개 이상을 요구한다.
+    if (ruleEntries.length === 0) {
+      showNotice({ variant: 'danger', message: '다운로드할 규칙을 1개 이상 선택하세요' });
+      return;
+    }
+    // 선택된 룰의 스코핑 정보(globs)를 모아 AGENTS.md 스코프표 + Cursor/Copilot 경로 스코핑 출력에 사용.
+    const selectedRules: ScopedRule[] = workspace.files
+      .filter((file) => workspace.selectedFileNames.has(file.fileName))
+      .map((file) => ({
+        fileName: file.fileName,
+        title: file.title,
+        globs: file.globs,
+        isHarness: file.isHarness,
+      }));
+    // AGENTS.md(항상) + 선택 툴 설정 + 경로 스코핑 파일(Cursor .mdc / Copilot .instructions.md)
+    const rootEntries = getRootEntries({
+      aiTool: resolvedAiTool,
+      includeHarness,
+      rules: selectedRules,
+    });
+    const startHere = getStartHereEntry(
+      resolvedAiTool,
+      includeHarness,
+      framework,
+      ruleEntries.map((entry) => entry.fileName),
+    );
+    const entries: ZipEntry[] = [
+      ...ruleEntries,
+      ...rootEntries.map((entry) => ({ ...entry, atRoot: true })),
+      { ...startHere, atRoot: true },
+    ];
     setIsDownloading(true);
     try {
       await buildAndSaveZip({ stack, framework, entries });
       showNotice({
         variant: 'success',
-        message: `${entries.length}개 파일을 다운로드했습니다 — 다음 단계: 검증 프롬프트`,
+        message: `${ruleEntries.length}개 규칙 + 부트스트랩을 다운로드했습니다 — 다음 단계: 검증 프롬프트`,
       });
       // 다운로드 성공 직후 검증 프롬프트를 자동 노출 — "ZIP만 풀면 끝"이 아니라
       // "받고 → 검증 → 사용" 흐름을 기본 동선으로 강제한다.
@@ -163,7 +228,7 @@ const BuilderPage = () => {
     } finally {
       setIsDownloading(false);
     }
-  }, [stack, framework, workspace, showNotice]);
+  }, [stack, framework, includeHarness, aiTool, workspace, showNotice]);
 
   const editedFileNames = useMemo(() => {
     const set = new Set<string>();
@@ -212,6 +277,10 @@ const BuilderPage = () => {
         onOpenVerifyPrompts={() => setVerifyPromptsOpen(true)}
         notice={notice}
       />
+
+      {showIntro && (
+        <BuilderIntro onApplyModerate={handleApplyModerate} onDismiss={dismissIntro} />
+      )}
 
       <main className="flex-1 flex flex-col md:flex-row min-h-0">
         <FileListPanel

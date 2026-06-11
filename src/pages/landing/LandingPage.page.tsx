@@ -31,7 +31,7 @@ const HARNESS_TOOLTIP_TEXT =
   '하네스 엔지니어링은 AI 에이전트가 도구 호출, 검증, 재시도 등을 안정적으로 수행하도록 실행 흐름을 설계하는 방법입니다. 포함하면 관련 규칙이 추가되어 AI 실행 시 토큰 소비량이 증가합니다.';
 
 const AI_TOOL_TOOLTIP_TEXT =
-  '선택한 툴의 자동 로드 규약에 맞춰 부트스트랩 파일이 함께 생성됩니다. 매 세션 프롬프트 복붙 없이 하네스가 자동 시작됩니다.';
+  '선택한 툴의 자동 로드 규약에 맞춰 부트스트랩 파일(CLAUDE.md · .cursor/rules/ruler.mdc 등)이 ZIP에 함께 생성됩니다. 받은 뒤 추가 설정 없이 AI가 ruler/ 규칙을 자동으로 읽습니다.';
 
 const FRAMEWORK_TOOLTIP_TEXT =
   '선택한 프레임워크/라이브러리에 맞는 규칙 세트가 자동 구성됩니다. 빌더에서 상태 관리 도구를 추가로 선택할 수 있습니다.';
@@ -54,7 +54,7 @@ const LandingPage = () => {
       state: {
         framework,
         includeHarness: isHarnessIncluded,
-        aiTool: isHarnessIncluded ? aiTool : undefined,
+        aiTool,
       },
     });
   };
@@ -117,6 +117,34 @@ const LandingPage = () => {
                 추가 옵션
               </Heading>
               <div className="flex flex-col items-center gap-3 w-full">
+                <div className="inline-flex items-center gap-2">
+                  <label
+                    htmlFor="ai-tool-select"
+                    className="text-sm text-text-muted"
+                  >
+                    사용 중인 AI 툴
+                  </label>
+                  <select
+                    id="ai-tool-select"
+                    value={aiTool}
+                    onChange={(event) => setAiTool(event.target.value as AiTool)}
+                    className="text-sm rounded-md border border-border-base bg-bg-card text-text-main px-2 py-1 focus:outline-none focus:border-border-accent"
+                  >
+                    {AI_TOOL_LIST.map((tool) => (
+                      <option key={tool} value={tool}>
+                        {AI_TOOL_LABELS[tool]}
+                      </option>
+                    ))}
+                  </select>
+                  <Tooltip content={AI_TOOL_TOOLTIP_TEXT}>
+                    <span
+                      aria-label="AI 툴 선택 설명"
+                      className="inline-flex items-center justify-center w-[18px] h-[18px] rounded-full border-[1.5px] border-text-main text-text-main text-[11px] font-bold leading-none select-none"
+                    >
+                      ?
+                    </span>
+                  </Tooltip>
+                </div>
                 <div className="inline-flex items-center justify-center gap-2">
                   <Checkbox
                     label="하네스 엔지니어링 포함"
@@ -132,36 +160,6 @@ const LandingPage = () => {
                     </span>
                   </Tooltip>
                 </div>
-                {isHarnessIncluded && (
-                  <div className="inline-flex items-center gap-2">
-                    <label
-                      htmlFor="ai-tool-select"
-                      className="text-sm text-text-muted"
-                    >
-                      사용 중인 AI 툴
-                    </label>
-                    <select
-                      id="ai-tool-select"
-                      value={aiTool}
-                      onChange={(event) => setAiTool(event.target.value as AiTool)}
-                      className="text-sm rounded-md border border-border-base bg-bg-card text-text-main px-2 py-1 focus:outline-none focus:border-border-accent"
-                    >
-                      {AI_TOOL_LIST.map((tool) => (
-                        <option key={tool} value={tool}>
-                          {AI_TOOL_LABELS[tool]}
-                        </option>
-                      ))}
-                    </select>
-                    <Tooltip content={AI_TOOL_TOOLTIP_TEXT}>
-                      <span
-                        aria-label="AI 툴 선택 설명"
-                        className="inline-flex items-center justify-center w-[18px] h-[18px] rounded-full border-[1.5px] border-text-main text-text-main text-[11px] font-bold leading-none select-none"
-                      >
-                        ?
-                      </span>
-                    </Tooltip>
-                  </div>
-                )}
               </div>
             </Box>
 

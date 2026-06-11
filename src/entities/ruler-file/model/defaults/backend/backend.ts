@@ -33,8 +33,7 @@ extends: [base.md]
 
 ## 에러 처리 전략
 
-- 도메인 예외(\`BusinessError\`)와 시스템 예외(\`SystemError\`)를 분리.
-- 글로벌 예외 핸들러에서 HTTP 상태 코드로 매핑.
+- 에러 분류 체계는 error-handling.md의 4분류(클라이언트/비즈니스 규칙/외부 의존/시스템)를 표준으로 한다. 글로벌 핸들러에서 각 분류를 HTTP 상태로 매핑.
 - 에러 응답 포맷을 **표준화** (code, message, details).
 
 ## 설정 관리

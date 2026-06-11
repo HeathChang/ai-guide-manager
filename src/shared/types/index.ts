@@ -15,7 +15,6 @@ export type { Framework, FrontendFramework, BackendFramework } from './framework
 export {
   STATE_MANAGER_LIST,
   STATE_MANAGER_LABELS,
-  STATE_MANAGER_FILES,
   STATE_MANAGERS_BY_FRAMEWORK,
   isStateManager,
 } from './state-manager';

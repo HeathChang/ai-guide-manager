@@ -36,7 +36,7 @@ export const useCartStore = defineStore('cart', () => {
 
 - **Setup 문법**(함수 반환) 이 Options 문법(\`state/getters/actions\` 객체)보다 권장.
   - 근거: Composition API와 동일한 문법 → 학습 부담 없음. composable과 자유롭게 조합 가능. TS 추론 더 깔끔.
-- store id(\`'cart'\`)는 전역 유일 — 모듈 prefix 권장: \`'cart/main'\` 등 의미 있는 이름.
+- store id(\`'cart'\`)는 전역 유일 — 단순 앱은 \`'cart'\`로 충분하고, 도메인/모듈이 많아 이름 충돌 위험이 있을 때만 \`'cart/main'\` 같은 prefix를 쓴다.
 
 ## 한 store = 한 도메인
 
@@ -115,7 +115,8 @@ const { addItem, clear } = cart;              // 액션은 그냥 destructure OK
 ## SSR (Nuxt)
 
 - \`@pinia/nuxt\` 사용 — auto-import + per-request 인스턴스.
-- store 초기화에서 \`window\` / \`document\` 접근 금지 → \`onMounted\` 또는 \`if (process.client)\`.
+- store 초기화에서 \`window\` / \`document\` 접근 금지 → \`onMounted\` 또는 \`if (import.meta.client)\`.
+  - 근거: SSR 단계에는 \`window\`/\`document\`가 없어 접근 시 서버 렌더가 throw. Nuxt 3+: \`import.meta.client\` / \`import.meta.server\` (\`process.client\`는 구식 경로, 비권장).
 
 ## 서버 상태와의 관계
 

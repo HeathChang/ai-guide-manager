@@ -33,4 +33,10 @@ export interface RulerFile {
   readonly stateManagerKind?: StateManager;
   readonly isCustom?: boolean;
   readonly isHarness?: boolean;
+  /**
+   * 경로 스코핑 glob 패턴. 비어 있으면 "항상 적용"(base/security 등).
+   * 지정 시 해당 파일 유형에서만 룰이 활성화된다 — Cursor globs / Copilot applyTo /
+   * AGENTS.md 스코프 표로 변환된다. 예: a11y 는 tsx·jsx·vue·svelte 파일에만 적용.
+   */
+  readonly globs?: readonly string[];
 }

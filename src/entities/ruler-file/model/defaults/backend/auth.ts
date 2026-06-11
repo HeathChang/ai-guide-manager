@@ -39,10 +39,11 @@ extends: [base.md, backend.md]
 
 ## 보안 헤더
 
-- \`Strict-Transport-Security\`
+- \`Strict-Transport-Security: max-age=63072000; includeSubDomains; preload\`
 - \`X-Content-Type-Options: nosniff\`
-- \`X-Frame-Options: DENY\`
-- \`Content-Security-Policy\`
+- \`X-Frame-Options: DENY\` (또는 CSP \`frame-ancestors 'none'\`)
+- \`Content-Security-Policy\` 는 최소 \`default-src 'self'\` 에서 시작해 점진 강화.
+- \`X-Frame-Options\` 는 구형 브라우저 호환용 폴백이고, CSP \`frame-ancestors\` 가 우선 적용된다 — 둘을 함께 보내되 정책은 \`frame-ancestors\` 기준으로 맞춘다.
 
 ## AI 행동 규칙
 
