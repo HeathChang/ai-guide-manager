@@ -4,10 +4,11 @@ import { getDefaultFiles } from '@/entities/ruler-file';
 import type {
   AiTool,
   BackendFramework,
+  EngineeringMode,
   FrontendFramework,
   Stack,
 } from '@/shared/types';
-import { DEFAULT_FRAMEWORK } from '@/shared/types';
+import { DEFAULT_FRAMEWORK, normalizeEngineeringModes } from '@/shared/types';
 import { createLocalStorage } from '@/shared/lib';
 import type { WorkspacePersisted } from './types';
 
@@ -15,7 +16,7 @@ interface UseRulerWorkspaceParams {
   readonly stack: Stack;
   readonly framework?: FrontendFramework | BackendFramework;
   readonly initialSelection?: readonly string[] | undefined;
-  readonly includeHarness?: boolean;
+  readonly engineeringModes?: readonly EngineeringMode[];
   readonly aiTool?: AiTool;
 }
 
@@ -47,19 +48,26 @@ export const useRulerWorkspace = ({
   stack,
   framework,
   initialSelection,
-  includeHarness = false,
+  engineeringModes,
   aiTool,
 }: UseRulerWorkspaceParams): UseRulerWorkspaceResult => {
-  const harnessSuffix = includeHarness ? `:harness:${aiTool ?? 'claude-code'}` : '';
+  // 배열 신원(identity)이 렌더마다 바뀌어도 재계산되지 않도록 문자열 키로 환산해 쓴다.
+  // 'harness' 단독일 때의 키는 구버전(체크박스 1개)과 동일해 저장된 워크스페이스가 유지된다.
+  const modeKey = normalizeEngineeringModes(engineeringModes ?? []).join('+');
+  const modes = useMemo<readonly EngineeringMode[]>(
+    () => (modeKey === '' ? [] : (modeKey.split('+') as EngineeringMode[])),
+    [modeKey],
+  );
+  const modeSuffix = modeKey === '' ? '' : `:${modeKey}:${aiTool ?? 'claude-code'}`;
   const frameworkSuffix = framework !== undefined ? `:${framework}` : '';
-  const storageKey = `${STORAGE_PREFIX}${stack}${frameworkSuffix}${harnessSuffix}`;
+  const storageKey = `${STORAGE_PREFIX}${stack}${frameworkSuffix}${modeSuffix}`;
   const storage = useMemo(
     () => createLocalStorage<WorkspacePersisted>(storageKey),
     [storageKey],
   );
   const defaultFiles = useMemo(
-    () => getDefaultFiles(stack, { framework, includeHarness }),
-    [stack, framework, includeHarness],
+    () => getDefaultFiles(stack, { framework, engineeringModes: modes }),
+    [stack, framework, modes],
   );
 
   // storageKey 변경 시(예: framework 전환된 공유 URL로 navigate) 매번 재로드.
@@ -80,7 +88,7 @@ export const useRulerWorkspace = ({
         (stack === 'frontend' && framework === DEFAULT_FRAMEWORK.frontend) ||
         (stack === 'backend' && framework === DEFAULT_FRAMEWORK.backend);
       if (isDefaultFramework) {
-        const legacyKey = `${STORAGE_PREFIX}${stack}${harnessSuffix}`;
+        const legacyKey = `${STORAGE_PREFIX}${stack}${modeSuffix}`;
         const legacyStorage = createLocalStorage<WorkspacePersisted>(legacyKey);
         const legacy = legacyStorage.read();
         if (legacy !== undefined) {
@@ -92,7 +100,7 @@ export const useRulerWorkspace = ({
     }
     persistedCacheRef.current = { key: storageKey, data };
     return data;
-  }, [storageKey, storage, stack, framework, harnessSuffix]);
+  }, [storageKey, storage, stack, framework, modeSuffix]);
 
   const [customFiles, setCustomFiles] = useState<readonly RulerFile[]>(() =>
     (persisted?.customFiles ?? []).map(

@@ -8,10 +8,15 @@ export {
 } from './model/defaults';
 export type { GetDefaultFilesOptions } from './model/defaults';
 export {
-  getHarnessRuleFiles,
+  getEngineeringRuleFiles,
   getBootstrapEntry,
   getStartHereEntry,
   getRootEntries,
   BOOTSTRAP_PATH_BY_TOOL,
-} from './model/defaults/harness';
-export type { BootstrapEntry, ScopedRule, RootEntriesParams } from './model/defaults/harness';
+} from './model/defaults/engineering';
+export type {
+  BootstrapEntry,
+  ScopedRule,
+  RootEntriesParams,
+  ConfigTool,
+} from './model/defaults/engineering';

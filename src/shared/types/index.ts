@@ -3,6 +3,14 @@ export type { Stack } from './stack';
 export { AI_TOOL_LIST, isAiTool, AI_TOOL_LABELS } from './ai-tool';
 export type { AiTool } from './ai-tool';
 export {
+  ENGINEERING_MODE_LIST,
+  ENGINEERING_MODE_LABELS,
+  ENGINEERING_MODE_TOOLTIPS,
+  isEngineeringMode,
+  normalizeEngineeringModes,
+} from './engineering-mode';
+export type { EngineeringMode } from './engineering-mode';
+export {
   FRONTEND_FRAMEWORK_LIST,
   BACKEND_FRAMEWORK_LIST,
   FRONTEND_FRAMEWORK_LABELS,

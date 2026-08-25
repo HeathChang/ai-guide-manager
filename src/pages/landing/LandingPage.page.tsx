@@ -13,6 +13,7 @@ import { Button, Card, Checkbox, ThemeToggle, Tooltip } from '@/shared/ui';
 import type {
   AiTool,
   BackendFramework,
+  EngineeringMode,
   FrontendFramework,
   Stack as StackType,
 } from '@/shared/types';
@@ -22,13 +23,14 @@ import {
   BACKEND_FRAMEWORK_LABELS,
   BACKEND_FRAMEWORK_LIST,
   DEFAULT_FRAMEWORK,
+  ENGINEERING_MODE_LABELS,
+  ENGINEERING_MODE_LIST,
+  ENGINEERING_MODE_TOOLTIPS,
   FRONTEND_FRAMEWORK_LABELS,
   FRONTEND_FRAMEWORK_LIST,
+  normalizeEngineeringModes,
 } from '@/shared/types';
 import { UsageGuideDialog } from '@/widgets/usage-guide';
-
-const HARNESS_TOOLTIP_TEXT =
-  '하네스 엔지니어링은 AI 에이전트가 도구 호출, 검증, 재시도 등을 안정적으로 수행하도록 실행 흐름을 설계하는 방법입니다. 포함하면 관련 규칙이 추가되어 AI 실행 시 토큰 소비량이 증가합니다.';
 
 const AI_TOOL_TOOLTIP_TEXT =
   '선택한 툴의 자동 로드 규약에 맞춰 부트스트랩 파일(CLAUDE.md · .cursor/rules/ruler.mdc 등)이 ZIP에 함께 생성됩니다. 받은 뒤 추가 설정 없이 AI가 ruler/ 규칙을 자동으로 읽습니다.';
@@ -39,7 +41,7 @@ const FRAMEWORK_TOOLTIP_TEXT =
 const LandingPage = () => {
   const navigate = useNavigate();
   const [isUsageDialogOpen, setUsageDialogOpen] = useState(false);
-  const [isHarnessIncluded, setHarnessIncluded] = useState(false);
+  const [engineeringModes, setEngineeringModes] = useState<readonly EngineeringMode[]>([]);
   const [aiTool, setAiTool] = useState<AiTool>('claude-code');
   const [frontendFramework, setFrontendFramework] = useState<FrontendFramework>(
     DEFAULT_FRAMEWORK.frontend,
@@ -48,12 +50,24 @@ const LandingPage = () => {
     DEFAULT_FRAMEWORK.backend,
   );
 
+  // 협업 모델(하네스·루프)은 서로 직교하므로 중복 선택을 허용한다.
+  // 저장은 항상 ENGINEERING_MODE_LIST 순서로 정규화해, 체크한 순서가 결과에 영향을 주지 않게 한다.
+  const toggleEngineeringMode = (mode: EngineeringMode) => {
+    setEngineeringModes((previous) =>
+      normalizeEngineeringModes(
+        previous.includes(mode)
+          ? previous.filter((selected) => selected !== mode)
+          : [...previous, mode],
+      ),
+    );
+  };
+
   const handleSelect = (stack: StackType) => {
     const framework = stack === 'frontend' ? frontendFramework : backendFramework;
     navigate(`/builder/${stack}`, {
       state: {
         framework,
-        includeHarness: isHarnessIncluded,
+        engineeringModes,
         aiTool,
       },
     });
@@ -145,20 +159,38 @@ const LandingPage = () => {
                     </span>
                   </Tooltip>
                 </div>
-                <div className="inline-flex items-center justify-center gap-2">
-                  <Checkbox
-                    label="하네스 엔지니어링 포함"
-                    checked={isHarnessIncluded}
-                    onChange={setHarnessIncluded}
-                  />
-                  <Tooltip content={HARNESS_TOOLTIP_TEXT}>
-                    <span
-                      aria-label="하네스 엔지니어링 설명"
-                      className="inline-flex items-center justify-center w-[18px] h-[18px] rounded-full border-[1.5px] border-text-main text-text-main text-[11px] font-bold leading-none select-none"
-                    >
-                      ?
-                    </span>
-                  </Tooltip>
+                <div className="flex flex-col items-center gap-2">
+                  <span id="engineering-modes-label" className="text-sm text-text-muted">
+                    협업 모델 (선택 사항 · 중복 선택 가능)
+                  </span>
+                  <div
+                    role="group"
+                    aria-labelledby="engineering-modes-label"
+                    className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2"
+                  >
+                    {ENGINEERING_MODE_LIST.map((mode) => (
+                      <div key={mode} className="inline-flex items-center gap-2">
+                        <Checkbox
+                          label={`${ENGINEERING_MODE_LABELS[mode]} 포함`}
+                          checked={engineeringModes.includes(mode)}
+                          onChange={() => toggleEngineeringMode(mode)}
+                        />
+                        <Tooltip content={ENGINEERING_MODE_TOOLTIPS[mode]}>
+                          <span
+                            aria-label={`${ENGINEERING_MODE_LABELS[mode]} 설명`}
+                            className="inline-flex items-center justify-center w-[18px] h-[18px] rounded-full border-[1.5px] border-text-main text-text-main text-[11px] font-bold leading-none select-none"
+                          >
+                            ?
+                          </span>
+                        </Tooltip>
+                      </div>
+                    ))}
+                  </div>
+                  {engineeringModes.length > 1 && (
+                    <Text size="xs" color="muted" align="center">
+                      골격을 여러 개 켤수록 자동 로드되는 규칙과 토큰 소비가 함께 늘어납니다.
+                    </Text>
+                  )}
                 </div>
               </div>
             </Box>
