@@ -48,10 +48,11 @@ import { frameworkDjango } from './backend/framework/django';
 import { frameworkRails } from './backend/framework/rails';
 import { frameworkGoGin } from './backend/framework/go-gin';
 
-import { getHarnessRuleFiles } from './harness';
+import { getEngineeringRuleFiles } from './engineering';
 
 import type {
   BackendFramework,
+  EngineeringMode,
   FrontendFramework,
   Stack,
   StateManager,
@@ -542,7 +543,8 @@ const buildStateFiles = (
 export interface GetDefaultFilesOptions {
   readonly framework?: FrontendFramework | BackendFramework;
   readonly stateManager?: StateManager;
-  readonly includeHarness?: boolean;
+  /** 켜진 협업 모델(하네스 · 루프). 비어 있으면 코딩 룰만 반환한다. */
+  readonly engineeringModes?: readonly EngineeringMode[];
 }
 
 export const getDefaultFiles = (
@@ -557,10 +559,7 @@ export const getDefaultFiles = (
       ...FRONTEND_FRAMEWORK_BUNDLES[framework],
       ...buildStateFiles(framework, options.stateManager),
     ];
-    if (options.includeHarness === true) {
-      return [...files, ...getHarnessRuleFiles(stack)];
-    }
-    return files;
+    return [...files, ...getEngineeringRuleFiles(stack, options.engineeringModes ?? [])];
   }
 
   const framework: BackendFramework =
@@ -569,10 +568,7 @@ export const getDefaultFiles = (
     ...COMMON_BACKEND_FILES,
     ...BACKEND_FRAMEWORK_BUNDLES[framework],
   ];
-  if (options.includeHarness === true) {
-    return [...files, ...getHarnessRuleFiles(stack)];
-  }
-  return files;
+  return [...files, ...getEngineeringRuleFiles(stack, options.engineeringModes ?? [])];
 };
 
 export const DEFAULT_FRONTEND_FILES: readonly RulerFile[] = getDefaultFiles('frontend');

@@ -4,12 +4,15 @@ import {
   DEFAULT_FRAMEWORK,
   isAiTool,
   isBackendFramework,
+  isEngineeringMode,
   isFrontendFramework,
   isStack,
+  normalizeEngineeringModes,
 } from '@/shared/types';
 import type {
   AiTool,
   BackendFramework,
+  EngineeringMode,
   FrontendFramework,
   Stack,
 } from '@/shared/types';
@@ -36,10 +39,17 @@ import type { LintResult } from '@/features/rule-lint';
 import { VerifyPromptsDialog } from '@/widgets/verify-prompts';
 import { RECOMMENDED_TOKEN_LIMIT, copyToClipboard, createLocalStorage, estimateTokens } from '@/shared/lib';
 
-const isHarnessState = (state: unknown): boolean => {
-  if (state === null || typeof state !== 'object') return false;
+const readEngineeringModesFromState = (state: unknown): readonly EngineeringMode[] => {
+  if (state === null || typeof state !== 'object') return [];
   const record = state as Record<string, unknown>;
-  return record.includeHarness === true;
+  const raw = record.engineeringModes;
+  if (Array.isArray(raw)) {
+    return normalizeEngineeringModes(
+      raw.filter((value): value is string => typeof value === 'string').filter(isEngineeringMode),
+    );
+  }
+  // 체크박스가 하나뿐이던 구버전 랜딩에서 넘어온 state 호환.
+  return record.includeHarness === true ? ['harness'] : [];
 };
 
 const readAiToolFromState = (state: unknown): AiTool | undefined => {
@@ -77,7 +87,10 @@ const BuilderPage = () => {
     [location.search],
   );
 
-  const includeHarness = isHarnessState(location.state);
+  const engineeringModes = useMemo(
+    () => readEngineeringModesFromState(location.state),
+    [location.state],
+  );
   const aiTool = readAiToolFromState(location.state);
   const queryFramework = useMemo(() => {
     const candidate = parseFrameworkFromQuery(location.search);
@@ -88,7 +101,13 @@ const BuilderPage = () => {
   }, [location.search, stack]);
   const framework = queryFramework ?? readFrameworkFromState(location.state, stack);
 
-  const workspace = useRulerWorkspace({ stack, framework, initialSelection, includeHarness, aiTool });
+  const workspace = useRulerWorkspace({
+    stack,
+    framework,
+    initialSelection,
+    engineeringModes,
+    aiTool,
+  });
   const presets = useMemo(() => getPresetList(), []);
 
   const onboardStorage = useMemo(() => createLocalStorage<boolean>('ai-ruler:v1:onboarded'), []);
@@ -193,17 +212,17 @@ const BuilderPage = () => {
         fileName: file.fileName,
         title: file.title,
         globs: file.globs,
-        isHarness: file.isHarness,
+        isEngineeringDoc: file.isEngineeringDoc,
       }));
     // AGENTS.md(항상) + 선택 툴 설정 + 경로 스코핑 파일(Cursor .mdc / Copilot .instructions.md)
     const rootEntries = getRootEntries({
       aiTool: resolvedAiTool,
-      includeHarness,
+      modes: engineeringModes,
       rules: selectedRules,
     });
     const startHere = getStartHereEntry(
       resolvedAiTool,
-      includeHarness,
+      engineeringModes,
       framework,
       ruleEntries.map((entry) => entry.fileName),
     );
@@ -228,7 +247,7 @@ const BuilderPage = () => {
     } finally {
       setIsDownloading(false);
     }
-  }, [stack, framework, includeHarness, aiTool, workspace, showNotice]);
+  }, [stack, framework, engineeringModes, aiTool, workspace, showNotice]);
 
   const editedFileNames = useMemo(() => {
     const set = new Set<string>();
