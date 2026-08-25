@@ -23,7 +23,7 @@ const LOOP_ENTRIES: readonly EngineeringEntry[] = [
   {
     fileName: 'loop/critic.md',
     title: '자기비평 루브릭',
-    description: '루브릭 6항목, PASS · REVISE · ESCALATE 판정, REVISE 지시 포맷',
+    description: '루브릭 6항목, MET · REVISE · ESCALATE 판정, 하네스 병용 시 Guardian 우선순위',
     content: loopCritic,
   },
 ];
@@ -45,13 +45,17 @@ export const LOOP_BOOTSTRAP_SECTION = `## 루프 엔지니어링 (반복과 종�
 2. 한 반복은 Act → Observe → Critique → Decide 4단계를 모두 거친다.
 3. Observe 는 실제 실행한 커맨드 출력만 근거로 쓴다 — 실행하지 않은 채 완료를 선언하지 않는다.
 4. Critique 는 \`ruler/loop/critic.md\` 의 루브릭 6항목으로 자기 결과를 검토한다.
-5. 판정은 PASS · REVISE · ESCALATE 중 하나이며 근거 1줄을 붙인다.
+5. 판정은 MET · REVISE · ESCALATE 중 하나이며 근거 1줄을 붙인다.
 6. 반복마다 \`[LOOP n/N]\` 1줄로 보고한다.
 
-진동(같은 줄 2회 원복) · 상한 도달 · 결정 필요 시에는 반복을 멈추고 \`[ESCALATE]\` 블록으로 유저에게 넘긴다.`;
+진동(같은 줄 2회 원복) · 상한 도달 · 결정 필요 시에는 반복을 멈추고 \`[ESCALATE]\` 블록으로 유저에게 넘긴다.
+
+하네스를 함께 켰다면 루프 판정은 한 에이전트 내부의 자기검증이다. \`MET\` 으로 루프를 끝낸 뒤에도
+Guardian 판정 1턴을 생략하지 않는다 — Guardian 의 \`PASS\` 와 루프의 \`MET\` 은 다른 층위다.`;
 
 /** AGENTS.md 의 "협업 모델" 절에 들어가는 루프 소개. */
 export const LOOP_AGENTS_SECTION = `### 루프 — 반복과 종료조건
 
 \`ruler/loop/contract.md\` 의 계약을 먼저 선언한 뒤 Act → Observe → Critique → Decide 를 반복한다.
-종료는 PASS · NO-PROGRESS · LIMIT · BLOCKED 넷 중 하나이며, 판정 루브릭은 \`ruler/loop/critic.md\` 에 있다.`;
+종료는 MET · NO-PROGRESS · LIMIT · BLOCKED 넷 중 하나이며, 판정 루브릭은 \`ruler/loop/critic.md\` 에 있다.
+하네스를 함께 켰다면 루프의 \`MET\` 은 Guardian 판정을 대체하지 않는다.`;
