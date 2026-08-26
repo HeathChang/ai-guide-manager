@@ -1,4 +1,4 @@
-export const ENGINEERING_MODE_LIST = ['harness', 'loop'] as const;
+export const ENGINEERING_MODE_LIST = ['harness', 'loop', 'graph'] as const;
 export type EngineeringMode = (typeof ENGINEERING_MODE_LIST)[number];
 
 export const isEngineeringMode = (value: string): value is EngineeringMode =>
@@ -7,6 +7,7 @@ export const isEngineeringMode = (value: string): value is EngineeringMode =>
 export const ENGINEERING_MODE_LABELS: Readonly<Record<EngineeringMode, string>> = {
   harness: '하네스 엔지니어링',
   loop: '루프 엔지니어링',
+  graph: '그래프 엔지니어링',
 };
 
 /** 랜딩 체크박스 옆 물음표에 노출되는 설명. 세 축이 서로 직교한다는 점을 명시한다. */
@@ -15,6 +16,8 @@ export const ENGINEERING_MODE_TOOLTIPS: Readonly<Record<EngineeringMode, string>
     '하네스 엔지니어링은 한 AI에게 8개 역할(Planner·Implementer·Reviewer 등)을 번갈아 맡겨 서로 검토하게 하는 협업 모델입니다. "누가 무엇을 판정하는가"를 정합니다. 포함하면 관련 규칙이 추가되어 AI 실행 시 토큰 소비량이 증가합니다.',
   loop:
     '루프 엔지니어링은 실행 → 관찰 → 자기비평 → 판정을 종료조건까지 반복하도록 만드는 규칙입니다. "언제 멈추고 언제 사람에게 넘기는가"를 정합니다. 미검증 완료 선언과 끝없는 재시도를 막습니다.',
+  graph:
+    '그래프 엔지니어링은 작업을 노드와 엣지로 쪼개 경로·병렬·체크포인트를 정하는 규칙입니다. "어느 길로 가고 어디까지 왔는가"를 정합니다. 세션이 끊겨도 이어서 작업할 수 있게 합니다.',
 };
 
 /**

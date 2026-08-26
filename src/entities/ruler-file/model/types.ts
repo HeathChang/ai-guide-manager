@@ -19,6 +19,7 @@ export type FileCategory =
   | '협업 모델'
   | '하네스'
   | '루프'
+  | '그래프'
   | '프레임워크'
   | '상태 관리'
   | '사용자 정의';
@@ -35,7 +36,7 @@ export interface RulerFile {
   readonly stateManagerKind?: StateManager;
   readonly isCustom?: boolean;
   /**
-   * 협업 모델 본문(vision.md · harness/* · loop/*)이면 true.
+   * 협업 모델 본문(vision.md · harness/* · loop/* · graph/*)이면 true.
    * 일반 코딩 룰과 달리 AGENTS.md 의 규칙 표가 아니라 "협업 모델" 절에서 소개된다.
    */
   readonly isEngineeringDoc?: boolean;

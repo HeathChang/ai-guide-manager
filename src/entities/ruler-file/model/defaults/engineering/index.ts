@@ -20,6 +20,11 @@ import {
   LOOP_BOOTSTRAP_SECTION,
   getLoopRuleFiles,
 } from '../loop';
+import {
+  GRAPH_AGENTS_SECTION,
+  GRAPH_BOOTSTRAP_SECTION,
+  getGraphRuleFiles,
+} from '../graph';
 import { LITE_BOOTSTRAP_BY_TOOL } from './bootstrap-lite';
 
 export type { ConfigTool };
@@ -46,7 +51,7 @@ export interface ScopedRule {
   readonly fileName: string;
   readonly title: string;
   readonly globs?: readonly string[];
-  /** 협업 모델 본문(vision · harness/* · loop/*)이면 true. */
+  /** 협업 모델 본문(vision · harness/* · loop/* · graph/*)이면 true. */
   readonly isEngineeringDoc?: boolean;
 }
 
@@ -54,6 +59,7 @@ const RULE_FILES_BY_MODE: Readonly<Record<EngineeringMode, (stack: Stack) => rea
   {
     harness: getHarnessRuleFiles,
     loop: getLoopRuleFiles,
+    graph: getGraphRuleFiles,
   };
 
 /**
@@ -79,11 +85,13 @@ export const getEngineeringRuleFiles = (
  */
 const BOOTSTRAP_SECTION_BY_MODE: Readonly<Partial<Record<EngineeringMode, string>>> = {
   loop: LOOP_BOOTSTRAP_SECTION,
+  graph: GRAPH_BOOTSTRAP_SECTION,
 };
 
 const AGENTS_SECTION_BY_MODE: Readonly<Record<EngineeringMode, string>> = {
   harness: HARNESS_AGENTS_SECTION,
   loop: LOOP_AGENTS_SECTION,
+  graph: GRAPH_AGENTS_SECTION,
 };
 
 /**
@@ -91,8 +99,8 @@ const AGENTS_SECTION_BY_MODE: Readonly<Record<EngineeringMode, string>> = {
  * 이 파일은 zip 루트(툴 규약 경로)에 배치되며, `ruler/` 의 룰을 자동 로드하도록 연결한다.
  *
  * - 모드 없음: 경량 본문("`ruler/` 의 규칙을 읽고 준수하라")
- * - 하네스 포함: 툴별 하네스 본문 + 나머지 모드 섹션
- * - 하네스 없이 루프만: 경량 본문 + 루프 섹션
+ * - 하네스 포함: 툴별 하네스 본문 + 루프·그래프 섹션
+ * - 하네스 없이 루프/그래프만: 경량 본문 + 해당 섹션
  *
  * (agents-md 는 AGENTS.md 자체가 진입점이라 여기서 다루지 않는다 — getRootEntries 참조.)
  */
@@ -141,7 +149,7 @@ const buildAgentsMd = (
   rules: readonly ScopedRule[],
 ): BootstrapEntry => {
   const ruleRows = rules
-    // 협업 모델 본문(vision/harness/loop)만 표에서 제외 — 아래 "협업 모델" 절이 담당한다.
+    // 협업 모델 본문(vision/harness/loop/graph)만 표에서 제외 — 아래 "협업 모델" 절이 담당한다.
     // 동명 커스텀 파일은 이 플래그가 없으므로 그대로 표기된다.
     .filter((rule) => rule.isEngineeringDoc !== true)
     .map((rule) => `| \`ruler/${rule.fileName}\` | ${rule.title} | ${scopeNote(rule.globs)} |`)

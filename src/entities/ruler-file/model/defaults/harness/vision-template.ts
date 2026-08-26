@@ -7,7 +7,7 @@ category: 협업 모델
 
 > 이 파일은 **유저가 작성하고 갱신한다**.
 > 켜져 있는 협업 모델 전부 — 하네스의 8역할(Planner, Researcher, Implementer, Reviewer,
-> Security Auditor, QA, Guardian, Reporter)과 루프의 GOAL·DONE-WHEN — 이
+> Security Auditor, QA, Guardian, Reporter), 루프의 GOAL·DONE-WHEN, 그래프의 노드 분해 — 가
 > 이 문서를 **유일한 진실의 원천(Single Source of Truth)** 으로 삼는다.
 >
 > 빈칸을 채우고 필요하면 섹션을 확장하되, 구조는 유지한다.

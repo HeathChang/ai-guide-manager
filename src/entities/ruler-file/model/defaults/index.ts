@@ -543,7 +543,7 @@ const buildStateFiles = (
 export interface GetDefaultFilesOptions {
   readonly framework?: FrontendFramework | BackendFramework;
   readonly stateManager?: StateManager;
-  /** 켜진 협업 모델(하네스 · 루프). 비어 있으면 코딩 룰만 반환한다. */
+  /** 켜진 협업 모델(하네스 · 루프 · 그래프). 비어 있으면 코딩 룰만 반환한다. */
   readonly engineeringModes?: readonly EngineeringMode[];
 }
 

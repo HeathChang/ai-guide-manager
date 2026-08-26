@@ -2,7 +2,7 @@ import type { FileCategory, RulerFile } from '../../types';
 import type { Stack } from '@/shared/types';
 
 /**
- * 협업 모델(하네스·루프) 본문 파일 1개의 정의.
+ * 협업 모델(하네스·루프·그래프) 본문 파일 1개의 정의.
  * 일반 코딩 룰과 달리 stack 에 무관한 내용이라, RulerFile 변환 시점에 stack 을 주입한다.
  */
 export interface EngineeringEntry {

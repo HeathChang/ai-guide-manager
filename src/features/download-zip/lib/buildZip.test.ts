@@ -253,29 +253,27 @@ describe('공유 URL 다운로드 — 규칙은 ruler/ 에, 루트엔 AGENTS.md+
   });
 });
 
-describe('협업 모델 조합 — 하네스 · 루프', () => {
+describe('협업 모델 조합 — 하네스 · 루프 · 그래프', () => {
   it('모드가 없으면 협업 모델 본문을 내보내지 않는다', () => {
     expect(getEngineeringRuleFiles('frontend', [])).toEqual([]);
   });
 
   it('켠 모드의 본문 + 공통 vision.md 를 반환한다 (vision 은 한 번만)', () => {
-    const names = getEngineeringRuleFiles('frontend', ['harness', 'loop']).map((f) => f.fileName);
+    const names = getEngineeringRuleFiles('frontend', ['loop', 'graph']).map((f) => f.fileName);
     expect(names.filter((n) => n === 'vision.md')).toHaveLength(1);
     expect(names).toContain('loop/README.md');
     expect(names).toContain('loop/contract.md');
     expect(names).toContain('loop/critic.md');
-    expect(names).toContain('harness/README.md');
-  });
-
-  it('루프만 켜면 하네스 본문은 포함되지 않는다', () => {
-    const names = getEngineeringRuleFiles('frontend', ['loop']).map((f) => f.fileName);
-    expect(names).toContain('loop/critic.md');
+    expect(names).toContain('graph/README.md');
+    expect(names).toContain('graph/nodes.md');
+    expect(names).toContain('graph/routing.md');
+    // 하네스를 켜지 않았으므로 harness/* 는 포함되지 않는다.
     expect(names.some((n) => n.startsWith('harness/'))).toBe(false);
   });
 
   it('체크 순서와 무관하게 항상 같은 순서로 정규화된다', () => {
-    const forward = getEngineeringRuleFiles('frontend', ['harness', 'loop']);
-    const reverse = getEngineeringRuleFiles('frontend', ['loop', 'harness']);
+    const forward = getEngineeringRuleFiles('frontend', ['harness', 'loop', 'graph']);
+    const reverse = getEngineeringRuleFiles('frontend', ['graph', 'loop', 'harness']);
     expect(reverse.map((f) => f.fileName)).toEqual(forward.map((f) => f.fileName));
     expect(forward[0]?.fileName).toBe('vision.md');
   });
@@ -287,6 +285,7 @@ describe('협업 모델 조합 — 하네스 · 루프', () => {
     expect(categoryOf('vision.md')).toBe('협업 모델');
     expect(categoryOf('harness/README.md')).toBe('하네스');
     expect(categoryOf('loop/README.md')).toBe('루프');
+    expect(categoryOf('graph/README.md')).toBe('그래프');
     // stack 은 호출 시점에 주입된다.
     expect(files.every((f) => f.stack === 'backend')).toBe(true);
   });
@@ -297,13 +296,14 @@ describe('협업 모델 조합 — 하네스 · 루프', () => {
     expect(loopOnly).not.toContain('Planner'); // 하네스 본문은 들어가지 않는다
   });
 
-  it('부트스트랩: 하네스 + 루프면 하네스 본문 뒤에 루프 섹션이 붙는다', () => {
+  it('부트스트랩: 세 모드를 켜면 하네스 본문 + 루프·그래프 섹션이 모두 들어간다', () => {
     for (const tool of CONFIG_TOOLS) {
-      const both = getBootstrapEntry(tool, ['harness', 'loop']).content;
-      expect(both).toContain('Planner');
-      expect(both).toContain('ruler/loop/contract.md');
-      // 하네스 본문이 앞, 모드 섹션이 뒤 — ENGINEERING_MODE_LIST 순서를 따른다.
-      expect(both.indexOf('Planner')).toBeLessThan(both.indexOf('루프 엔지니어링'));
+      const all = getBootstrapEntry(tool, ENGINEERING_MODE_LIST).content;
+      expect(all).toContain('Planner');
+      expect(all).toContain('ruler/loop/contract.md');
+      expect(all).toContain('ruler/graph/routing.md');
+      // 섹션 순서는 ENGINEERING_MODE_LIST 순서(하네스 본문 → 루프 → 그래프)를 따른다.
+      expect(all.indexOf('루프 엔지니어링')).toBeLessThan(all.indexOf('그래프 엔지니어링'));
     }
   });
 
@@ -311,22 +311,23 @@ describe('협업 모델 조합 — 하네스 · 루프', () => {
     const rules: ScopedRule[] = [
       ...SAMPLE_RULES,
       { fileName: 'vision.md', title: 'Vision', isEngineeringDoc: true },
-      { fileName: 'loop/contract.md', title: '루프 계약', isEngineeringDoc: true },
+      { fileName: 'graph/nodes.md', title: '노드 정의', isEngineeringDoc: true },
     ];
-    const agents = getRootEntries({ aiTool: 'agents-md', modes: ['loop'], rules })[0].content;
-    expect(agents).toContain('루프 엔지니어링');
+    const agents = getRootEntries({ aiTool: 'agents-md', modes: ['graph'], rules })[0].content;
+    expect(agents).toContain('그래프 엔지니어링');
     expect(agents).not.toContain('하네스 엔지니어링');
+    expect(agents).not.toContain('루프 엔지니어링');
     // 협업 모델 본문은 규칙 표 행으로 중복 노출되지 않는다.
     expect(agents).not.toContain('| `ruler/vision.md` |');
-    expect(agents).not.toContain('| `ruler/loop/contract.md` |');
+    expect(agents).not.toContain('| `ruler/graph/nodes.md` |');
     // 일반 코딩 룰은 그대로 표에 남는다.
     expect(agents).toContain('| `ruler/base.md` |');
   });
 
   it('START-HERE: 켠 모드 이름을 모두 안내한다', () => {
-    const content = getStartHereEntry('claude-code', ['harness', 'loop'], 'react').content;
-    expect(content).toContain('하네스 엔지니어링');
+    const content = getStartHereEntry('claude-code', ['loop', 'graph'], 'react').content;
     expect(content).toContain('루프 엔지니어링');
+    expect(content).toContain('그래프 엔지니어링');
     expect(content).toContain('ruler/vision.md');
     expect(getStartHereEntry('claude-code', [], 'react').content).not.toContain('이 포함되어 있다');
   });

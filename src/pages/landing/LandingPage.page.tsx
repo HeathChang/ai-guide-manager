@@ -50,7 +50,7 @@ const LandingPage = () => {
     DEFAULT_FRAMEWORK.backend,
   );
 
-  // 협업 모델(하네스·루프)은 서로 직교하므로 중복 선택을 허용한다.
+  // 세 골격(하네스·루프·그래프)은 서로 직교하므로 중복 선택을 허용한다.
   // 저장은 항상 ENGINEERING_MODE_LIST 순서로 정규화해, 체크한 순서가 결과에 영향을 주지 않게 한다.
   const toggleEngineeringMode = (mode: EngineeringMode) => {
     setEngineeringModes((previous) =>

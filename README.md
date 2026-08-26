@@ -14,9 +14,10 @@
 - **3단계 프리셋** — Minimal / Moderate / Strict.
 - **`AGENTS.md` 범용 표준 + 툴 부트스트랩 자동 동봉** — 2026 사실상 표준인 `AGENTS.md`(Codex·Cursor·Copilot·Gemini CLI·Aider·Windsurf·Zed 등이 네이티브로 읽음)를 **항상** 동봉하고, 선택한 AI 툴(Claude Code / Cursor / Copilot / AGENTS.md / 수동)에 맞춘 부트스트랩 파일(`CLAUDE.md` · `.cursor/rules/ruler.mdc` 등)을 함께 생성한다. 받아서 루트에 풀면 추가 설정 없이 바로 동작.
 - **경로 스코핑 출력** — 룰별 `globs`(예: a11y → `**/*.tsx`, testing → `**/*.test.*`)에 따라 Cursor는 `.cursor/rules/*.mdc`(globs), Copilot은 `.github/instructions/*.instructions.md`(applyTo)로 **해당 파일 유형에서만** 켜지도록 분할 출력. base/security 등은 항상 적용.
-- **협업 모델 2종 (중복 선택 가능)** — 서로 직교하는 실행 골격을 각각 켜고 끌 수 있다. 하나라도 켜면 공통 문서 `ruler/vision.md` 가 함께 동봉되고, 부트스트랩(`CLAUDE.md` 등)·`AGENTS.md`·`START-HERE.md` 에 켠 모드의 규약이 더해진다.
+- **협업 모델 3종 (중복 선택 가능)** — 서로 직교하는 실행 골격을 각각 켜고 끌 수 있다. 하나라도 켜면 공통 문서 `ruler/vision.md` 가 함께 동봉되고, 부트스트랩(`CLAUDE.md` 등)·`AGENTS.md`·`START-HERE.md` 에 켠 모드의 규약이 더해진다.
   - **하네스 엔지니어링** (`ruler/harness/`) — *누가*: Planner→Researcher→Implementer→Reviewer→Security Auditor→QA→Guardian→Reporter 8역할 협업 모델.
   - **루프 엔지니어링** (`ruler/loop/`) — *언제 멈추나*: 루프 계약(GOAL·DONE-WHEN·VERIFY·MAX·ON-FAIL) → Act→Observe→Critique→Decide 반복 → PASS·REVISE·ESCALATE 판정. 미검증 완료 선언과 진동(같은 줄 반복 원복)을 차단.
+  - **그래프 엔지니어링** (`ruler/graph/`) — *어느 길로*: 6필드 노드 + 엣지 3종으로 경로를 정하고, 노드 종료마다 `[CHECKPOINT]` 를 남겨 세션이 끊겨도 재개 가능하게 한다.
 - **Markdown 미리보기 + 인라인 편집** — `react-markdown` + `@monaco-editor/react`.
 - **사용자 정의 파일 추가** — 팀/프로젝트에 특화된 규칙을 직접 작성.
 - **아키텍처 단일 선택 가드** — `fsd.md`와 `atomic.md`는 동시 선택 불가.
@@ -185,6 +186,7 @@ src/
 │           │   └── framework/              # node-express / nestjs / fastify / spring-boot / ...
 │           ├── harness/                    # 하네스 — 8역할 본문 + 툴별 부트스트랩
 │           ├── loop/                       # 루프 — 개요 / 계약 / 자기비평 루브릭
+│           ├── graph/                      # 그래프 — 개요 / 노드·엣지 / 라우팅·체크포인트
 │           └── engineering/                # 모드 공통 조립 (AGENTS.md · 부트스트랩 · START-HERE · 경량 본문)
 └── shared/         # 재사용 UI/유틸/타입
     ├── ui/         # Button, Card, Checkbox, Tabs, ThemeToggle, Tooltip

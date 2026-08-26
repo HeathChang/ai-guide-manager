@@ -25,7 +25,7 @@ export type ConfigTool = Exclude<AiTool, 'agents-md'>;
 
 /**
  * 하네스를 켰을 때 툴 부트스트랩의 **본문**이 되는 텍스트.
- * 다른 모드(루프 등)는 여기에 섹션으로 덧붙는다(engineering/index.ts 참조) —
+ * 루프·그래프는 여기에 섹션으로 덧붙는다(engineering/index.ts 참조) —
  * 하네스가 8역할 협업이라는 가장 큰 골격을 세우므로 본문 자리를 차지한다.
  */
 export const HARNESS_BOOTSTRAP_BY_TOOL: Readonly<Record<ConfigTool, string>> = {
@@ -123,8 +123,9 @@ export const getHarnessRuleFiles = (stack: Stack): readonly RulerFile[] =>
   HARNESS_ENTRIES.map((entry) => toEngineeringRuleFile(entry, '하네스', stack));
 
 /**
- * vision.md — 협업 모델 공통 문서. 하네스·루프 중 하나라도 켜지면 동봉된다.
- * 하네스는 Guardian 판정 근거로, 루프는 GOAL·DONE-WHEN 의 출처로 같은 문서를 참조한다.
+ * vision.md — 협업 모델 공통 문서. 하네스·루프·그래프 중 하나라도 켜지면 동봉된다.
+ * 하네스는 Guardian 판정 근거로, 루프는 GOAL·DONE-WHEN 의 출처로,
+ * 그래프는 sub-goal 분해의 출처로 같은 문서를 참조한다.
  */
 export const getVisionRuleFile = (stack: Stack): RulerFile => ({
   fileName: 'vision.md',
