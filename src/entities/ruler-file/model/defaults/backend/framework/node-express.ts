@@ -30,6 +30,7 @@ src/
 ## TypeScript
 
 - \`"strict": true\`, \`"noImplicitAny": true\` 필수.
+  - 근거: 이 옵션이 꺼져 있으면 타입 없는 값이 조용히 흘러다니고, 컴파일 통과가 안전을 뜻하지 않게 된다. 한 곳만 꺼도 그 지점부터 타입 안전성이 무너진다.
 - \`@types/express\` 설치. Request 확장은 module augmentation:
   \`\`\`ts
   declare global {
@@ -54,6 +55,7 @@ src/
 ## 입력 검증 — 모든 외부 입력
 
 - params / query / body 모두 zod로 검증. 검증 안 된 입력 사용 금지.
+  - 근거: Express 는 이 값들을 타입 없이 넘긴다. 검증을 건너뛰면 타입은 있다고 믿는데 런타임 값은 무엇이든 될 수 있는 상태가 된다.
 - 검증 미들웨어 패턴:
   \`\`\`ts
   const validate = <T>(schema: ZodSchema<T>) =>
@@ -97,12 +99,14 @@ src/
 ## 비동기 처리
 
 - async/await 일관. promise chain 신규 작성 금지.
+  - 근거: 두 스타일이 섞이면 에러 전파 경로가 두 갈래가 된다. 한쪽에서 누락된 \`.catch\` 가 unhandled rejection 으로 프로세스를 죽인다.
 - 모든 async 라우트는 \`asyncHandler\` 또는 명시적 try/catch — uncaught는 hang 또는 500.
 - \`process.on('unhandledRejection')\` 등록해서 로깅 + 알람 (프로세스 죽이지 마라 in prod).
 
 ## 로깅
 
 - \`pino\` + \`pino-http\` 표준. console.log 금지.
+  - 근거: \`console.log\` 는 레벨도 구조도 요청 상관관계도 없다. 수집기에서 검색·집계 대상이 되지 못해 운영에서는 없는 것과 같다.
 - 요청 ID(traceId) 미들웨어 — 모든 로그에 포함.
 - 민감 정보 마스킹 (\`pino\` redact 옵션).
 
@@ -112,6 +116,7 @@ src/
 - 인증 토큰은 httpOnly cookie 또는 Authorization header.
 - Rate limit: \`express-rate-limit\` (또는 reverse-proxy 단에서).
 - CORS origin은 환경변수로 명시. \`*\` 와 \`credentials: true\` 동시 사용 금지(스펙 위반).
+  - 근거: 브라우저가 이 조합을 거부해 요청이 실패한다. 통과시키려고 origin 을 요청 헤더로 그대로 되돌려주면 사실상 모든 사이트에 자격 증명을 허용하는 것이 된다.
 - SQL 직접 작성하지 마 — ORM/쿼리빌더(Prisma/Drizzle/Knex).
 
 ## 테스트
@@ -185,4 +190,35 @@ router.get('/users/:id', asyncHandler(async (req, res) => {
 | \`console.log\` | pino |
 | 검증 없이 req.body 사용 | zod safeParse |
 | async에 try/catch / wrapper 누락 | \`asyncHandler\` |
+
+## 적용 범위와 경계
+
+이 문서는 **Express 의 미들웨어 순서·검증·에러 처리 구성**만 다룬다. 배포·프로세스 관리는 다루지 않는다.
+
+여기서 다루지 않는 것 → 레이어 구조와 DTO 는 \`backend.md\`, URL·상태 코드는 \`api-design.md\`, 인증 정책은 \`auth.md\`, 입력 검증의 보안 기준은 \`security.md\`, 에러 분류는 \`error-handling.md\`, 로그 포맷은 \`logging.md\`.
+
+**Express 는 안전한 기본값을 주지 않는다.** 검증·인증·에러 처리·보안 헤더는 전부 명시적으로 붙여야 하며, 이 문서에 없는 것이 자동으로 처리된다고 가정하지 마라.
+
+## 충돌 시 우선순위
+
+전체 순서는 \`base.md\` 의 「충돌 시 우선순위」를 따른다. 이 문서에서 자주 부딪히는 경우만 적는다.
+
+- **미들웨어 등록 순서** — 순서가 이긴다. 에러 핸들러는 항상 마지막, 보안·파서는 라우트보다 앞. 편의를 위해 순서를 바꾸지 않는다.
+- **zod 검증 vs 타입 단언** — 검증이 이긴다. \`req.body as CreateUserDto\` 는 아무것도 보장하지 않는다.
+- **중앙 에러 핸들러 vs 라우트별 try/catch** — 중앙 핸들러가 이긴다. 라우트마다 흩어진 처리에서는 응답 포맷이 갈라진다.
+- **이 문서 vs \`backend.md\`** — 프레임워크 관례는 이 문서가 이기지만, 레이어 경계와 DTO 분리는 \`backend.md\` 가 이긴다.
+
+## 자가 점검
+
+라우트를 추가·수정한 뒤 확인한다. **하나라도 NO면 제출하지 않는다.**
+
+- [ ] \`params\` / \`query\` / \`body\` 를 zod 로 검증한 뒤 사용한다
+- [ ] 미들웨어 등록 순서가 보안 → 파서 → 라우트 → 404 → 에러 핸들러다
+- [ ] 에러 핸들러가 마지막에 등록돼 있고 4개 인자 시그니처다
+- [ ] 비동기 라우트의 에러가 \`next(err)\` 로 전달된다 — 삼켜지지 않는다
+- [ ] \`console.log\` 대신 \`pino\` 를 쓴다
+- [ ] CORS origin 이 환경 변수로 명시돼 있고 \`*\` + \`credentials\` 조합이 없다
+- [ ] \`helmet\` 등 보안 헤더 미들웨어가 등록돼 있다
+- [ ] 에러 응답에 스택 트레이스가 없다
+- [ ] Graceful shutdown 처리가 있다
 `;

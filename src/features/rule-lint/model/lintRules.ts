@@ -49,6 +49,21 @@ const STRONG_DIRECTIVES = ['금지', '필수', '반드시', '절대'] as const;
 
 const SHORT_CONTENT_THRESHOLD = 200;
 
+/**
+ * 코드블록(``` 펜스) 안에 있는 줄을 표시한다.
+ * 펜스 안의 내용은 규칙 문장이 아니라 예시·리포트 포맷이므로 린트 대상이 아니다.
+ */
+const markFencedLines = (lines: readonly string[]): readonly boolean[] => {
+  const fenced: boolean[] = [];
+  let open = false;
+  for (const line of lines) {
+    const isFence = line.trimStart().startsWith('```');
+    fenced.push(open || isFence);
+    if (isFence) open = !open;
+  }
+  return fenced;
+};
+
 export const lintRules = (input: LintInput): LintResult => {
   const findings: LintFinding[] = [];
   let totalBytes = 0;
@@ -88,7 +103,9 @@ export const lintRules = (input: LintInput): LintResult => {
 const detectAmbiguousTerms = (fileName: string, content: string): LintFinding[] => {
   const findings: LintFinding[] = [];
   const lines = content.split('\n');
+  const fenced = markFencedLines(lines);
   lines.forEach((line, idx) => {
+    if (fenced[idx]) return;
     for (const term of AMBIGUOUS_TERMS) {
       if (!line.includes(term)) continue;
       // 같은 단어가 frontmatter 또는 코드 블록 안이면 건너뛰기 (가장 흔한 false positive)
@@ -110,8 +127,13 @@ const detectAmbiguousTerms = (fileName: string, content: string): LintFinding[] 
 const detectMissingRationale = (fileName: string, content: string): LintFinding[] => {
   const findings: LintFinding[] = [];
   const lines = content.split('\n');
+  const fenced = markFencedLines(lines);
   lines.forEach((line, idx) => {
+    if (fenced[idx]) return;
     if (!line.startsWith('- ') && !line.startsWith('* ')) return;
+    if (/^[-*]\s*\[[ xX]\]/.test(line)) return; // 체크리스트 항목은 명령문이 아니다
+    if (/\((필수|선택)[,)]/.test(line)) return; // "(필수, ...)" 는 입력 목록의 라벨
+    if (/^[-*]\s*["'“][^"'”]*["'”]\s*$/.test(line)) return; // 통째로 인용된 줄은 남의 문장이다
     const hitDirective = STRONG_DIRECTIVES.find((kw) => line.includes(kw));
     if (hitDirective === undefined) return;
     // 같은 줄에 "근거:" 또는 이후 4줄 안에 "근거:" 있으면 OK
@@ -132,14 +154,15 @@ const detectMissingRationale = (fileName: string, content: string): LintFinding[
 const detectEmptySections = (fileName: string, content: string): LintFinding[] => {
   const findings: LintFinding[] = [];
   const lines = content.split('\n');
+  const fenced = markFencedLines(lines);
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i];
-    if (line === undefined || !line.startsWith('## ')) continue;
+    if (line === undefined || fenced[i] || !line.startsWith('## ')) continue;
     let hasContent = false;
     for (let j = i + 1; j < lines.length; j += 1) {
       const next = lines[j];
       if (next === undefined) break;
-      if (next.startsWith('## ')) break;
+      if (!fenced[j] && next.startsWith('## ')) break;
       if (next.trim().length > 0 && !next.startsWith('---')) {
         hasContent = true;
         break;

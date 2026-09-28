@@ -36,6 +36,7 @@ api/                            OpenAPI spec
 
 - 소문자 단일 단어. \`userservice\` 같은 합성보다 \`service\` 폴더 안의 \`user.go\`.
 - 패키지 이름 = 의미. \`util\` / \`common\` / \`helpers\` 같은 무의미한 이름 금지.
+  - 근거: 이름이 아무것도 배제하지 않는 패키지는 무엇이든 받아들인다. 결국 서로 무관한 코드가 모여 순환 의존의 진원지가 된다.
 
 ## 의존성 주입 — 명시적
 
@@ -67,6 +68,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 
 - 핸들러는 메서드(\`(h *UserHandler) Create\`) — 의존성을 receiver로.
 - 함수 핸들러 + 패키지 전역 변수 패턴 금지 (테스트 어려움).
+  - 근거: 전역 변수에 의존하면 테스트마다 그 전역을 바꿔야 하고, 병렬 실행 시 서로 간섭한다. 의존성을 구조체 필드로 받으면 테스트가 값만 넘기면 된다.
 
 ## 입력 검증
 
@@ -114,6 +116,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 - 모든 핸들러 → service → repository에서 \`context.Context\` 첫 인자로 전달.
 - HTTP 요청 종료 시 자동 cancel — DB 쿼리·외부 호출에서 활용.
 - 절대 \`context.Background()\` 를 request 처리에서 사용 금지.
+  - 근거: 요청 컨텍스트를 끊으면 클라이언트가 연결을 끊어도 하위 DB 쿼리와 외부 호출이 계속 돈다. 타임아웃과 취소가 전파되지 않아 부하가 걸릴 때 고루틴이 쌓인다.
 
 ## 미들웨어
 
@@ -129,6 +132,7 @@ func (h *UserHandler) Create(c *gin.Context) {
   slog.InfoContext(ctx, "user created", "user_id", user.ID)
   \`\`\`
 - \`fmt.Println\` 금지.
+  - 근거: 레벨도 구조도 없어 수집·검색·알림 대상이 되지 못한다. 운영에서 그 출력은 사실상 사라진 것과 같다.
 
 ## DB
 
@@ -136,6 +140,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 - 권장: **sqlc** — SQL 작성, 컴파일 타임 타입 생성. ORM 없이 안전.
 - 트랜잭션은 service 레벨에서 시작·종료. repository는 받은 tx 사용.
 - prepared statement / parameterized query 강제. 문자열 포맷 SQL 금지.
+  - 근거: 문자열로 조립한 SQL 은 입력이 곧 코드가 된다. 이스케이프를 손으로 하는 방식은 언젠가 한 경로를 빠뜨리고, 그 한 곳이 전체 DB 유출 경로가 된다.
 
 ## 동시성
 
@@ -246,4 +251,35 @@ func (h *UserHandler) Create(c *gin.Context) { h.svc.Create(...) }
 | \`fmt.Println\` 디버깅 | \`slog\` |
 | 패키지 전역 mutable 변수 | 구조체 receiver |
 | 에러 \`_ = err\` 침묵 | 처리 또는 wrap |
+
+## 적용 범위와 경계
+
+이 문서는 **Go + Gin 의 레이아웃, 의존성 주입, 핸들러, 컨텍스트, 동시성**만 다룬다. 배포와 컨테이너 빌드는 다루지 않는다.
+
+여기서 다루지 않는 것 → 레이어 구조의 원칙은 \`backend.md\`, URL·상태 코드는 \`api-design.md\`, 인증 정책은 \`auth.md\`, 쿼리·인덱스는 \`database.md\`, 에러 분류는 \`error-handling.md\`.
+
+**이 문서는 어떤 라우터·ORM 을 쓸지 재협상하지 않는다.** Gin 이 아닌 프레임워크가 필요하면 유저에게 확인한다.
+
+## 충돌 시 우선순위
+
+전체 순서는 \`base.md\` 의 「충돌 시 우선순위」를 따른다. 이 문서에서 자주 부딪히는 경우만 적는다.
+
+- **요청 컨텍스트 전파 vs 코드 간결함** — 전파가 이긴다. \`context.Background()\` 로 끊으면 취소와 타임아웃이 전달되지 않는다.
+- **명시적 의존성 주입 vs 패키지 전역 변수** — 명시가 이긴다. 전역은 테스트 병렬 실행을 깨뜨린다.
+- **에러 반환 vs panic** — 에러 반환이 이긴다. panic 은 프로그래밍 오류에만 쓴다.
+- **이 문서 vs \`backend.md\`** — 프레임워크 관례는 이 문서가 이기지만, 레이어 경계와 DTO 분리는 \`backend.md\` 가 이긴다.
+
+## 자가 점검
+
+핸들러를 추가·수정한 뒤 확인한다. **하나라도 NO면 제출하지 않는다.**
+
+- [ ] 요청 처리 경로에서 \`c.Request.Context()\` 를 전파한다 — \`context.Background()\` 가 없다
+- [ ] 의존성을 구조체 필드로 주입한다 — 패키지 전역 변수가 없다
+- [ ] 입력을 바인딩 후 검증한다 (\`binding\` 태그 또는 명시적 검증)
+- [ ] 에러를 반환값으로 다룬다 — 무시된 \`err\` 가 없다
+- [ ] SQL 에 파라미터 바인딩을 쓴다 — 문자열 포맷이 없다
+- [ ] \`fmt.Println\` 대신 구조화 로거를 쓴다
+- [ ] 고루틴을 띄웠다면 종료 조건과 컨텍스트 취소 처리가 있다
+- [ ] 패키지 이름이 의미를 가진다 — \`util\`/\`common\` 이 없다
+- [ ] Graceful shutdown 이 구현돼 있다
 `;

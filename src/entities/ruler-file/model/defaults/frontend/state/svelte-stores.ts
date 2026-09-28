@@ -115,6 +115,7 @@ export const addItem = (item: CartItem) => {
 - 공유 reactive: store 유지.
 - runes가 store를 대체하는 것은 컴포넌트 내부만 — 공유 상태는 여전히 store가 정답.
 - store를 rune으로 변환하지 마라 (의미 차이가 명확함).
+  - 근거: store 는 모듈 스코프에서 공유되는 값이고 rune 은 컴포넌트 인스턴스에 묶인 값이다. 기계적으로 바꾸면 공유돼야 할 상태가 인스턴스마다 갈라지거나, 격리돼야 할 상태가 요청 간에 새어 나간다.
 
 ## AI 행동 규칙
 
@@ -186,4 +187,33 @@ const summary = derived([items, discount], ([$items, $discount]) => ({
 | 서버 응답 캐싱을 store로 자체 구현 | TanStack Query / SvelteKit load |
 | 한 store에 도메인 다 몰기 | 도메인 파일 분할 |
 | store를 SSR 모듈 스코프에 평가 후 변경 | per-request 격리 (SvelteKit \`load\`) |
+
+## 적용 범위와 경계
+
+이 문서는 **Svelte store 로 컴포넌트 간 상태를 공유하는 방법**만 다룬다. 서버 데이터의 캐싱·무효화·재시도는 다루지 않는다 — 그건 TanStack Query 나 SvelteKit \`load\` 의 일이다.
+
+여기서 다루지 않는 것 → 컴포넌트 작성 규칙은 \`svelte.md\`, 라우팅·\`load\`·SSR 은 \`sveltekit.md\`, 단일 컴포넌트 내부 상태는 store 가 아니라 \`$state\` 룬이나 일반 변수를 쓴다.
+
+**store 와 룬을 기계적으로 서로 바꾸지 않는다.** 둘은 스코프가 다르다. 어느 쪽인지 애매하면 진행하지 말고 유저에게 묻는다.
+
+## 충돌 시 우선순위
+
+전체 순서는 \`base.md\` 의 「충돌 시 우선순위」를 따른다. 이 문서에서 자주 부딪히는 경우만 적는다.
+
+- **\`$store\` 자동 구독 vs 수동 \`subscribe\`** — 자동 구독이 이긴다. 수동 구독은 해제를 빠뜨리면 그대로 누수가 된다.
+- **custom store vs \`writable\` 직접 export** — custom store 가 이긴다. 아무나 \`.set\` 할 수 있으면 변경 출처를 추적할 수 없다.
+- **공유 범위 판단** — 한 컴포넌트 안에서만 쓰는 값은 store 가 아니라 룬이 이긴다.
+- **SSR 격리** — 모듈 스코프 store 를 요청 간에 공유하지 않는다. SvelteKit 에서는 \`load\` 를 통한 per-request 격리가 우선한다.
+
+## 자가 점검
+
+store 를 추가·수정한 뒤 확인한다. **하나라도 NO면 제출하지 않는다.**
+
+- [ ] 이 값이 정말 여러 컴포넌트에서 공유된다 — 아니면 룬이나 일반 변수로 되돌렸다
+- [ ] 컴포넌트에서 \`$store\` 자동 구독을 쓴다 — 수동 \`subscribe\` 가 없거나, 있다면 해제 경로가 있다
+- [ ] \`writable\` 을 그대로 export 하지 않고 custom store 로 액션을 감쌌다
+- [ ] 파생 값을 \`derived\` 로 계산한다
+- [ ] 도메인별로 store 파일이 나뉘어 있다
+- [ ] 서버 응답 캐싱을 store 로 직접 구현하지 않았다
+- [ ] SSR 에서 모듈 스코프 store 가 요청 간에 공유되지 않는다
 `;

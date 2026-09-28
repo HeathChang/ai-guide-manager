@@ -28,6 +28,7 @@ extends: [base.md, frontend.md]
 - \`template.tsx\` — 라우트 진입마다 새 인스턴스 (animation 등).
 - \`loading.tsx\` — Suspense fallback.
 - \`error.tsx\` — Error boundary (반드시 \`'use client'\`).
+  - 근거: Error boundary 는 렌더 중 발생한 예외를 잡는 클라이언트 기능이다. 서버 컴포넌트로 두면 경계가 성립하지 않는다.
 - \`not-found.tsx\` — 404.
 - \`route.ts\` — API 핸들러 (GET/POST/etc export).
 
@@ -46,6 +47,7 @@ extends: [base.md, frontend.md]
   - \`{ cache: 'no-store' }\` — 매번 새로 (개인화 데이터)
 - 근거: fetch 캐시 기본 동작이 Next 14→15에서 force-cache → no-store로 역전됐다. 명시하지 않으면 버전·환경에 따라 의도와 정반대로 캐싱/비캐싱된다.
 - Client Component에서 데이터 페칭이 필요하면 **TanStack Query** 또는 \`useSWR\`. 직접 \`fetch + useEffect\` 금지.
+  - 근거: \`useEffect\` 페칭은 요청 취소·중복 제거·경쟁 조건 처리를 직접 짜야 한다. 대부분 빠뜨리고, 그 결과가 이전 요청 응답이 나중에 도착해 화면을 덮어쓰는 버그다.
 
 ## Server Actions
 
@@ -59,6 +61,7 @@ extends: [base.md, frontend.md]
   <form action={createPost}>...</form>
   \`\`\`
 - 입력 검증 필수 — Server Action도 외부 입력. zod로 파싱.
+  - 근거: Server Action 은 폼에서만 호출된다는 보장이 없다. 클라이언트가 직접 POST 할 수 있으므로 일반 엔드포인트와 같은 검증이 필요하다.
 - mutation 후 \`revalidatePath\` / \`revalidateTag\` 로 캐시 무효화.
 
 ## 빌트인 컴포넌트 사용 강제
@@ -73,6 +76,7 @@ extends: [base.md, frontend.md]
 - 정적: \`export const metadata: Metadata = {...}\`.
 - 동적: \`export async function generateMetadata({ params }): Promise<Metadata> {...}\`.
 - \`<head>\` 직접 조작 금지 — 위 API만 사용.
+  - 근거: Next 가 메타데이터를 스트리밍과 함께 관리한다. 직접 조작하면 SSR 결과와 클라이언트 상태가 어긋나 크롤러가 보는 내용과 사용자가 보는 내용이 달라진다.
 
 ## 라우팅 / 네비게이션
 
@@ -87,6 +91,7 @@ extends: [base.md, frontend.md]
 - 시크릿은 절대 \`NEXT_PUBLIC_\` 붙이지 마라.
   - 근거: \`NEXT_PUBLIC_\` 변수는 빌드 시점에 클라이언트 JS 번들에 인라인된다. 한 번 빌드되면 브라우저 DevTools에서 raw 문자열로 조회 가능. API 키/DB 비밀번호가 들어가면 즉시 누출.
 - \`.env.local\` 은 \`.gitignore\` 필수.
+  - 근거: git history 는 영원하다. 한 번 커밋된 시크릿은 삭제 커밋을 해도 남아 있어 재발급 외에는 방법이 없다.
 
 ## 캐시 모델
 
@@ -101,6 +106,7 @@ extends: [base.md, frontend.md]
 ## TypeScript
 
 - \`next-env.d.ts\` 자동 생성 — 수정 금지.
+  - 근거: 빌드마다 덮어쓰인다. 여기 넣은 변경은 조용히 사라지고, 사라진 이유를 찾는 데 시간이 든다.
 - 페이지/레이아웃 props 타입: \`{ params, searchParams }\` 명시.
 - App Router용 TS 플러그인 \`"plugins": [{ "name": "next" }]\` 은 create-next-app 템플릿의 \`tsconfig.json\` 에 포함된다(세그먼트 config 검증, \`'use client'\`·클라이언트 훅 오용 경고 등 IDE 지원). 기존 프로젝트 마이그레이션 시에는 직접 추가해야 할 수 있다 — 없으면 추가하고, 임의로 제거하지 마라.
 
@@ -109,10 +115,12 @@ extends: [base.md, frontend.md]
 - \`middleware.ts\` — 인증 가드, redirect, header 조작.
 - Edge 런타임은 Node API 일부 미지원 — fs / 무거운 의존성 사용 불가.
 - 미들웨어는 모든 요청에 영향 → \`matcher\` 로 범위 한정 필수.
+  - 근거: 정적 자원과 이미지 요청까지 미들웨어를 타면 모든 응답에 지연이 더해진다. 범위를 안 좁히면 페이지 하나 보호하려다 사이트 전체가 느려진다.
 
 ## AI 행동 규칙
 
 - 컴포넌트 새로 만들 때: hook이나 onClick 없으면 **\`'use client'\` 절대 추가하지 마라**.
+  - 근거: \`'use client'\` 는 그 컴포넌트와 하위 트리를 전부 클라이언트 번들에 넣는다. 한 줄이 트리 전체를 서버 렌더링에서 끌어내려 번들과 TTI 를 동시에 악화시킨다.
 - fetch 호출 시 cache 옵션 명시 안 했으면 의도 확인 (정적인가 동적인가).
 - \`<img>\` / \`<a>\` 내부 라우트로 발견 시 즉시 \`next/image\` / \`next/link\` 로 교체.
 - form 제출 로직을 Client + API route로 짜는 시도 → Server Action 우선 권고.
@@ -173,4 +181,35 @@ async function deletePost(id: string) {
 | \`<img>\` / 내부 라우트 \`<a>\` | \`next/image\` / \`next/link\` |
 | API route로 mutation | Server Action |
 | \`NEXT_PUBLIC_API_KEY\` (시크릿) | 서버 전용 환경변수 + Server Action |
+
+## 적용 범위와 경계
+
+이 문서는 **Next.js App Router** 만 다룬다. Pages Router 프로젝트에는 적용하지 않는다 — 그 경우 유저에게 라우터 종류를 확인한다.
+
+여기서 다루지 않는 것 → React 컴포넌트·훅 규칙은 \`frontend.md\`, 파일 배치는 \`fsd.md\`/\`atomic.md\`, 클래스·토큰은 \`styling.md\`, 접근성은 \`a11y.md\`, 상태 라이브러리는 프로젝트가 채택한 상태 문서.
+
+**Route Handler 안의 서버 코드는 백엔드 규칙을 따른다.** 입력 검증·인가·에러 응답은 이 문서가 아니라 백엔드 룰셋의 \`security.md\`, \`auth.md\`, \`error-handling.md\` 를 참조한다.
+
+## 충돌 시 우선순위
+
+전체 순서는 \`base.md\` 의 「충돌 시 우선순위」를 따른다. 이 문서에서 자주 부딪히는 경우만 적는다.
+
+- **이 문서 vs \`frontend.md\`** — 이 문서가 이긴다. Server Component 에는 훅 규칙이 적용되지 않는다.
+- **Server Component 기본값 vs 개발 편의** — 서버가 이긴다. 상호작용이 필요해질 때만 경계 컴포넌트에 \`'use client'\` 를 붙이고, 트리 위쪽으로 올리지 않는다.
+- **빌트인 컴포넌트(\`next/image\`, \`next/link\`, \`next/font\`) vs 직접 구현** — 빌트인이 이긴다.
+- **캐시 동작이 애매할 때** — 추측해서 \`revalidate\` 값을 정하지 말고 유저에게 데이터 신선도 요구를 묻는다.
+
+## 자가 점검
+
+변경을 제출하기 전 확인한다. **하나라도 NO면 제출하지 않는다.**
+
+- [ ] 새 컴포넌트에 \`'use client'\` 를 꼭 필요한 경우에만 붙였다 — 훅·이벤트 핸들러가 없으면 붙이지 않았다
+- [ ] \`'use client'\` 를 트리 최상단이 아니라 상호작용이 시작되는 지점에 붙였다
+- [ ] Client Component 의 데이터 페칭에 \`fetch + useEffect\` 를 쓰지 않았다
+- [ ] \`<img>\`/\`<a>\` 대신 \`next/image\`/\`next/link\` 를 썼다
+- [ ] 메타데이터를 \`metadata\` export 나 \`generateMetadata\` 로 설정했다 — \`<head>\` 직접 조작이 없다
+- [ ] 서버 전용 시크릿에 \`NEXT_PUBLIC_\` 접두어를 붙이지 않았다
+- [ ] 미들웨어에 \`matcher\` 로 범위를 한정했다
+- [ ] Route Handler 의 입력을 검증하고 인가를 확인했다
+- [ ] 캐시·\`revalidate\` 설정의 근거를 설명할 수 있다
 `;

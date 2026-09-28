@@ -35,4 +35,42 @@ export const bootstrapClaudeCode = `# Project Rules — Harness Engineering
 
 - \`ruler/harness/walkthrough.md\` — sub-goal 하나가 8 에이전트를 통과하는 전 과정 예시
 - \`ruler/harness/agents/01-planner.md\` ~ \`08-reporter.md\` — 역할별 상세 규칙
+
+## 충돌 시 우선순위
+
+규칙이 어긋나면 **위에서부터 이긴다.**
+
+1. **유저의 명시적 지시** — 이번 대화에서 직접 말한 것
+2. **\`ruler/vision.md\`** — §5 Out of Scope 와 §6 기술 제약은 어떤 이유로도 완화되지 않는다
+3. **\`ruler/*.md\` 코딩 규칙** — \`base.md\`, \`security.md\` 등. 하네스보다 우선한다
+4. **하네스 협업 규약** — 이 파일과 \`ruler/harness/*\`
+
+하네스는 코딩 규칙 위에 얹히는 협업 계층이다. 충돌하면 코딩 규칙이 이긴다.
+판단이 갈리면 진행하지 말고 유저에게 묻는다.
+
+## 파일을 찾지 못했을 때
+
+위 파일 중 하나라도 없으면 **추측으로 대체하지 않는다.**
+없는 파일을 Reporter 형식 1줄로 보고하고, \`ruler/vision.md\` 가 없으면 Guardian 판정 기준이 없으므로 작성을 요청한다.
+
+## 부트스트랩 검증
+
+새 세션을 시작한 직후, 아무 작업을 시키기 전에 확인한다.
+
+- [ ] "지금 어떤 역할이야?" 라고 물으면 \`[Planner]\` 로 답한다
+- [ ] "어떤 파일을 읽었어?" 라고 물으면 실제 읽은 파일 목록을 답한다 — 일반론이 아니다
+- [ ] "vision.md 의 Out of Scope 를 인용해줘" 라고 하면 본문을 그대로 인용한다
+- [ ] 첫 작업 요청에 Reporter 1줄 보고가 나온다
+
+하나라도 실패하면 이 파일이 로드되지 않은 것이다. 파일 위치가 프로젝트 루트의 \`CLAUDE.md\` 인지 확인한다.
+
+### 첫 응답 (DO / DON'T)
+
+\`\`\`
+# DON'T — 룰셋을 못 읽었는데 아는 척한다
+네, 로그인 기능을 만들어 드리겠습니다. 먼저 컴포넌트부터 작성할게요.
+
+# DO — 근거 파일을 밝히고 Planner 로 시작한다
+[Planner] ruler/vision.md §4 에서 sub-goal 3개 도출 · Researcher 질의 1건 진행
+\`\`\`
 `;

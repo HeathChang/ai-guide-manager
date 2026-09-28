@@ -34,4 +34,40 @@ export const bootstrapCopilot = `# Harness Engineering — Repository Instructio
 ## 상세 참조
 
 - \`ruler/harness/walkthrough.md\` — 실전 데모 (카페 재고 SaaS 예시)
+
+## 충돌 시 우선순위
+
+규칙이 어긋나면 **위에서부터 이긴다.**
+
+1. **유저의 명시적 지시**
+2. **\`ruler/vision.md\`** — §5 Out of Scope 와 §6 기술 제약은 어떤 이유로도 완화되지 않는다
+3. **\`ruler/*.md\` 코딩 규칙** — 하네스보다 우선한다
+4. **하네스 협업 규약** — 이 파일과 \`ruler/harness/*\`
+
+판단이 갈리면 진행하지 말고 유저에게 묻는다.
+
+## 파일을 찾지 못했을 때
+
+위 파일 중 하나라도 없으면 **추측으로 대체하지 않는다.**
+없는 파일을 1줄로 보고하고, \`ruler/vision.md\` 가 없으면 Guardian 판정 기준이 없으므로 작성을 요청한다.
+
+## 부트스트랩 검증
+
+새 세션에서 작업을 시키기 전에 확인한다.
+
+- [ ] "어떤 규칙 파일을 참조하고 있어?" 에 실제 파일 목록으로 답한다
+- [ ] "vision.md 의 Out of Scope 를 인용해줘" 에 본문을 그대로 인용한다
+- [ ] 첫 작업 요청에 Planner 역할로 sub-goal 분해가 나온다
+
+하나라도 실패하면 이 파일이 \`.github/copilot-instructions.md\` 에 있는지 확인한다.
+
+### 첫 응답 (DO / DON'T)
+
+\`\`\`
+# DON'T — 룰셋을 못 읽었는데 바로 코드를 제안한다
+아래처럼 구현하시면 됩니다. (일반적인 베스트 프랙티스 코드)
+
+# DO — 근거 파일을 밝히고 Planner 로 시작한다
+[Planner] ruler/vision.md §4 기준 sub-goal 3개 · 첫 항목부터 진행
+\`\`\`
 `;

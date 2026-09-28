@@ -48,8 +48,9 @@ export const LOOP_BOOTSTRAP_SECTION = `## 루프 엔지니어링 (반복과 종�
 5. 판정은 MET · REVISE · ESCALATE 중 하나이며 근거 1줄을 붙인다.
 6. 반복마다 \`[LOOP n/N]\` 1줄로 보고한다.
 
-진동(같은 줄 2회 원복) · 상한 도달 · 결정 필요 시에는 반복을 멈추고 \`[ESCALATE]\` 블록으로 유저에게 넘긴다.
+다음 셋 중 하나에 해당하면 반복을 멈추고 \`[ESCALATE]\` 블록으로 유저에게 넘긴다 — 진동(같은 줄 2회 원복) · 반복 상한 도달 · 유저만 내릴 수 있는 결정에 도달.
 
+충돌 시 우선순위: 유저 지시 > 하네스 Guardian 판정 > 이 루프 규약 > 반복 안에서의 판단.
 하네스를 함께 켰다면 루프 판정은 한 에이전트 내부의 자기검증이다. \`MET\` 으로 루프를 끝낸 뒤에도
 Guardian 판정 1턴을 생략하지 않는다 — Guardian 의 \`PASS\` 와 루프의 \`MET\` 은 다른 층위다.`;
 
@@ -58,4 +59,5 @@ export const LOOP_AGENTS_SECTION = `### 루프 — 반복과 종료조건
 
 \`ruler/loop/contract.md\` 의 계약을 먼저 선언한 뒤 Act → Observe → Critique → Decide 를 반복한다.
 종료는 MET · NO-PROGRESS · LIMIT · BLOCKED 넷 중 하나이며, 판정 루브릭은 \`ruler/loop/critic.md\` 에 있다.
-하네스를 함께 켰다면 루프의 \`MET\` 은 Guardian 판정을 대체하지 않는다.`;
+**우선순위:** 하네스를 함께 켰다면 루프의 \`MET\` 은 Guardian 판정을 대체하지 않는다.
+루프는 한 에이전트 안의 자기검증이고 Guardian 은 그 위 층위다 — 충돌하면 Guardian 이 이긴다.`;

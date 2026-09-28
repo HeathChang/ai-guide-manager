@@ -44,6 +44,7 @@ const cartModule = {
 
 - 비동기 OK. \`async/await\` 사용.
 - **state를 직접 변경 금지** — 반드시 \`commit(mutation)\` 통해서.
+  - 근거: mutation 을 거치지 않은 변경은 devtools 타임라인에 남지 않는다. 값이 언제 왜 바뀌었는지 추적할 방법이 사라진다.
 - 외부 모듈 mutation: \`commit('other/MUTATION', payload, { root: true })\`.
 - 외부 모듈 dispatch도 같은 패턴.
 
@@ -174,4 +175,34 @@ modules: {
 | namespaced: false | 항상 true |
 | action 안에서 state 직접 변경 | mutation commit |
 | 같은 데이터를 Vuex + Pinia에 동시 보관 | 한쪽이 source of truth |
+
+## 적용 범위와 경계
+
+이 문서는 **기존 Vuex 코드를 유지·보수하는 방법**만 다룬다. Vuex 는 유지 모드이므로 이 문서는 신규 채택을 전제하지 않는다.
+
+여기서 다루지 않는 것 → 컴포넌트 작성 규칙은 \`vue.md\`, SSR 라이프사이클은 \`nuxt.md\`, 신규 store 설계는 \`pinia.md\`.
+
+**새 store 나 모듈은 이 문서가 아니라 \`pinia.md\` 를 따른다.** 이관 매핑은 위 표에 있다. 신규 Vuex 모듈 추가가 요청되면 그 사실을 유저에게 먼저 알린다.
+
+## 충돌 시 우선순위
+
+전체 순서는 \`base.md\` 의 「충돌 시 우선순위」를 따른다. 이 문서에서 자주 부딪히는 경우만 적는다.
+
+- **신규 코드의 라이브러리 선택** — Pinia 가 이긴다. 이 문서는 기존 모듈을 고칠 때만 적용한다.
+- **mutation 동기 규칙 vs 코드 간결함** — 동기 규칙이 이긴다. mutation 안에 비동기를 넣으면 devtools 의 상태 추적이 어긋난다.
+- **\`namespaced: true\` vs 전역 이름** — 네임스페이스가 이긴다. 전역 이름은 모듈이 늘어날수록 충돌한다.
+- **action 에서 직접 state 변경** — 어떤 경우에도 하지 않는다. 반드시 \`commit\` 을 거친다.
+  - 근거: mutation 만이 변경 지점의 단일 통로다. action 에서 우회하면 그 통로가 무의미해지고 추적성이 사라진다.
+
+## 자가 점검
+
+Vuex 코드를 수정한 뒤 확인한다. **하나라도 NO면 제출하지 않는다.**
+
+- [ ] 새 store/모듈이라면 Pinia 를 먼저 제안했다
+- [ ] 모든 모듈이 \`namespaced: true\` 다
+- [ ] mutation 이 전부 동기다 — 안에 비동기 코드가 없다
+- [ ] action 이 state 를 직접 바꾸지 않고 \`commit\` 을 거친다
+- [ ] 파생 값을 getter 로 계산한다 — 컴포넌트에서 중복 계산하지 않는다
+- [ ] 동적 등록한 모듈에 해제 경로가 있다
+- [ ] 서버 응답 캐싱을 store 로 직접 구현하지 않았다
 `;

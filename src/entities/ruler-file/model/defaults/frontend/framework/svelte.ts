@@ -192,4 +192,34 @@ extends: [base.md]
 | \`export let\` | \`$props()\` |
 | \`<slot>\` | \`{#snippet}\` + \`{@render}\` |
 | createEventDispatcher | callback prop |
+
+## 적용 범위와 경계
+
+이 문서는 **Svelte 5 (runes)** 컴포넌트 작성만 다룬다. Svelte 4 이전 문법(\`export let\`, \`$:\`)의 신규 작성에는 적용하지 않는다.
+
+여기서 다루지 않는 것 → 라우팅·\`load\`·SSR·Form Actions 는 \`sveltekit.md\`, 컴포넌트 간 공유 상태는 \`svelte-stores.md\`, 클래스·토큰은 \`styling.md\`, 접근성은 \`a11y.md\`.
+
+**이 문서는 React 규칙(\`frontend.md\`)과 함께 쓰지 않는다.** 두 문서가 같이 로드돼 있으면 진행하지 말고 유저에게 어느 프레임워크인지 묻는다.
+
+## 충돌 시 우선순위
+
+전체 순서는 \`base.md\` 의 「충돌 시 우선순위」를 따른다. 이 문서에서 자주 부딪히는 경우만 적는다.
+
+- **룬 vs Svelte 4 문법** — 새 코드는 룬이 이긴다. 기존 파일을 일괄 변환할지는 유저에게 확인한다.
+- **\`$derived\` vs \`$effect\`** — 값을 파생시키는 목적이면 \`$derived\` 가 이긴다. \`$effect\` 안에서 상태를 대입해 값을 만들지 마라.
+- **컴포넌트 지역 상태 vs store** — 한 컴포넌트 안에서만 쓰면 \`$state\` 가 이긴다. 공유가 필요할 때만 store 로 올린다.
+- **SvelteKit 프로젝트에서 이 문서와 \`sveltekit.md\` 가 다를 때** — \`sveltekit.md\` 가 이긴다.
+
+## 자가 점검
+
+컴포넌트를 제출하기 전 확인한다. **하나라도 NO면 제출하지 않는다.**
+
+- [ ] 상태를 \`$state\` 로 선언했다 — \`export let\` / \`$:\` 를 새로 쓰지 않았다
+- [ ] 파생 값을 \`$derived\` 로 계산했다 — \`$effect\` 안에서 대입으로 만들지 않았다
+- [ ] \`$effect\` 마다 정리(cleanup)가 필요한지 확인했고, 필요하면 반환했다
+- [ ] props 를 \`$props()\` 로 받고 타입을 붙였다
+- [ ] 양방향이 필요한 prop 에만 \`$bindable()\` 을 썼다
+- [ ] \`children\` 대신 snippet 을 썼다
+- [ ] 이 컴포넌트에서만 쓰는 상태를 store 로 올리지 않았다
+- [ ] 접근성 최소선(\`alt\`, label, \`<button>\`, \`aria-label\`)을 통과한다
 `;

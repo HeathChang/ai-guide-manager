@@ -47,6 +47,7 @@ src/
 ## Controller
 
 - 얇게. 비즈니스 로직 금지. 검증·DI·HTTP 응답 변환만.
+  - 근거: Controller 에 로직이 들어가면 그 로직은 HTTP 요청 없이는 실행할 수 없다. 스케줄러·큐 워커·CLI 에서 같은 규칙을 재사용하지 못하고 복사된다.
 - 데코레이터로 라우트 정의: \`@Get(':id')\`, \`@Post()\`.
 - 응답 직렬화는 ClassSerializerInterceptor + \`@Expose() / @Exclude()\` 또는 직접 DTO 매핑.
 
@@ -54,6 +55,7 @@ src/
 
 - 비즈니스 로직 위치. 다른 서비스 의존성 주입.
 - HTTP 개념(Request, Response)을 service에서 import 금지 — 테스트와 재사용에 해.
+  - 근거: service 가 HTTP 에 묶이면 스케줄러·큐 워커에서 재사용할 수 없고, 단위 테스트마다 가짜 Request 객체를 만들어야 한다.
 - 한 메서드 = 한 책임.
 
 ## Module 의존성
@@ -120,6 +122,7 @@ src/
 - async/await + 글로벌 \`HttpExceptionFilter\`.
 - 도메인 에러는 커스텀 클래스 → 필터에서 HTTP status로 변환.
 - 스택 트레이스 응답 노출 금지.
+  - 근거: 내부 경로·라이브러리 버전·쿼리 구조가 그대로 드러난다. 공격자에게는 정찰 정보이고 사용자에게는 아무 쓸모가 없다.
 
 ## 테스트
 
@@ -202,4 +205,34 @@ const secret = configService.getOrThrow<string>('JWT_SECRET');
 | Request/Response를 service로 import | DI + 순수 service |
 | \`process.env\` 직접 | ConfigService |
 | 순환 의존 forwardRef 남발 | 모듈 경계 재설계 |
+
+## 적용 범위와 경계
+
+이 문서는 **NestJS 의 모듈·DI·파이프/가드/인터셉터/필터 구성**만 다룬다. 배포와 마이크로서비스 트랜스포트는 다루지 않는다.
+
+여기서 다루지 않는 것 → 레이어 구조와 DTO 개념은 \`backend.md\`, URL·상태 코드는 \`api-design.md\`, 인증 정책은 \`auth.md\`, 입력 검증의 보안 기준은 \`security.md\`, 에러 분류는 \`error-handling.md\`.
+
+**이 문서는 어떤 ORM 을 쓸지 정하지 않는다.** TypeORM·Prisma·MikroORM 선택은 프로젝트 결정이며, 쿼리 규칙은 \`database.md\` 를 따른다.
+
+## 충돌 시 우선순위
+
+전체 순서는 \`base.md\` 의 「충돌 시 우선순위」를 따른다. 이 문서에서 자주 부딪히는 경우만 적는다.
+
+- **Controller 얇게 유지 vs 코드 줄 수** — 얇게가 이긴다. Controller 의 로직은 HTTP 없이 재사용할 수 없다.
+- **DI vs 직접 인스턴스화** — DI 가 이긴다. \`new Service()\` 를 직접 만들면 테스트에서 교체할 수 없다.
+- **전역 ValidationPipe vs 컨트롤러별 처리** — 전역이 이긴다. 빠뜨릴 수 있는 위치에 검증을 두지 않는다.
+- **이 문서 vs \`backend.md\`** — 프레임워크 관례는 이 문서가 이기지만, 레이어 경계와 DTO 분리는 \`backend.md\` 가 이긴다.
+
+## 자가 점검
+
+기능을 추가·수정한 뒤 확인한다. **하나라도 NO면 제출하지 않는다.**
+
+- [ ] Controller 에 비즈니스 로직이 없다 — 검증·DI·응답 변환만 한다
+- [ ] DTO 에 class-validator 데코레이터가 있고 전역 \`ValidationPipe\` 가 켜져 있다
+- [ ] \`whitelist\` / \`forbidNonWhitelisted\` 로 정의되지 않은 필드를 걸러낸다
+- [ ] 의존성을 생성자 주입으로 받는다 — 직접 인스턴스화가 없다
+- [ ] 모듈 경계가 feature 단위이고 순환 의존이 없다
+- [ ] 인가를 Guard 로 처리한다 — 핸들러 안 흩어진 역할 비교가 아니다
+- [ ] 예외 필터가 스택 트레이스를 응답에 넣지 않는다
+- [ ] 환경 변수를 \`ConfigModule\` 스키마로 검증해서 읽는다
 `;

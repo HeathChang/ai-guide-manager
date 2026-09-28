@@ -78,8 +78,10 @@ export async function load({ params, locals }) {
 
 - \`$env/static/private\` — 서버 빌드타임 상수, 시크릿 안전.
 - \`$env/static/public\` — 클라이언트 노출, \`PUBLIC_\` prefix 필수.
+  - 근거: 이 prefix 가 붙은 값은 빌드 시 클라이언트 번들에 인라인된다. prefix 규칙이 서버 전용 값이 새어 나가는 것을 막는 유일한 장치다.
 - \`$env/dynamic/private|public\` — 런타임. Adapter에 따라 가능.
 - **\`process.env.X\` 직접 사용 금지** — type-safe import 깨짐.
+  - 근거: SvelteKit 의 env 모듈은 서버/클라이언트 노출 여부를 타입으로 구분한다. 직접 접근하면 그 구분이 사라져 서버 전용 값이 클라이언트로 넘어가도 아무도 못 잡는다.
 
 ## \`$app\` 모듈
 
@@ -178,4 +180,34 @@ export const actions = {
 | JS 전용 fetch + button onClick mutation | form action + use:enhance |
 | CSRF 보호 비활성 | 기본값 유지 |
 | adapter-auto 프로덕션 그대로 | 명시적 adapter |
+
+## 적용 범위와 경계
+
+이 문서는 **SvelteKit 의 라우팅·데이터 로딩·Form Actions·배포 어댑터**만 다룬다. 컴포넌트 문법은 다루지 않는다.
+
+여기서 다루지 않는 것 → 룬과 컴포넌트 작성은 \`svelte.md\`, 컴포넌트 간 공유 상태는 \`svelte-stores.md\`, 클래스·토큰은 \`styling.md\`, 접근성은 \`a11y.md\`.
+
+**서버에서 실행되는 코드(\`+page.server.ts\`, \`+server.ts\`, hooks)는 백엔드 규칙을 따른다.** 입력 검증·인가·에러 응답은 백엔드 룰셋의 \`security.md\`, \`auth.md\`, \`error-handling.md\` 를 참조한다.
+
+## 충돌 시 우선순위
+
+전체 순서는 \`base.md\` 의 「충돌 시 우선순위」를 따른다. 이 문서에서 자주 부딪히는 경우만 적는다.
+
+- **이 문서 vs \`svelte.md\`** — 이 문서가 이긴다. \`load\` 와 SSR 경계는 컴포넌트 규칙보다 앞선다.
+- **\`load\` 에서 데이터 로딩 vs 컴포넌트 안에서 \`fetch\`** — \`load\` 가 이긴다. 컴포넌트에서 직접 가져오면 SSR 에 포함되지 않아 첫 렌더가 비어 보인다.
+- **\`$env/static/private\` vs \`$env/static/public\`** — 서버 전용 값은 private 이 이긴다. public 으로 옮겨 문제를 우회하지 마라.
+- **Form Actions vs 클라이언트 전용 제출** — 점진적 향상이 필요하면 Form Actions 가 이긴다.
+
+## 자가 점검
+
+변경을 제출하기 전 확인한다. **하나라도 NO면 제출하지 않는다.**
+
+- [ ] 데이터 로딩을 \`load\` 함수에서 했다 — 컴포넌트 안 직접 \`fetch\` 가 없다
+- [ ] 서버 전용 로직이 \`+page.server.ts\` / \`+server.ts\` 에 있다
+- [ ] \`load\` 안에서 주어진 \`fetch\` 를 썼다 — 전역 \`fetch\` 가 아니다
+- [ ] 서버 전용 시크릿을 \`$env/static/private\` 또는 \`$env/dynamic/private\` 로 읽는다
+- [ ] 폼 제출을 Form Actions 로 처리했고 실패 시 \`fail()\` 로 상태를 돌려준다
+- [ ] 데이터 변경 후 필요한 곳에 \`invalidate\` 를 호출했다
+- [ ] 에러 페이지(\`+error.svelte\`)와 404 처리를 확인했다
+- [ ] 서버 핸들러의 입력을 검증하고 인가를 확인했다
 `;

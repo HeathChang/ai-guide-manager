@@ -14,7 +14,9 @@ extends: [base.md]
 ## 빌드 / 모듈
 
 - 빌드 도구: **Vite** + TypeScript. webpack 신규 도입 금지.
+  - 근거: webpack 은 같은 결과를 얻는 데 설정 파일과 로더 체인이 훨씬 많이 필요하다. 그 설정은 유지보수 대상이 되고, 대개 아무도 이해하지 못한 채 복사된다.
 - ES Modules 표준. CommonJS 신규 작성 금지.
+  - 근거: ESM 은 정적 분석이 가능해 번들러가 쓰지 않는 코드를 제거한다. CommonJS 의 동적 \`require\` 는 그 분석을 막아 번들에 죽은 코드가 남는다.
 - import map 사용 시 빌드 산출물 / dev 환경 모두에서 일관성 확인.
 
 ## TypeScript 엄격 설정
@@ -85,8 +87,10 @@ customElements.define('counter-button', CounterButton);
 \`\`\`
 
 - 태그 이름은 반드시 하이픈 포함 (\`x-button\` 등).
+  - 근거: HTML 명세가 커스텀 엘리먼트에 하이픈을 요구한다. 없으면 브라우저가 등록을 거부해 그냥 알 수 없는 태그로 남는다.
 - Shadow DOM으로 스타일 격리 권장.
 - \`innerHTML\` Shadow DOM 안이라도 입력 escape는 필수.
+  - 근거: Shadow DOM 은 스타일과 DOM 을 캡슐화할 뿐 스크립트 실행을 막지 않는다. 그 안에서 실행된 스크립트도 같은 문서의 쿠키와 전역에 접근한다.
 
 ## 라우팅 (SPA가 필요할 때)
 
@@ -96,6 +100,7 @@ customElements.define('counter-button', CounterButton);
 ## 비동기
 
 - \`fetch\` + \`async/await\`. \`XMLHttpRequest\` 금지.
+  - 근거: \`XMLHttpRequest\` 는 콜백 기반이라 에러 처리와 취소가 흩어진다. \`fetch\` + \`AbortController\` 가 같은 일을 표준적으로 처리한다.
 - 항상 \`signal: AbortController.signal\` — 컴포넌트 unmount / 페이지 이탈 시 cancel.
 - 에러는 \`response.ok\` 확인. \`fetch\` 는 4xx/5xx에서 reject 하지 않음.
 
@@ -111,6 +116,7 @@ src/
 
 - 한 파일 200줄 넘으면 분리 검토.
 - 전역 import 부수효과 의존 금지 — 명시적 \`init()\` 호출.
+  - 근거: import 순서만 바꿔도 동작이 달라진다. 번들러가 순서를 재배치하면 개발에서는 되던 것이 빌드에서 깨진다.
 
 ## 폴리필 / 브라우저 호환
 
@@ -139,6 +145,7 @@ src/
 - \`var\` / \`function\` 함수 선언 / \`==\` (느슨한 비교) 발견 시 \`const\`/\`let\` / \`=>\` / \`===\` 로 교체.
 - 컴포넌트 트리 / 라우팅 / 상태 동기화 코드가 100줄 넘기 시작 시 프레임워크 도입 검토 권고.
 - DOM 쿼리 결과는 \`null\` 가능성 — narrowing 필수.
+  - 근거: 선택자가 안 맞거나 요소가 아직 없으면 null 이 온다. 확인 없이 쓰면 그 시점부터 스크립트 전체가 멈춘다.
 
 ## 패턴 (DO / DON'T)
 
@@ -186,4 +193,34 @@ async function loadUser(id: string, signal: AbortSignal): Promise<User> {
 | 전역 폴리믹스 (window.X 직접 할당) | 모듈 export |
 | 무한 SPA 자체 구현 | 프레임워크 도입 |
 | webpack 신규 셋업 | Vite |
+
+## 적용 범위와 경계
+
+이 문서는 **프레임워크 없이 표준 DOM API + TypeScript 로 작성하는 경우**만 다룬다. 작은 위젯·embed 스크립트·정적 사이트 인터랙션이 대상이다.
+
+여기서 다루지 않는 것 → 컴포넌트 트리·상태 동기화·라우팅을 본격적으로 다뤄야 한다면 이 문서의 범위가 아니다. 위 「언제 프레임워크로 갈아탈 시점인가」의 신호가 보이면 직접 구현하지 말고 유저에게 프레임워크 도입을 제안한다.
+
+클래스·토큰은 \`styling.md\`, 접근성은 \`a11y.md\`, 보안 일반은 \`security.md\` 를 함께 따른다.
+
+## 충돌 시 우선순위
+
+전체 순서는 \`base.md\` 의 「충돌 시 우선순위」를 따른다. 이 문서에서 자주 부딪히는 경우만 적는다.
+
+- **XSS 방어 vs 코드 간결함** — 방어가 이긴다. \`innerHTML\` 한 줄이 짧다는 이유로 쓰지 않는다.
+- **표준 API vs 라이브러리 추가** — 표준이 이긴다. 표준으로 안 되는 지점에 도달하면 라이브러리가 아니라 프레임워크 전환을 검토한다.
+- **자체 구현 vs 프레임워크 전환** — 전환 신호가 보이면 전환이 이긴다. 자체 상태 관리·라우터·템플릿 엔진을 새로 만들지 마라.
+- **브라우저 호환 vs 최신 문법** — 지원 대상이 명시돼 있으면 그쪽이 이긴다. 명시돼 있지 않으면 유저에게 묻는다.
+
+## 자가 점검
+
+코드를 제출하기 전 확인한다. **하나라도 NO면 제출하지 않는다.**
+
+- [ ] \`innerHTML\` 로 사용자 입력을 넣지 않았다 — \`textContent\` 나 \`createElement\` 를 썼다
+- [ ] \`document.write\` 를 쓰지 않았다
+- [ ] \`querySelector\` 결과의 \`null\` 을 처리했다
+- [ ] 추가한 \`addEventListener\` 마다 해제 경로나 \`{ once: true }\` 가 있다
+- [ ] 목록 항목마다 리스너를 붙이지 않고 이벤트 위임을 썼다
+- [ ] \`fetch\` + \`async/await\` 를 썼다 — \`XMLHttpRequest\` 가 없다
+- [ ] Custom Element 태그 이름에 하이픈이 있다
+- [ ] 자체 프레임워크를 만들고 있지 않다 — 그 신호가 보이면 유저에게 알렸다
 `;

@@ -157,4 +157,34 @@ axios.interceptors.response.use(undefined, (err) => {
 | \`useStore()\` 전체 구독 | selector + useShallow(다중 값) |
 | \`devtools\` 프로덕션 활성 | \`enabled: DEV\` |
 | persist에 Date/class 저장 | primitive 또는 커스텀 serialize |
+
+## 적용 범위와 경계
+
+이 문서는 **Zustand 로 클라이언트 상태를 다루는 방법**만 다룬다. 서버에서 받아온 데이터의 캐싱·무효화·재시도는 다루지 않는다 — 그건 TanStack Query 나 SWR 의 일이다.
+
+여기서 다루지 않는 것 → 컴포넌트 구조와 상태 유형 분류는 \`frontend.md\`, store 파일을 어느 레이어에 둘지는 \`fsd.md\`/\`atomic.md\`, 렌더 성능 측정은 \`performance.md\`.
+
+**한 프로젝트에 클라이언트 상태 라이브러리는 하나만 쓴다.** 다른 상태 문서(\`redux-toolkit.md\`, \`jotai.md\` 등)가 함께 로드돼 있으면 진행하지 말고 유저에게 어느 쪽인지 묻는다.
+
+## 충돌 시 우선순위
+
+전체 순서는 \`base.md\` 의 「충돌 시 우선순위」를 따른다. 이 문서에서 자주 부딪히는 경우만 적는다.
+
+- **서버 상태는 Query, 클라이언트 상태만 Zustand** — 이 경계가 다른 모든 편의보다 우선한다. HTTP 응답을 store 에 넣는 코드는 작성하지 않는다.
+- **selector 사용 vs 코드 간결함** — selector 가 이긴다. \`useStore()\` 전체 구독은 짧지만 무관한 변경마다 리렌더한다.
+- **도메인별 store vs 단일 store** — 도메인 분리가 이긴다. "지금은 작으니까 하나로"는 되돌리기 어려운 선택이다.
+- **\`useState\` vs Zustand** — 한 화면 안에서만 쓰는 상태라면 \`useState\` 가 이긴다. 공유되지 않는 값을 store 에 올리지 마라.
+
+## 자가 점검
+
+store 를 추가·수정한 뒤 확인한다. **하나라도 NO면 제출하지 않는다.**
+
+- [ ] 이 상태가 정말 여러 컴포넌트에서 공유되는 값이다 — 아니면 \`useState\` 로 되돌렸다
+- [ ] HTTP 응답을 store 에 저장하지 않았다
+- [ ] store 하나가 하나의 도메인만 담는다
+- [ ] 모든 구독이 selector 를 쓴다 — \`useStore()\` 전체 구독이 없다
+- [ ] 여러 값을 함께 읽는 곳에 \`useShallow\` 를 썼다
+- [ ] \`devtools\` 미들웨어가 프로덕션에서 비활성이다
+- [ ] \`persist\` 에 \`Date\`·class 인스턴스를 넣지 않았다 — 넣었다면 커스텀 serialize 가 있다
+- [ ] SSR 을 쓴다면 store 가 요청마다 격리된다 — 모듈 스코프 공유가 아니다
 `;

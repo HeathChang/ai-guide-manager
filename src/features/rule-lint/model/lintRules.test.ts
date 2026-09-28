@@ -73,6 +73,65 @@ describe('lintRules', () => {
     expect(empty[0]?.message).toContain('Empty');
   });
 
+  it('ignores headings and directives inside code fences', () => {
+    const file = makeFile(
+      'fenced.md',
+      [
+        '# X',
+        '',
+        '## 리포트 포맷',
+        '',
+        '```',
+        '## 종합 판정: PASS',
+        '- 스택트레이스 응답 노출 금지.',
+        '적절히 판단한다.',
+        '```',
+        '',
+        '본문이 짧지 않도록 채운다. 코드블록 안의 내용은 규칙 문장이 아니라 예시이므로 린트 대상이 아니다. 더 길게 더 길게.',
+      ].join('\n'),
+    );
+    const result = runWith([file], ['fenced.md']);
+    expect(result.findings.filter((f) => f.category === 'empty-section')).toHaveLength(0);
+    expect(result.findings.filter((f) => f.category === 'missing-rationale')).toHaveLength(0);
+    expect(result.findings.filter((f) => f.category === 'ambiguity')).toHaveLength(0);
+  });
+
+  it('does not require 근거 on checklist items, labels, or quoted lines', () => {
+    const file = makeFile(
+      'exempt.md',
+      [
+        '# X',
+        '',
+        '## Y',
+        '',
+        '- [ ] 평문 저장 금지 여부를 확인했다',
+        '- `vision.md` (필수, 유저가 작성한 최종 비전)',
+        '- "모든 /api/items/* 는 세션 인증 필수"',
+        '',
+        '체크리스트 항목·괄호 라벨·인용문은 이 문서의 명령이 아니므로 근거를 요구하지 않는다. 본문 길이를 채우기 위한 문장이다.',
+      ].join('\n'),
+    );
+    const result = runWith([file], ['exempt.md']);
+    expect(result.findings.filter((f) => f.category === 'missing-rationale')).toHaveLength(0);
+  });
+
+  it('still flags a bare directive outside code fences', () => {
+    const file = makeFile(
+      'bare.md',
+      [
+        '# X',
+        '',
+        '## Y',
+        '',
+        '- 스택트레이스 응답 노출 금지.',
+        '',
+        '코드블록 밖의 강한 명령은 여전히 근거를 요구한다. 본문 길이를 채우기 위한 문장을 덧붙인다. 더 길게 더 길게 더 길게.',
+      ].join('\n'),
+    );
+    const result = runWith([file], ['bare.md']);
+    expect(result.findings.filter((f) => f.category === 'missing-rationale')).toHaveLength(1);
+  });
+
   it('warns when token budget exceeds limit', () => {
     const big = makeFile('big.md', 'x'.repeat(35_000));
     const result = runWith([big], ['big.md']);

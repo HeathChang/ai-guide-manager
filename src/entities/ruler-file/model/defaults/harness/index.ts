@@ -40,7 +40,11 @@ export const HARNESS_AGENTS_SECTION = `### 하네스 — 8역할 협업 모델
 
 \`ruler/harness/README.md\` · \`ruler/harness/workflow.md\` 의 규약대로 작동한다:
 Planner → Researcher → Implementer → Reviewer → Security Auditor → QA → Guardian → Reporter.
-역할 전환 시 해당 \`ruler/harness/agents/*.md\` 를 다시 읽는다. 모든 핸드오프 직후 Guardian 판정 1턴.`;
+역할 전환 시 해당 \`ruler/harness/agents/*.md\` 를 다시 읽는다. 모든 핸드오프 직후 Guardian 판정 1턴을 수행한다.
+현재 어느 역할인지 매 응답 첫 줄에 밝힌다. 한 응답에서 두 역할을 겸하지 않는다.
+
+**우선순위:** 그래프·루프를 함께 켰더라도 Guardian 의 \`VIOLATION\` 이 모든 판정을 이긴다.
+루프의 \`MET\` 이나 그래프의 노드 완료는 Guardian 판정을 대체하지 않는다.`;
 
 /**
  * 하네스 협업 본문(harness/*). 부트스트랩과 분리되어 있으며,

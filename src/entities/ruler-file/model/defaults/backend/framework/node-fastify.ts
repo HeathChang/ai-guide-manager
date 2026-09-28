@@ -104,6 +104,7 @@ src/
 - 핸들러는 \`async\` 함수 — return 값이 자동 응답 직렬화.
 - \`reply.send()\` 명시 호출도 가능하지만 \`async + return\` 형태가 일관적.
 - 한 핸들러에서 \`reply.send\` 와 \`return\` 동시 사용 금지.
+  - 근거: 응답이 두 번 전송되면서 "headers already sent" 로 터진다. 부하가 낮을 땐 타이밍상 안 터지다가 운영에서 간헐적으로 드러난다.
 
 ## Graceful Shutdown
 
@@ -155,6 +156,29 @@ export default fp(async (fastify) => {
 });
 \`\`\`
 
+### 응답 전송 — 한 번만
+
+\`\`\`ts
+// DON'T — 응답이 두 번 전송되어 "headers already sent" 로 터진다
+fastify.get('/users/:id', async (req, reply) => {
+  const user = await usersService.find(req.params.id);
+  if (!user) {
+    reply.code(404).send({ code: 'NOT_FOUND' });   // 여기서 전송하고
+  }
+  return user;                                     // 여기서 또 전송한다
+});
+
+// DO — async 핸들러에서는 return 으로만 응답한다
+fastify.get('/users/:id', async (req, reply) => {
+  const user = await usersService.find(req.params.id);
+  if (!user) {
+    reply.code(404);
+    return { code: 'NOT_FOUND' };
+  }
+  return user;
+});
+\`\`\`
+
 ### 기타 금지/권장
 
 | DON'T | DO |
@@ -164,4 +188,34 @@ export default fp(async (fastify) => {
 | 직접 외부 \`process.env\` | \`@fastify/env\` + 검증 |
 | Express 미들웨어 import 그대로 | Fastify plugin으로 래핑 |
 | pino 외 \`console.log\` | fastify.log |
+
+## 적용 범위와 경계
+
+이 문서는 **Fastify 의 스키마·플러그인·라우트 구성**만 다룬다. Express 관례를 그대로 옮겨오지 않는다.
+
+여기서 다루지 않는 것 → 레이어 구조와 DTO 는 \`backend.md\`, URL·상태 코드는 \`api-design.md\`, 인증 정책은 \`auth.md\`, 입력 검증의 보안 기준은 \`security.md\`, 에러 분류는 \`error-handling.md\`.
+
+**이 문서는 배포·프로세스 관리(PM2, 컨테이너, 오토스케일)를 다루지 않는다.** 필요하면 유저에게 별도 규칙을 요청한다.
+
+## 충돌 시 우선순위
+
+전체 순서는 \`base.md\` 의 「충돌 시 우선순위」를 따른다. 이 문서에서 자주 부딪히는 경우만 적는다.
+
+- **스키마 우선 vs 빠른 구현** — 스키마가 이긴다. 스키마 없는 라우트는 타입 추론·검증·직렬화 최적화를 전부 포기하는 선택이다.
+- **Fastify plugin vs Express 미들웨어 재사용** — plugin 이 이긴다. Express 미들웨어를 그대로 가져오면 캡슐화와 라이프사이클이 어긋난다.
+- **\`return\` vs \`reply.send\`** — async 핸들러에서는 \`return\` 이 이긴다. 둘을 섞지 않는다.
+- **이 문서 vs \`backend.md\`** — 프레임워크 관례는 이 문서가 이기지만, 레이어 경계와 DTO 분리는 \`backend.md\` 가 이긴다.
+
+## 자가 점검
+
+라우트를 추가·수정한 뒤 확인한다. **하나라도 NO면 제출하지 않는다.**
+
+- [ ] 모든 라우트에 body/params/query 스키마가 있다
+- [ ] 응답 스키마를 선언했다
+- [ ] async 핸들러에서 \`reply.send\` 와 \`return\` 을 섞지 않았다
+- [ ] 부모 컨텍스트에 노출할 데코레이터를 \`fastify-plugin\` 으로 감쌌다
+- [ ] 환경 변수를 \`@fastify/env\` 로 검증해서 읽는다
+- [ ] \`console.log\` 대신 \`fastify.log\` 를 쓴다
+- [ ] 에러 핸들러가 스택 트레이스를 응답에 넣지 않는다
+- [ ] Graceful shutdown 훅이 등록돼 있다
 `;

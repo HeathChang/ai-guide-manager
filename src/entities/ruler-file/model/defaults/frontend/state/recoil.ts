@@ -18,6 +18,7 @@ extends: [base.md, frontend.md]
 - **selector** — 파생 상태 또는 비동기 데이터. \`selector({ key, get, set? })\`.
 - **atomFamily / selectorFamily** — 매개변수화된 atom/selector.
 - **RecoilRoot** — atom의 격리 영역. 앱 최상위에 1개 필수.
+  - 근거: RecoilRoot 없이 atom 을 읽으면 런타임에서 바로 throw 한다. 테스트와 SSR 에서 이 경계가 상태 격리 단위이기도 하다.
 
 ## Key 규칙
 
@@ -47,6 +48,7 @@ extends: [base.md, frontend.md]
 ## atomFamily / selectorFamily
 
 - 매개변수가 직렬화 가능해야 한다(string/number/객체). class 인스턴스 금지.
+  - 근거: family 는 매개변수를 직렬화해 캐시 키로 쓴다. class 인스턴스는 같은 내용이어도 매번 다른 키가 되어 atom 이 무한히 늘어난다.
 - 사용 안 하는 인스턴스는 자동 해제되지 않음 → 무한히 늘어나는 키(예: uuid)면 메모리 누수.
 
 ## Stale Closure 방지
@@ -163,4 +165,34 @@ const userQuery = selector({
 | 컴포넌트 내부 atom 정의 | 모듈 레벨 |
 | 핸들러에서 stale 값 사용 | \`useRecoilCallback\` snapshot |
 | atomFamily uuid 무한 누적 | 명시적 정리 또는 size cap |
+
+## 적용 범위와 경계
+
+이 문서는 **기존 Recoil 코드를 유지·보수하는 방법**만 다룬다. Recoil 은 활발히 유지되지 않으므로 이 문서는 신규 채택을 전제하지 않는다.
+
+여기서 다루지 않는 것 → 컴포넌트 구조와 상태 유형 분류는 \`frontend.md\`, atom 파일을 어느 레이어에 둘지는 \`fsd.md\`/\`atomic.md\`, 렌더 성능 측정은 \`performance.md\`.
+
+**새 프로젝트라면 이 문서 대신 \`jotai.md\` 를 쓴다.** 멘탈 모델이 거의 같고 이관 매핑이 위에 있다. 신규 도입이 요청되면 그 사실을 유저에게 먼저 알린다.
+
+## 충돌 시 우선순위
+
+전체 순서는 \`base.md\` 의 「충돌 시 우선순위」를 따른다. 이 문서에서 자주 부딪히는 경우만 적는다.
+
+- **신규 코드의 라이브러리 선택** — Jotai 가 이긴다. 기존 Recoil 코드에 기능을 덧붙이는 경우에만 이 문서를 따른다.
+- **key 유일성 vs 짧은 이름** — 유일성이 이긴다. 도메인 prefix 없는 짧은 key 는 다른 파일과 충돌해 런타임에 터진다.
+- **모듈 레벨 정의 vs 컴포넌트 내부 정의** — 모듈 레벨이 이긴다.
+- **서버 상태** — Query 라이브러리가 이긴다. selector 로 HTTP 캐시를 직접 만들지 않는다.
+
+## 자가 점검
+
+atom 이나 selector 를 추가·수정한 뒤 확인한다. **하나라도 NO면 제출하지 않는다.**
+
+- [ ] 신규 도입이라면 Jotai 를 먼저 제안했다
+- [ ] 모든 atom/selector 가 모듈 레벨에 정의돼 있다
+- [ ] 모든 key 에 도메인 prefix 가 있고 프로젝트 안에서 유일하다
+- [ ] \`atomFamily\`/\`selectorFamily\` 매개변수가 직렬화 가능하다 — class 인스턴스가 아니다
+- [ ] 앱 최상위에 \`RecoilRoot\` 가 하나 있다
+- [ ] 읽기 전용에 \`useRecoilValue\`, 쓰기 전용에 \`useSetRecoilState\` 를 썼다
+- [ ] 콜백 안에서 stale closure 를 피했다 (\`useRecoilCallback\` 의 snapshot 사용)
+- [ ] 서버 응답 캐싱을 selector 로 직접 구현하지 않았다
 `;

@@ -62,6 +62,7 @@ button { color: var(--color-brand); }
   // 부모에서: <Input v-model="text" />
   \`\`\`
 - 이전 패턴 \`props.modelValue + emit('update:modelValue')\` 는 새 코드에서 사용하지 마라.
+  - 근거: \`defineModel()\` 이 같은 동작을 한 줄로 표현하고 타입까지 추론한다. 수동 패턴은 prop 이름과 이벤트 이름을 손으로 맞춰야 해서 오타가 조용한 미동작으로 이어진다.
 - 다중 v-model: \`defineModel<string>('first')\` + \`<Input v-model:first="...">\`.
 
 ## Computed vs watch vs watchEffect
@@ -99,6 +100,7 @@ button { color: var(--color-brand); }
 - 항상 \`:key\` 필수. **\`:key="index"\` 금지** — 항목 추가/삭제 시 잘못된 컴포넌트 재사용.
   - 근거: Vue diff 알고리즘이 key를 기준으로 재사용 결정. index는 위치가 바뀌면 같은 자식이 다른 데이터로 매핑됨.
 - 같은 요소에 \`v-if\` + \`v-for\` 동시 사용 금지 — \`<template v-if>\` 또는 computed로 필터링.
+  - 근거: Vue 3 에서는 v-if 가 먼저 평가되어 v-for 의 변수를 아직 못 본다. 참조 에러가 나거나 의도와 다른 항목이 걸러진다.
 
 ## 슬롯 / 컴포넌트 통신
 
@@ -126,11 +128,13 @@ button { color: var(--color-brand); }
 ## 빌드 / Vite
 
 - 신규는 Vite + \`@vitejs/plugin-vue\`. webpack 신규 도입 금지.
+  - 근거: Vue 3 생태계의 기본 도구가 Vite 다. webpack 으로 시작하면 SFC·HMR·SSR 플러그인을 직접 맞춰야 하고, 공식 문서의 예제가 그대로 적용되지 않는다.
 - \`vite.config.ts\` 의 \`resolve.alias\` 로 \`@\` → \`src\`.
 
 ## AI 행동 규칙
 
 - 새 컴포넌트는 \`<script setup lang="ts">\` 만 사용. Options API 코드 생성 금지.
+  - 근거: 한 코드베이스에 두 API 가 섞이면 컴포넌트를 열 때마다 어느 쪽인지 먼저 판별해야 한다. \`<script setup>\` 은 타입 추론도 더 정확하다.
 - v-for 발견 시 :key index 사용 여부 확인.
 - props 직접 mutate 시도 발견 시 즉시 emit으로 분리.
 - reactive 와 ref 혼용 발견 시 ref로 통일 권고.
@@ -197,4 +201,34 @@ const modelValue = defineModel<string>();
 | props mutate | emit |
 | :key="index" | :key="item.id" |
 | v-if + v-for 같은 요소 | computed 필터 또는 \`<template v-if>\` |
+
+## 적용 범위와 경계
+
+이 문서는 **Vue 3 Composition API + \`<script setup>\`** 만 다룬다. Vue 2 와 Options API 신규 작성에는 적용하지 않는다.
+
+여기서 다루지 않는 것 → 전역 상태는 \`pinia.md\`(신규) 또는 \`vuex.md\`(기존), SSR·라우팅·서버 라우트는 \`nuxt.md\`, 클래스·토큰은 \`styling.md\`, 접근성은 \`a11y.md\`.
+
+**이 문서는 React 규칙(\`frontend.md\`)과 함께 쓰지 않는다.** 두 문서가 같이 로드돼 있으면 진행하지 말고 유저에게 어느 프레임워크인지 묻는다.
+
+## 충돌 시 우선순위
+
+전체 순서는 \`base.md\` 의 「충돌 시 우선순위」를 따른다. 이 문서에서 자주 부딪히는 경우만 적는다.
+
+- **\`<script setup>\` vs 기존 Options API 코드** — 새 컴포넌트는 \`<script setup>\` 이 이긴다. 기존 파일을 일괄 변환할지는 유저에게 확인한다.
+- **\`defineModel()\` vs 수동 \`modelValue\` 패턴** — \`defineModel()\` 이 이긴다.
+- **\`computed\` vs \`watch\`** — 값을 파생시키는 목적이면 \`computed\` 가 이긴다. \`watch\` 는 부수효과가 필요할 때만 쓴다.
+- **Nuxt 프로젝트에서 이 문서와 \`nuxt.md\` 가 다를 때** — \`nuxt.md\` 가 이긴다.
+
+## 자가 점검
+
+컴포넌트를 제출하기 전 확인한다. **하나라도 NO면 제출하지 않는다.**
+
+- [ ] 새 컴포넌트가 \`<script setup lang="ts">\` 다 — Options API 를 새로 만들지 않았다
+- [ ] props 와 emits 를 타입으로 선언했다
+- [ ] 양방향 바인딩에 \`defineModel()\` 을 썼다
+- [ ] 파생 값을 \`computed\` 로 계산했다 — \`watch\` 로 값을 복제하지 않았다
+- [ ] \`v-for\` 에 안정적인 \`key\` 가 있다 — 배열 인덱스가 아니다
+- [ ] 재사용 로직을 \`use*\` composable 로 분리했다
+- [ ] 라우트 단위로 비동기 컴포넌트 분할을 검토했다
+- [ ] 접근성 최소선(\`alt\`, label, \`<button>\`, \`aria-label\`)을 통과한다
 `;

@@ -59,6 +59,7 @@ extends: [base.md, vue.md]
   const counter = useState('counter', () => 0);
   \`\`\`
 - 키 필수 (\`'counter'\`) — SSR-CSR hydration 매칭.
+  - 근거: 서버가 만든 상태와 클라이언트가 이어받을 상태를 이 키로 짝짓는다. 키가 없으면 하이드레이션 후 값이 초기값으로 되돌아간다.
 - 큰 도메인은 Pinia (\`state/pinia.md\`) — \`useState\` 는 작은 공유.
 
 ## SSR vs CSR vs Static
@@ -85,6 +86,7 @@ extends: [base.md, vue.md]
 - \`middleware/auth.ts\` — 라우트 navigate 시 실행 (클라이언트+서버 모두).
 - \`server/middleware/log.ts\` — 모든 서버 요청.
 - 두 종류 혼동 금지 — 폴더로 구분.
+  - 근거: 서버 미들웨어는 모든 요청에서 Node 로 실행되고 클라이언트 미들웨어는 라우팅 시점에 브라우저에서 실행된다. 섞으면 서버 전용 시크릿이 클라이언트 번들로 넘어가거나 인증 가드가 아예 동작하지 않는다.
 
 ## Plugins
 
@@ -96,6 +98,7 @@ extends: [base.md, vue.md]
 
 - \`useHead\`, \`useSeoMeta\` 컴포저블.
 - \`<head>\` 직접 조작 금지.
+  - 근거: Nuxt 가 SSR 과 클라이언트 전환에서 head 를 함께 관리한다. 직접 조작하면 하이드레이션 후 값이 되돌아가거나 중복 태그가 쌓인다.
 
 ## 이미지 / 폰트
 
@@ -167,4 +170,34 @@ const count = useState('count', () => 0);
 | 시크릿 \`NUXT_PUBLIC_\` 노출 | \`runtimeConfig\` (server only) |
 | 직접 \`<head>\` 조작 | \`useHead\` / \`useSeoMeta\` |
 | \`<img>\` / 일반 \`<a>\` | \`<NuxtImg>\` / \`<NuxtLink>\` |
+
+## 적용 범위와 경계
+
+이 문서는 **Nuxt 3** 만 다룬다. Nuxt 2 프로젝트에는 적용하지 않는다 — 그 경우 유저에게 버전을 확인한다.
+
+여기서 다루지 않는 것 → Vue 컴포넌트 문법은 \`vue.md\`, 전역 상태는 \`pinia.md\`, 클래스·토큰은 \`styling.md\`, 접근성은 \`a11y.md\`.
+
+**\`server/api\` 안의 코드는 백엔드 규칙을 따른다.** 입력 검증·인가·에러 응답은 이 문서가 아니라 백엔드 룰셋의 \`security.md\`, \`auth.md\`, \`error-handling.md\` 를 참조한다.
+
+## 충돌 시 우선순위
+
+전체 순서는 \`base.md\` 의 「충돌 시 우선순위」를 따른다. 이 문서에서 자주 부딪히는 경우만 적는다.
+
+- **이 문서 vs \`vue.md\`** — 이 문서가 이긴다. auto-import 와 SSR 라이프사이클이 순수 Vue 와 다르게 동작한다.
+- **\`useFetch\`/\`useAsyncData\` vs \`$fetch\` 직접 호출** — 컴포넌트 셋업에서는 전자가 이긴다. \`$fetch\` 는 이벤트 핸들러와 서버 라우트 안에서만 쓴다.
+- **서버 전용 값 vs 편의** — \`runtimeConfig\` 의 서버 키를 클라이언트에서 읽지 않는다. \`public\` 에 넣어 해결하려 하지 마라.
+- **SSR/CSR/Static 선택** — 명시되지 않았으면 추측하지 말고 유저에게 렌더링 모드를 묻는다.
+
+## 자가 점검
+
+변경을 제출하기 전 확인한다. **하나라도 NO면 제출하지 않는다.**
+
+- [ ] 컴포넌트 셋업의 데이터 페칭에 \`useFetch\` 또는 \`useAsyncData\` 를 썼다
+- [ ] \`$fetch\` 를 이벤트 핸들러나 \`server/api\` 안에서만 호출했다
+- [ ] 서버 미들웨어와 클라이언트 미들웨어를 올바른 폴더에 두었다
+- [ ] 서버 전용 시크릿이 \`runtimeConfig.public\` 에 없다
+- [ ] 메타데이터를 \`useHead\`/\`useSeoMeta\` 로 설정했다 — \`<head>\` 직접 조작이 없다
+- [ ] 공유 상태에 \`useState\` 를 써 요청 간 격리를 유지했다 — 모듈 스코프 변수가 아니다
+- [ ] \`server/api\` 핸들러의 입력을 검증하고 인가를 확인했다
+- [ ] auto-import 에 의존하는 이름이 실제로 해석되는지 확인했다
 `;

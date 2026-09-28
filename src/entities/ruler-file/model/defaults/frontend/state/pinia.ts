@@ -41,6 +41,7 @@ export const useCartStore = defineStore('cart', () => {
 ## 한 store = 한 도메인
 
 - 거대 store 1개 금지. 도메인 단위로 분할.
+  - 근거: 한 store 에 모든 도메인을 담으면 어느 필드 하나만 바뀌어도 그 store 를 쓰는 모든 컴포넌트가 재평가 대상이 된다. 테스트에서도 무관한 도메인까지 함께 초기화해야 한다.
 - cross-store 접근: 한 store 안에서 다른 \`useOtherStore()\` 호출 OK.
 - 순환 의존 발생하면 store 외부 함수로 추출 또는 한쪽을 합치는 방향.
 
@@ -74,7 +75,7 @@ const { addItem, clear } = cart;              // 액션은 그냥 destructure OK
   cart.$patch({ items: [], total: 0 });   // 한 번의 reactivity 트리거
   \`\`\`
   - 근거: 개별 대입은 각각 update를 일으킴. $patch는 한 번에 묶음 → 미세 성능 + 의도 명확.
-- 근거(왜 컴포넌트 직접 변경 금지): action 경계를 두면 devtools에서 변경 출처를 추적 가능. 컴포넌트 직접 변경은 누가 언제 바꿨는지 grep으로만 찾아야 한다. 중대형 앱에서 디버깅 비용 폭증.
+- 근거: 컴포넌트에서 state 를 직접 바꾸면 action 경계가 사라진다. action 을 거치면 devtools에서 변경 출처를 추적 가능. 컴포넌트 직접 변경은 누가 언제 바꿨는지 grep으로만 찾아야 한다. 중대형 앱에서 디버깅 비용 폭증.
 
 ## Reset
 
@@ -183,4 +184,33 @@ export const useUser = defineStore('user', {
 | 컴포넌트에서 \`store.x = y\` mutation | action 호출 |
 | HTTP 응답 캐시를 store에 자체 구현 | Vue Query + Pinia |
 | Options 문법 새로 시작 | Setup 문법 |
+
+## 적용 범위와 경계
+
+이 문서는 **Pinia store 설계와 Vue 컴포넌트에서의 사용법**만 다룬다. 서버 데이터의 캐싱·무효화·재시도는 다루지 않는다 — 그건 Vue Query 의 일이다.
+
+여기서 다루지 않는 것 → 컴포넌트 작성 규칙은 \`vue.md\`, SSR 라이프사이클은 \`nuxt.md\`, store 파일 위치는 프로젝트가 채택한 아키텍처 문서.
+
+**한 프로젝트에 클라이언트 상태 라이브러리는 하나만 쓴다.** \`vuex.md\` 가 함께 로드돼 있다면 신규 코드는 Pinia 로 가고 Vuex 는 동결한다.
+
+## 충돌 시 우선순위
+
+전체 순서는 \`base.md\` 의 「충돌 시 우선순위」를 따른다. 이 문서에서 자주 부딪히는 경우만 적는다.
+
+- **Setup 문법 vs Options 문법** — Setup 문법이 이긴다. 기존 store 가 Options 문법이어도 새 store 는 따라가지 않는다.
+- **\`storeToRefs()\` vs 직접 destructure** — \`storeToRefs()\` 가 이긴다. 직접 destructure 는 코드가 짧지만 반응성이 끊겨 화면이 갱신되지 않는다.
+- **action 경유 vs 컴포넌트에서 직접 대입** — action 이 이긴다. 변경 출처를 추적할 수 없게 되는 대가가 더 크다.
+- **서버 상태** — Vue Query 가 이긴다. HTTP 응답 캐시를 store 로 직접 만들지 않는다.
+
+## 자가 점검
+
+store 를 추가·수정한 뒤 확인한다. **하나라도 NO면 제출하지 않는다.**
+
+- [ ] 새 store 를 Setup 문법으로 작성했다
+- [ ] store 하나가 하나의 도메인만 담는다
+- [ ] 컴포넌트에서 \`storeToRefs()\` 로 상태를 꺼냈다 — 직접 destructure 가 없다
+- [ ] 상태 변경이 action 을 거친다 — 컴포넌트에서 \`store.x = y\` 를 하지 않았다
+- [ ] 여러 필드를 함께 바꿀 때 \`$patch\` 를 썼다
+- [ ] 서버 응답 캐싱을 store 로 직접 구현하지 않았다
+- [ ] SSR(Nuxt)을 쓴다면 store 가 요청마다 격리된다
 `;

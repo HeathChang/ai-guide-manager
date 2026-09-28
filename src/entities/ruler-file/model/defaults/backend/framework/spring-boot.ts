@@ -54,11 +54,12 @@ com.company.app
 - Spring Data JPA: \`extends JpaRepository<User, UUID>\` 또는 \`CrudRepository\`.
 - 쿼리: 메서드 이름 규칙 → 복잡해지면 \`@Query\` JPQL → 더 복잡하면 \`QueryDSL\` 또는 jOOQ.
 - 동적 쿼리는 Specification 또는 QueryDSL — JPQL 문자열 합치기 금지(SQL 인젝션).
+  - 근거: JPQL 문자열을 합치면 입력이 곧 쿼리 구조가 된다. Specification 은 파라미터 바인딩을 강제해 그 경로를 없앤다.
 
 ## 검증 — Bean Validation
 
 - DTO 필드에 \`@NotBlank\`, \`@Email\`, \`@Size(min=8)\` 등.
-- 컨트롤러 파라미터에 \`@Valid\` 필수:
+- 컨트롤러 파라미터에 \`@Valid\` 필수. 근거: DTO 에 제약 애노테이션을 달아도 \`@Valid\` 가 없으면 검증이 아예 실행되지 않는다. 검증한다고 믿는 상태로 통과하는 게 검증이 없는 것보다 위험하다.
   \`\`\`java
   @PostMapping
   public UserDto create(@Valid @RequestBody CreateUserRequest req) { ... }
@@ -78,6 +79,7 @@ public class GlobalExceptionHandler {
 \`\`\`
 
 - 스택 트레이스를 응답에 노출 금지.
+  - 근거: 내부 경로·라이브러리 버전·쿼리 구조가 그대로 드러난다. 공격자에게는 정찰 정보이고 사용자에게는 아무 쓸모가 없다.
 - 도메인 예외 클래스 계층 명확히.
 
 ## 설정 — application.yml
@@ -89,6 +91,7 @@ public class GlobalExceptionHandler {
   \`\`\`
 - 환경별 분리: \`application-{dev,prod}.yml\`.
 - 시크릿은 환경변수 또는 외부 시크릿 매니저 — yml에 평문 금지.
+  - 근거: yml 은 저장소에 커밋된다. git history 는 영원하므로 한 번 올라간 시크릿은 재발급 외에 되돌릴 방법이 없다.
 
 ## 보안 — Spring Security
 
@@ -104,16 +107,19 @@ public class GlobalExceptionHandler {
   }
   \`\`\`
 - 디폴트 비활성 금지. CSRF / CORS / session 정책을 명시적 선언.
+  - 근거: 에러를 없애려고 보안 필터를 통째로 끄는 선택이 가장 흔한 사고 경로다. 정책을 명시하면 무엇을 허용했는지 코드에 남는다.
 
 ## 로깅
 
 - SLF4J + Logback. \`System.out.println\` 금지.
+  - 근거: 레벨도 구조도 요청 상관관계도 없어 수집·검색·알림 대상이 되지 못한다. 운영에서 그 출력은 사실상 사라진 것과 같다.
 - 구조화 로깅(JSON) — Logstash 인코더 또는 \`logstash-logback-encoder\`.
 - MDC로 traceId 주입 — 모든 로그에 자동 포함.
 
 ## 비동기 / 동시성
 
 - \`@Async\` — \`@EnableAsync\` 필수, 별도 ExecutorService 정의 (default는 SimpleAsyncTaskExecutor — 풀 없음).
+  - 근거: 기본 SimpleAsyncTaskExecutor 는 요청마다 새 스레드를 만들고 재사용하지 않는다. 부하가 오르면 스레드 수가 그대로 따라 올라 OOM 으로 끝난다.
 - 가상 스레드(Java 21): \`spring.threads.virtual.enabled=true\` 검토.
 - CompletableFuture 또는 Reactor (\`WebFlux\` 채택 시).
 
@@ -202,4 +208,36 @@ Optional<User> findByEmail(@Param("email") String email);
 | application.yml 평문 시크릿 | \`\${ENV}\` + 시크릿 매니저 |
 | \`javax.*\` import | \`jakarta.*\` |
 | \`System.out\` | SLF4J Logger |
+
+## 적용 범위와 경계
+
+이 문서는 **Spring Boot 의 Bean/DI, 레이어 구현, 검증, 예외 처리, 설정**만 다룬다. 배포와 인프라(Kubernetes, 서비스 메시)는 다루지 않는다.
+
+여기서 다루지 않는 것 → 레이어 구조의 원칙은 \`backend.md\`, URL·상태 코드는 \`api-design.md\`, 인증 정책은 \`auth.md\`, 쿼리·인덱스는 \`database.md\`, 에러 분류는 \`error-handling.md\`.
+
+**이 문서는 Spring Security 정책을 대신 정하지 않는다.** 어떤 경로를 누구에게 열지는 제품 결정이다. 명시되지 않았으면 추측하지 말고 유저에게 묻는다.
+
+## 충돌 시 우선순위
+
+전체 순서는 \`base.md\` 의 「충돌 시 우선순위」를 따른다. 이 문서에서 자주 부딪히는 경우만 적는다.
+
+- **보안 필터 유지 vs 에러 제거** — 보안이 이긴다. CSRF·CORS 에러를 없애려고 설정을 통째로 끄지 않는다.
+- **생성자 주입 vs 필드 주입** — 생성자 주입이 이긴다. 필드 주입은 필수 의존성을 숨기고 테스트에서 교체를 막는다.
+  - 근거: 생성자 시그니처가 곧 의존성 목록이다. 필드 주입은 그 목록을 숨겨 클래스가 무엇을 필요로 하는지 읽어서는 알 수 없게 만든다.
+- **Controller 얇게 유지 vs 코드 줄 수** — 얇게가 이긴다.
+- **이 문서 vs \`backend.md\`** — 프레임워크 관례는 이 문서가 이기지만, 레이어 경계와 DTO 분리는 \`backend.md\` 가 이긴다.
+
+## 자가 점검
+
+기능을 추가·수정한 뒤 확인한다. **하나라도 NO면 제출하지 않는다.**
+
+- [ ] Controller 에 비즈니스 로직이 없다
+- [ ] 요청 DTO 파라미터에 \`@Valid\` 가 붙어 있고 제약 애노테이션이 있다
+- [ ] 의존성을 생성자 주입으로 받는다 — 필드 \`@Autowired\` 가 없다
+- [ ] Entity 를 그대로 반환하지 않고 DTO 로 매핑했다
+- [ ] \`@Transactional\` 이 Service 에 있다 — Controller/Repository 가 아니다
+- [ ] \`@ControllerAdvice\` 예외 핸들러가 스택 트레이스를 응답에 넣지 않는다
+- [ ] Spring Security 의 CSRF/CORS/session 정책을 명시적으로 선언했다
+- [ ] \`System.out.println\` 대신 SLF4J 로거를 쓴다
+- [ ] 설정값을 \`application.yml\` + 프로파일로 분리했다
 `;
